@@ -3,15 +3,16 @@ import { siteConfig } from '../data/siteData';
 import ThemeToggle from './ThemeToggle.astro';
 import SearchDialog from './SearchDialog.astro';
 const { posts = [] } = Astro.props;
+const base = siteConfig.base;
 ---
 
 <header class="header" id="header">
   <nav class="header-nav container">
-    <a href="/" class="logo gradient-text">{siteConfig.title}</a>
+    <a href={base ? base : '/'} class="logo gradient-text">{siteConfig.title}</a>
 
     <div class="nav-links" id="nav-links">
       {siteConfig.navLinks.map(link => (
-        <a href={link.href} class="nav-link">
+        <a href={base + link.href} class="nav-link">
           <span class="nav-icon">{link.icon}</span>
           <span class="nav-label">{link.name}</span>
         </a>

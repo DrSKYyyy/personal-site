@@ -1,12 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { siteConfig } from '../data/siteData';
+const base = siteConfig.base;
 ---
 
 <Layout title="关于">
   <section class="about-page container page-enter">
     <div class="about-header">
       <div class="about-avatar">
-        <img src="/images/avatar.svg" alt="头像" />
+        <img src={base + siteConfig.avatar} alt="头像" />
       </div>
       <h1 class="section-title">关于我</h1>
     </div>

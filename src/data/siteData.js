@@ -1,4 +1,5 @@
 export const siteConfig = {
+  base: '/personal-site',
   title: '追风少年',
   description: '一个有趣、真诚的年轻人的数字花园',
   author: '追风少年',

@@ -1,12 +1,13 @@
 ---
 import { siteConfig } from '../data/siteData';
 import VisitorCounter from './VisitorCounter.astro';
+const base = siteConfig.base;
 ---
 
 <footer class="footer">
   <div class="container footer-content">
     <div class="footer-brand">
-      <a href="/" class="footer-logo gradient-text">{siteConfig.title}</a>
+      <a href={base ? base : '/'} class="footer-logo gradient-text">{siteConfig.title}</a>
       <p class="footer-desc">{siteConfig.description}</p>
     </div>
 

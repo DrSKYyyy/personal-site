@@ -13,6 +13,7 @@ export interface Props {
 
 const { title, date, tags = [], coverImage } = Astro.props;
 const giscusConfigured = siteConfig.giscus.repo !== 'your-username/your-repo';
+const base = siteConfig.base;
 ---
 
 <Layout title={title}>
@@ -61,7 +62,7 @@ const giscusConfigured = siteConfig.giscus.repo !== 'your-username/your-repo';
     </div>
 
     <nav class="article-footer">
-      <a href="/writing" class="btn btn-outline">
+      <a href={base + '/writing'} class="btn btn-outline">
         ← 返回文章列表
       </a>
     </nav>

@@ -9,13 +9,15 @@ export interface SearchResult {
 
 const { posts = [] } = Astro.props as { posts?: any[] };
 
+const base = '/personal-site';
+
 const searchData: SearchResult[] = posts.map((post: any) => ({
   title: post.data?.title || post.title || '',
-  url: `/writing/${post.slug || ''}`,
+  url: (post.slug ? base + '/writing/' + post.slug : ''),
   description: post.data?.description || post.description || '',
   date: post.data?.date || post.date || '',
   tags: post.data?.tags || post.tags || [],
-})).filter(p => p.title && p.url !== '/writing/');
+})).filter(p => p.title && p.url);
 ---
 
 <script id="search-data" type="application/json">{JSON.stringify(searchData)}</script>

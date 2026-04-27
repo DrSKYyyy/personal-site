@@ -1,6 +1,8 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import { siteConfig } from '../../data/siteData';
+const base = siteConfig.base;
 
 function getTimePeriod(hour) {
   if (hour >= 0 && hour < 5) return '凌晨';
@@ -80,7 +82,7 @@ const months = [
         const postDate = new Date(post.data.date);
         const timePeriod = getTimePeriod(postDate.getHours());
         return (
-          <a href={`/writing/${post.slug}`} class="post-item card"
+          <a href={base + '/writing/' + post.slug} class="post-item card"
             data-tags={(post.data.tags || []).join(',')}
             data-date={post.data.date}
             data-title={post.data.title}
