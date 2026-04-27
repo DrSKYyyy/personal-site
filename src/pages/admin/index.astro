@@ -1,0 +1,931 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { siteConfig } from '../../data/siteData';
+---
+
+<Layout title="后台管理">
+  <section class="admin-page container page-enter" id="admin-app">
+    <div id="admin-content"></div>
+  </section>
+</Layout>
+
+<style>
+  .admin-page {
+    max-width: 1000px;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+
+  .admin-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-card h2 {
+    margin-bottom: 1.5rem;
+  }
+
+  .admin-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 0.95rem;
+    font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    outline: none;
+    transition: border-color var(--transition-fast);
+    margin-bottom: 1rem;
+  }
+
+  .admin-input:focus {
+    border-color: var(--color-primary);
+  }
+
+  .admin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.5rem;
+    border-radius: var(--radius-xl);
+    border: none;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .admin-btn.primary {
+    background: var(--color-gradient);
+    color: white;
+  }
+
+  .admin-btn.primary:hover {
+    transform: scale(1.03);
+  }
+
+  .admin-btn.secondary {
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+  }
+
+  .admin-btn.secondary:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .admin-btn.danger {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .admin-btn.danger:hover {
+    background: #c0392b;
+  }
+
+  .admin-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .admin-error {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #fde8e8;
+    border-radius: var(--radius-sm);
+  }
+
+  .admin-success {
+    color: #27ae60;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #e8f8f0;
+    border-radius: var(--radius-sm);
+  }
+
+  .admin-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-secondary);
+  }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .admin-header h1 {
+    font-size: 1.6rem;
+  }
+
+  .admin-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+  }
+
+  .admin-content-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .admin-content-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    transition: all var(--transition-fast);
+    cursor: pointer;
+  }
+
+  .admin-content-item:hover {
+    border-color: var(--color-primary);
+    background: var(--color-bg);
+  }
+
+  .admin-content-item .item-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .admin-content-item .item-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .admin-content-item .item-meta {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+  }
+
+  .admin-content-item .item-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .admin-content-item .item-actions button {
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all var(--transition-fast);
+  }
+
+  .admin-content-item .item-actions button:hover {
+    border-color: var(--color-primary);
+  }
+
+  .admin-content-item .item-actions button.del {
+    color: #e74c3c;
+  }
+
+  .admin-content-item .item-actions button.del:hover {
+    border-color: #e74c3c;
+    background: #fde8e8;
+  }
+
+  .admin-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-tab {
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .admin-tab:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .admin-tab.active {
+    background: var(--color-gradient);
+    border-color: transparent;
+    color: white;
+  }
+
+  .editor-section textarea {
+    width: 100%;
+    min-height: 400px;
+    padding: 1rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    background: var(--color-bg);
+    color: var(--color-text);
+    outline: none;
+    resize: vertical;
+    tab-size: 2;
+  }
+
+  .editor-section textarea:focus {
+    border-color: var(--color-primary);
+  }
+
+  .editor-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .editor-toolbar .label {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-right: 0.5rem;
+  }
+
+  .editor-toolbar input {
+    padding: 0.4rem 0.75rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .editor-toolbar input:focus {
+    border-color: var(--color-primary);
+  }
+
+  .editor-preview {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    line-height: 1.8;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .editor-preview h1 { font-size: 1.5rem; margin: 1rem 0 0.5rem; }
+  .editor-preview h2 { font-size: 1.3rem; margin: 0.75rem 0 0.5rem; }
+  .editor-preview h3 { font-size: 1.1rem; margin: 0.5rem 0 0.3rem; }
+  .editor-preview p { margin-bottom: 0.75rem; }
+  .editor-preview code {
+    background: var(--color-surface);
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+  }
+  .editor-preview pre {
+    background: var(--color-surface);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    margin: 0.75rem 0;
+    border: 1px solid var(--color-border);
+  }
+
+  .upload-area {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    color: var(--color-text-secondary);
+  }
+
+  .upload-area:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .upload-area.dragover {
+    border-color: var(--color-accent);
+    background: var(--color-bg);
+  }
+
+  .hidden { display: none; }
+  .mt-1 { margin-top: 1rem; }
+  .flex { display: flex; }
+  .gap-1 { gap: 1rem; }
+  .flex-wrap { flex-wrap: wrap; }
+</style>
+
+<script is:inline>
+(function() {
+  var APP = {
+    password: '{{siteConfig.admin.password}}',
+    siteUrl: '{{siteConfig.admin.siteUrl}}',
+    state: 'login',
+    token: '',
+    repoOwner: '',
+    repoName: '',
+    files: [],
+    currentFile: null,
+    currentTab: 'blog',
+  };
+
+  var root = document.getElementById('admin-content');
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function render() {
+    var stored = sessionStorage.getItem('admin_session');
+    if (stored) {
+      try {
+        var s = JSON.parse(stored);
+        APP.token = s.token;
+        APP.repoOwner = s.owner;
+        APP.repoName = s.repo;
+        APP.state = 'dashboard';
+      } catch(e) { sessionStorage.removeItem('admin_session'); }
+    }
+
+    switch(APP.state) {
+      case 'login': renderLogin(); break;
+      case 'dashboard': renderDashboard(); break;
+      case 'editor': renderEditor(); break;
+    }
+  }
+
+  function renderLogin() {
+    root.innerHTML =
+      '<div class="admin-card" style="max-width:480px;margin:2rem auto;">' +
+        '<h2 style="text-align:center;">🔐 后台管理登录</h2>' +
+        '<p style="text-align:center;color:var(--color-text-secondary);margin-bottom:1.5rem;">请输入管理员密码和 GitHub 令牌</p>' +
+        '<div id="login-error" class="hidden"></div>' +
+        '<input type="password" id="login-password" class="admin-input" placeholder="管理员密码" />' +
+        '<input type="text" id="login-token" class="admin-input" placeholder="GitHub Personal Access Token" />' +
+        '<p style="font-size:0.8rem;color:var(--color-text-secondary);margin:-0.5rem 0 1rem;">Token 需要 <code>repo</code> 或 <code>public_repo</code> 权限</p>' +
+        '<input type="text" id="login-owner" class="admin-input" placeholder="GitHub 用户名 (如 DrSKYyyy)" />' +
+        '<input type="text" id="login-repo" class="admin-input" placeholder="仓库名 (如 my-website)" />' +
+        '<button id="login-btn" class="admin-btn primary" style="width:100%;justify-content:center;">登录</button>' +
+      '</div>';
+    document.getElementById('login-btn').addEventListener('click', handleLogin);
+  }
+
+  function handleLogin() {
+    var pw = document.getElementById('login-password').value;
+    var token = document.getElementById('login-token').value;
+    var owner = document.getElementById('login-owner').value;
+    var repo = document.getElementById('login-repo').value;
+    var errEl = document.getElementById('login-error');
+
+    if (!pw || !token || !owner || !repo) {
+      errEl.className = 'admin-error'; errEl.textContent = '请填写所有字段';
+      return;
+    }
+
+    if (pw !== APP.password) {
+      errEl.className = 'admin-error'; errEl.textContent = '密码错误';
+      return;
+    }
+
+    APP.token = token;
+    APP.repoOwner = owner;
+    APP.repoName = repo;
+
+    sessionStorage.setItem('admin_session', JSON.stringify({
+      token: token, owner: owner, repo: repo, time: Date.now()
+    }));
+
+    APP.state = 'dashboard';
+    render();
+  }
+
+  function logout() {
+    sessionStorage.removeItem('admin_session');
+    APP.token = '';
+    APP.state = 'login';
+    render();
+  }
+
+  async function githubApi(path, method, body) {
+    var url = 'https://api.github.com/repos/' + APP.repoOwner + '/' + APP.repoName + '/' + path;
+    var opts = {
+      method: method || 'GET',
+      headers: {
+        'Authorization': 'Bearer ' + APP.token,
+        'Accept': 'application/vnd.github.v3+json',
+      }
+    };
+    if (body) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    var res = await fetch(url, opts);
+    var data = await res.json();
+    if (!res.ok) {
+      var msg = data.message || ('HTTP ' + res.status);
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  function renderDashboard() {
+    root.innerHTML =
+      '<div class="admin-header">' +
+        '<h1>📝 内容管理</h1>' +
+        '<div class="admin-user-info">' +
+          '<span>' + escapeHtml(APP.repoOwner) + '/' + escapeHtml(APP.repoName) + '</span>' +
+          '<button class="admin-btn secondary" onclick="APP.logout()" style="padding:0.4rem 0.8rem;font-size:0.85rem;">退出</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="admin-tabs">' +
+        '<button class="admin-tab active" data-tab="blog">📄 文章</button>' +
+        '<button class="admin-tab" data-tab="projects">📦 项目</button>' +
+        '<button class="admin-tab" data-tab="upload">📤 上传文件</button>' +
+        '<button class="admin-tab" data-tab="new" style="margin-left:auto;">✏️ 新建文章</button>' +
+      '</div>' +
+      '<div id="dashboard-content"><div class="admin-loading">⏳ 加载中...</div></div>';
+
+    document.querySelectorAll('.admin-tab').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.admin-tab').forEach(function(b) { b.className = 'admin-tab'; });
+        btn.classList.add('active');
+        APP.currentTab = btn.dataset.tab;
+        loadTabContent();
+      });
+    });
+
+    APP.currentTab = 'blog';
+    loadTabContent();
+  }
+
+  async function loadTabContent() {
+    var content = document.getElementById('dashboard-content');
+    if (!content) return;
+
+    if (APP.currentTab === 'upload') {
+      renderUploadTab(content);
+      return;
+    }
+    if (APP.currentTab === 'new') {
+      renderNewPostTab(content);
+      return;
+    }
+
+    content.innerHTML = '<div class="admin-loading">⏳ 加载中...</div>';
+
+    try {
+      var path = APP.currentTab === 'blog' ? 'src/content/blog' : 'src/content/projects';
+      APP.files = [];
+      try {
+        var data = await githubApi('contents/' + path);
+        if (Array.isArray(data)) {
+          APP.files = data.filter(function(f) { return f.name.endsWith('.md'); });
+        }
+      } catch(e) {
+        APP.files = [];
+      }
+      renderFileList(content);
+    } catch(e) {
+      content.innerHTML = '<div class="admin-error">加载失败: ' + escapeHtml(e.message) + '</div>';
+    }
+  }
+
+  function renderFileList(container) {
+    if (APP.files.length === 0) {
+      container.innerHTML =
+        '<div class="admin-card" style="text-align:center;color:var(--color-text-secondary);">' +
+          '暂无内容，点击"新建文章"开始创作' +
+        '</div>';
+      return;
+    }
+
+    var html = '<div class="admin-content-list">';
+    APP.files.forEach(function(f) {
+      html +=
+        '<div class="admin-content-item" data-path="' + escapeHtml(f.path) + '" data-sha="' + escapeHtml(f.sha) + '">' +
+          '<div class="item-info">' +
+            '<div class="item-title">' + escapeHtml(f.name) + '</div>' +
+            '<div class="item-meta">' + (f.sha ? 'SHA: ' + f.sha.substring(0, 7) : '') + '</div>' +
+          '</div>' +
+          '<div class="item-actions">' +
+            '<button class="edit-btn">编辑</button>' +
+            '<button class="del">删除</button>' +
+          '</div>' +
+        '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+
+    container.querySelectorAll('.edit-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        var item = e.target.closest('.admin-content-item');
+        if (!item) return;
+        startEdit(item.dataset.path, item.dataset.sha);
+      });
+    });
+
+    container.querySelectorAll('.del').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        var item = e.target.closest('.admin-content-item');
+        if (!item) return;
+        deleteFile(item.dataset.path, item.dataset.sha);
+      });
+    });
+  }
+
+  function renderUploadTab(container) {
+    container.innerHTML =
+      '<div class="admin-card">' +
+        '<h2>📤 上传 Markdown 文件</h2>' +
+        '<p style="color:var(--color-text-secondary);margin-bottom:1rem;">拖拽 .md 文件到下方区域，或点击选择文件</p>' +
+        '<div class="upload-area" id="upload-area">' +
+          '<p style="font-size:2rem;margin-bottom:0.5rem;">📁</p>' +
+          '<p>点击选择文件，或将 .md 文件拖拽到此处</p>' +
+          '<p style="font-size:0.8rem;margin-top:0.5rem;">支持单文件上传</p>' +
+        '</div>' +
+        '<input type="file" id="file-input" accept=".md" style="display:none" />' +
+        '<div id="upload-status" class="hidden mt-1"></div>' +
+        '<div id="upload-preview" class="hidden mt-1"></div>' +
+      '</div>';
+
+    var area = document.getElementById('upload-area');
+    var fileInput = document.getElementById('file-input');
+
+    area.addEventListener('click', function() { fileInput.click(); });
+
+    area.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      area.classList.add('dragover');
+    });
+
+    area.addEventListener('dragleave', function() {
+      area.classList.remove('dragover');
+    });
+
+    area.addEventListener('drop', function(e) {
+      e.preventDefault();
+      area.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) {
+        handleUploadFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files.length > 0) {
+        handleUploadFile(fileInput.files[0]);
+      }
+    });
+  }
+
+  function handleUploadFile(file) {
+    if (!file.name.endsWith('.md')) {
+      showUploadStatus('请上传 .md 格式的文件', 'error');
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      showUploadPreview(file.name, e.target.result);
+    };
+    reader.readAsText(file);
+  }
+
+  function showUploadPreview(filename, content) {
+    var preview = document.getElementById('upload-preview');
+    var status = document.getElementById('upload-status');
+    status.className = 'hidden';
+    preview.className = 'mt-1';
+    preview.innerHTML =
+      '<div class="admin-card">' +
+        '<p><strong>文件名：</strong>' + escapeHtml(filename) + '</p>' +
+        '<p><strong>大小：</strong>' + content.length + ' 字符</p>' +
+        '<div class="flex gap-1 flex-wrap" style="margin-top:1rem;">' +
+          '<button class="admin-btn primary" id="upload-save-btn">保存到文章</button>' +
+          '<button class="admin-btn secondary" id="upload-cancel-btn">取消</button>' +
+        '</div>' +
+        '<p style="margin-top:0.5rem;font-size:0.85rem;color:var(--color-text-secondary);">文件将保存到 <code>src/content/blog/' + escapeHtml(filename) + '</code></p>' +
+      '</div>';
+
+    document.getElementById('upload-save-btn').addEventListener('click', function() {
+      saveUploadedFile('src/content/blog/' + filename, content);
+    });
+    document.getElementById('upload-cancel-btn').addEventListener('click', function() {
+      preview.className = 'hidden';
+      document.getElementById('file-input').value = '';
+    });
+  }
+
+  async function saveUploadedFile(path, content) {
+    var btn = document.getElementById('upload-save-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 保存中...';
+
+    showUploadStatus('正在保存到 GitHub...', '');
+
+    try {
+      var base64 = btoa(unescape(encodeURIComponent(content)));
+      var body = {
+        message: '📤 上传文件: ' + path.split('/').pop(),
+        content: base64,
+        branch: 'main',
+      };
+      try {
+        var existing = await githubApi('contents/' + path);
+        if (existing.sha) body.sha = existing.sha;
+      } catch(e) {}
+
+      await githubApi('contents/' + path, 'PUT', body);
+      showUploadStatus('✅ 文件已保存到 GitHub！刷新页面后即可看到', 'success');
+      btn.textContent = '✅ 已保存';
+    } catch(e) {
+      showUploadStatus('❌ 保存失败: ' + escapeHtml(e.message), 'error');
+      btn.disabled = false;
+      btn.textContent = '保存到文章';
+    }
+  }
+
+  function showUploadStatus(msg, type) {
+    var status = document.getElementById('upload-status');
+    status.className = '';
+    status.className = type === 'error' ? 'admin-error' : (type === 'success' ? 'admin-success' : '');
+    status.textContent = msg;
+  }
+
+  function renderNewPostTab(container) {
+    var today = new Date();
+    var dateStr = today.getFullYear() + '-' +
+      String(today.getMonth() + 1).padStart(2, '0') + '-' +
+      String(today.getDate()).padStart(2, '0');
+    var slug = dateStr + '-new-post';
+
+    container.innerHTML =
+      '<div class="admin-card editor-section">' +
+        '<h2>✏️ 新建文章</h2>' +
+        '<div class="editor-toolbar">' +
+          '<span class="label">标题:</span>' +
+          '<input type="text" id="editor-title" placeholder="文章标题" />' +
+        '</div>' +
+        '<div class="editor-toolbar">' +
+          '<span class="label">标签:</span>' +
+          '<input type="text" id="editor-tags" placeholder="标签，逗号分隔" />' +
+        '</div>' +
+        '<div class="editor-toolbar">' +
+          '<span class="label">可见性:</span>' +
+          '<select id="editor-visibility" style="padding:0.4rem 0.75rem;border:2px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg);color:var(--color-text);">' +
+            '<option value="公开">公开</option>' +
+            '<option value="私密">私密</option>' +
+            '<option value="草稿">草稿</option>' +
+          '</select>' +
+          '<span class="label" style="margin-left:1rem;">文件名:</span>' +
+          '<input type="text" id="editor-filename" value="' + slug + '" style="flex:2;" />' +
+          '<span style="font-size:0.8rem;color:var(--color-text-secondary);">.md</span>' +
+        '</div>' +
+        '<textarea id="editor-content" placeholder="在此编写 Markdown 内容..."># \n\n开始写作...</textarea>' +
+        '<div class="flex gap-1 flex-wrap" style="margin-top:1rem;">' +
+          '<button class="admin-btn primary" id="editor-save-btn">💾 保存到 GitHub</button>' +
+          '<button class="admin-btn secondary" id="editor-preview-btn">👁️ 预览</button>' +
+          '<button class="admin-btn secondary" id="editor-back-btn">← 返回</button>' +
+        '</div>' +
+        '<div id="editor-status" class="hidden mt-1"></div>' +
+        '<div id="editor-preview-area" class="editor-preview hidden"></div>' +
+      '</div>';
+
+    document.getElementById('editor-save-btn').addEventListener('click', saveNewPost);
+    document.getElementById('editor-preview-btn').addEventListener('click', togglePreview);
+    document.getElementById('editor-back-btn').addEventListener('click', function() { APP.state = 'dashboard'; render(); });
+  }
+
+  function startEdit(path, sha) {
+    APP.state = 'editor';
+    APP.currentFile = { path: path, sha: sha };
+    render();
+  }
+
+  function renderEditor() {
+    var isNew = !APP.currentFile;
+    root.innerHTML =
+      '<div class="admin-card editor-section">' +
+        '<h2>' + (isNew ? '✏️ 新建文章' : '✏️ 编辑: ' + escapeHtml(APP.currentFile.path)) + '</h2>' +
+        '<div id="editor-loading" class="admin-loading">⏳ 加载文件内容...</div>' +
+        '<div id="editor-form" class="hidden">' +
+          '<div class="editor-toolbar">' +
+            '<span class="label">标题:</span>' +
+            '<input type="text" id="editor-title" placeholder="文章标题" />' +
+          '</div>' +
+          '<div class="editor-toolbar">' +
+            '<span class="label">标签:</span>' +
+            '<input type="text" id="editor-tags" placeholder="标签，逗号分隔" />' +
+          '</div>' +
+          '<div class="editor-toolbar">' +
+            '<span class="label">可见性:</span>' +
+            '<select id="editor-visibility" style="padding:0.4rem 0.75rem;border:2px solid var(--color-border);border-radius:var(--radius-sm);background:var(--color-bg);color:var(--color-text);">' +
+              '<option value="公开">公开</option>' +
+              '<option value="私密">私密</option>' +
+              '<option value="草稿">草稿</option>' +
+            '</select>' +
+          '</div>' +
+          '<textarea id="editor-content" placeholder="在此编写 Markdown 内容..." style="min-height:500px;"></textarea>' +
+          '<div class="flex gap-1 flex-wrap" style="margin-top:1rem;">' +
+            '<button class="admin-btn primary" id="editor-save-btn">💾 保存到 GitHub</button>' +
+            '<button class="admin-btn secondary" id="editor-preview-btn">👁️ 预览</button>' +
+            '<button class="admin-btn secondary" id="editor-back-btn">← 返回</button>' +
+          '</div>' +
+          '<div id="editor-status" class="hidden mt-1"></div>' +
+          '<div id="editor-preview-area" class="editor-preview hidden"></div>' +
+        '</div>' +
+      '</div>';
+
+    document.getElementById('editor-back-btn').addEventListener('click', function() { APP.state = 'dashboard'; render(); });
+    document.getElementById('editor-preview-btn').addEventListener('click', togglePreview);
+
+    if (!isNew) {
+      loadFileContent(APP.currentFile.path);
+    }
+  }
+
+  async function loadFileContent(path) {
+    try {
+      var data = await githubApi('contents/' + path);
+      var content = '';
+      if (data.content) {
+        content = decodeURIComponent(escape(atob(data.content)));
+      }
+      APP.currentFile.sha = data.sha;
+
+      var title = '', tags = [], visibility = '公开', body = content;
+      var match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+      if (match) {
+        var frontmatter = match[1];
+        body = match[2].trim();
+        var t = frontmatter.match(/title:\s*["']?(.+?)["']?$/m);
+        if (t) title = t[1];
+        var tg = frontmatter.match(/tags:\s*\[([^\]]*)\]/);
+        if (tg) tags = tg[1].split(',').map(function(s) { return s.trim().replace(/["']/g, ''); });
+        var v = frontmatter.match(/visibility:\s*(.+)$/m);
+        if (v) visibility = v[1].trim();
+      }
+
+      document.getElementById('editor-loading').className = 'hidden';
+      document.getElementById('editor-form').className = '';
+      document.getElementById('editor-title').value = title;
+      document.getElementById('editor-tags').value = tags.join(', ');
+      document.getElementById('editor-visibility').value = visibility;
+      document.getElementById('editor-content').value = body;
+      document.getElementById('editor-save-btn').addEventListener('click', saveEditedFile);
+    } catch(e) {
+      document.getElementById('editor-loading').innerHTML = '<div class="admin-error">加载失败: ' + escapeHtml(e.message) + '</div>';
+    }
+  }
+
+  function togglePreview() {
+    var area = document.getElementById('editor-preview-area');
+    var content = document.getElementById('editor-content').value;
+    if (area.className.indexOf('hidden') !== -1) {
+      area.className = 'editor-preview';
+      area.innerHTML = simpleMarkdown(content);
+    } else {
+      area.className = 'editor-preview hidden';
+    }
+  }
+
+  function simpleMarkdown(md) {
+    var html = escapeHtml(md);
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+    html = html.replace(/\n\n/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    html = html.replace(/<p><\/p>/g, '');
+    return html;
+  }
+
+  function getFrontmatter(title, tags, visibility) {
+    var tagsStr = tags ? '[' + tags.split(',').map(function(t) { return '"' + t.trim() + '"'; }).filter(Boolean).join(', ') + ']' : '';
+    return '---\ntitle: "' + (title || '无标题') + '"\ndate: "' + new Date().toISOString().split('T')[0] + '"\ndescription: ""\n' +
+      (tagsStr ? 'tags: ' + tagsStr + '\n' : '') +
+      'visibility: "' + visibility + '"\n---\n\n';
+  }
+
+  async function saveNewPost() {
+    var title = document.getElementById('editor-title').value;
+    var tags = document.getElementById('editor-tags').value;
+    var visibility = document.getElementById('editor-visibility').value;
+    var content = document.getElementById('editor-content').value;
+    var filename = document.getElementById('editor-filename').value || ('post-' + Date.now());
+
+    var body = getFrontmatter(title, tags, visibility) + content;
+    var path = 'src/content/blog/' + filename.replace(/\.md$/i, '') + '.md';
+    var btn = document.getElementById('editor-save-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 保存中...';
+    showEditorStatus('正在保存到 GitHub...', '');
+
+    try {
+      var base64 = btoa(unescape(encodeURIComponent(body)));
+      await githubApi('contents/' + path, 'PUT', {
+        message: '📝 新建文章: ' + title,
+        content: base64,
+        branch: 'main',
+      });
+      showEditorStatus('✅ 文章已发布到 GitHub！', 'success');
+      btn.textContent = '✅ 已保存';
+    } catch(e) {
+      showEditorStatus('❌ 保存失败: ' + escapeHtml(e.message), 'error');
+      btn.disabled = false;
+      btn.textContent = '💾 保存到 GitHub';
+    }
+  }
+
+  async function saveEditedFile() {
+    var title = document.getElementById('editor-title').value;
+    var tags = document.getElementById('editor-tags').value;
+    var visibility = document.getElementById('editor-visibility').value;
+    var content = document.getElementById('editor-content').value;
+    var btn = document.getElementById('editor-save-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ 保存中...';
+    showEditorStatus('正在保存到 GitHub...', '');
+
+    try {
+      var body = getFrontmatter(title, tags, visibility) + content;
+      var base64 = btoa(unescape(encodeURIComponent(body)));
+      await githubApi('contents/' + APP.currentFile.path, 'PUT', {
+        message: '📝 更新文章: ' + title,
+        content: base64,
+        sha: APP.currentFile.sha,
+        branch: 'main',
+      });
+      showEditorStatus('✅ 更新已推送到 GitHub！', 'success');
+      btn.textContent = '✅ 已保存';
+    } catch(e) {
+      showEditorStatus('❌ 保存失败: ' + escapeHtml(e.message), 'error');
+      btn.disabled = false;
+      btn.textContent = '💾 保存到 GitHub';
+    }
+  }
+
+  function showEditorStatus(msg, type) {
+    var el = document.getElementById('editor-status');
+    if (!el) return;
+    el.className = 'mt-1';
+    el.className = 'mt-1 ' + (type === 'error' ? 'admin-error' : (type === 'success' ? 'admin-success' : ''));
+    el.textContent = msg;
+  }
+
+  async function deleteFile(path, sha) {
+    if (!confirm('确定要删除 ' + path + ' 吗？此操作不可撤销！')) return;
+    try {
+      await githubApi('contents/' + path, 'DELETE', {
+        message: '🗑️ 删除: ' + path.split('/').pop(),
+        sha: sha,
+        branch: 'main',
+      });
+      APP.files = APP.files.filter(function(f) { return f.path !== path; });
+      var content = document.getElementById('dashboard-content');
+      if (content) renderFileList(content);
+    } catch(e) {
+      alert('删除失败: ' + e.message);
+    }
+  }
+
+  window.APP = APP;
+  document.addEventListener('DOMContentLoaded', render);
+  if (document.readyState !== 'loading') render();
+})();
+</script>

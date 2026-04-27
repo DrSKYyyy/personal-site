@@ -1,0 +1,51 @@
+---
+import { getCollection } from 'astro:content';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import EasterEgg from '../components/EasterEgg.astro';
+import CloudBackground from '../components/CloudBackground.astro';
+import { siteConfig } from '../data/siteData';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  posts?: any[];
+}
+
+const { title, description, posts: propPosts = [] } = Astro.props;
+const blogPosts = await getCollection('blog');
+const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description || siteConfig.description} />
+    <title>{title ? `${title} | ${siteConfig.title}` : siteConfig.title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {siteConfig.analytics.cloudflare && (
+      <script src={siteConfig.analytics.cloudflare} defer></script>
+    )}
+  </head>
+  <body>
+    <Header posts={allPosts} />
+    <CloudBackground />
+    <main class="main-content">
+      <slot />
+    </main>
+    <Footer />
+    <EasterEgg />
+  </body>
+</html>
+
+<style>
+  .main-content {
+    min-height: calc(100vh - var(--nav-height));
+    padding-top: var(--nav-height);
+    position: relative;
+    z-index: 1;
+  }
+</style>

@@ -1,0 +1,56 @@
+export const siteConfig = {
+  title: '追风少年',
+  description: '一个有趣、真诚的年轻人的数字花园',
+  author: '追风少年',
+  avatar: '/images/avatar.svg',
+  slogan: 'Hi, I\'m 追风少年',
+  subSlogan: '赤诚、爽朗、不畏风',
+  social: {
+    github: 'https://github.com',
+    twitter: 'https://twitter.com',
+    email: 'hello@example.com',
+  },
+  navLinks: [
+    { name: 'Home', href: '/', icon: '😊' },
+    { name: 'About', href: '/about', icon: '☁️' },
+    { name: 'Projects', href: '/projects', icon: '🧰' },
+    { name: 'Writing', href: '/writing', icon: '✍️' },
+    { name: 'Special', href: '/special', icon: '⭐' },
+  ],
+  easterEggs: {
+    trigger: '少年',
+    paperCount: 30,
+  },
+  giscus: {
+    repo: 'your-username/your-repo',
+    repoId: 'your-repo-id',
+    category: 'Announcements',
+    categoryId: 'your-category-id',
+    mapping: 'pathname',
+    strict: '1',
+    reactionsEnabled: '1',
+    emitMetadata: '0',
+    inputPosition: 'bottom',
+    lang: 'zh-CN',
+    theme: 'preferred_color_scheme',
+  },
+  analytics: {
+    cloudflare: '',
+  },
+  admin: {
+    password: 'admin123',
+    siteUrl: 'https://your-site.github.io',
+  },
+  intro: {
+    lines: [
+      '你好，欢迎来到我的数字花园 🌱',
+      '我是「追风少年」',
+      '一个赤诚、爽朗、不畏风的有趣灵魂',
+      '请随意漫步 🚀',
+    ],
+    typingSpeed: 80,
+    pauseBetweenLines: 600,
+    bgColorStart: '#5DADE2',
+    bgColorEnd: '#F4D03F',
+  },
+};

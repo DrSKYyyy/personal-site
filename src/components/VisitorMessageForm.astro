@@ -1,0 +1,200 @@
+---
+const { 
+  title = '💌 给我留言',
+  subtitle = '无需登录，只有站长能看到你的留言',
+  endpoint = '',
+  placeholder = '写下你想说的话...',
+} = Astro.props;
+---
+
+<section class="message-form-section">
+  <h3 class="message-form-title">{title}</h3>
+  <p class="message-form-subtitle">{subtitle}</p>
+
+  <form id="message-form" class="message-form">
+    <div class="form-row">
+      <input type="text" name="name" class="form-input" placeholder="你的名字（必填）" required />
+      <input type="email" name="email" class="form-input" placeholder="邮箱（可选，方便我回复你）" />
+    </div>
+    <input type="hidden" name="_subject" value="" id="form-subject" />
+    <textarea name="message" class="form-textarea" placeholder={placeholder} required></textarea>
+    <div class="form-actions">
+      <button type="submit" class="form-submit" id="form-submit-btn">发送留言 ✈️</button>
+      <span class="form-privacy">你的信息仅站长可见</span>
+    </div>
+    <div id="form-status" class="form-status"></div>
+  </form>
+</section>
+
+<script is:inline>
+  (function() {
+    var form = document.getElementById('message-form');
+    if (!form) return;
+
+    var subject = document.getElementById('form-subject');
+    if (subject) {
+      subject.value = '来自网站留言 - ' + document.title;
+    }
+
+    var btn = document.getElementById('form-submit-btn');
+    var statusEl = document.getElementById('form-status');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      var name = form.querySelector('[name="name"]').value.trim();
+      var message = form.querySelector('[name="message"]').value.trim();
+
+      if (!name || !message) {
+        statusEl.className = 'form-status form-status-error';
+        statusEl.textContent = '请填写名字和留言内容';
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = '⏳ 发送中...';
+      statusEl.className = 'form-status';
+      statusEl.textContent = '';
+
+      var data = new FormData(form);
+
+      var defaultEndpoint = 'https://formspree.io/f/your-form-id';
+      var endpoint = form.getAttribute('data-endpoint') || defaultEndpoint;
+
+      fetch(endpoint, {
+        method: 'POST',
+        body: data,
+        headers: { 'Accept': 'application/json' },
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(result) {
+        if (result.ok || result.success) {
+          statusEl.className = 'form-status form-status-success';
+          statusEl.textContent = '✅ 留言已发送！我会尽快查看。';
+          form.reset();
+        } else {
+          throw new Error('发送失败');
+        }
+      })
+      .catch(function() {
+        statusEl.className = 'form-status form-status-error';
+        statusEl.textContent = '❌ 发送失败，请稍后再试。你也可以直接发邮件给我。';
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.textContent = '发送留言 ✈️';
+      });
+    });
+  })();
+</script>
+
+<style>
+  .message-form-section {
+    margin-top: 1.5rem;
+    padding: 1.5rem;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .message-form-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .message-form-subtitle {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 1.25rem;
+  }
+
+  .message-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .form-row .form-input {
+    flex: 1;
+  }
+
+  .form-input, .form-textarea {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    outline: none;
+    transition: border-color var(--transition-fast);
+  }
+
+  .form-input:focus, .form-textarea:focus {
+    border-color: var(--color-primary);
+  }
+
+  .form-textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .form-submit {
+    padding: 0.6rem 1.5rem;
+    border-radius: var(--radius-xl);
+    border: none;
+    background: var(--color-gradient);
+    color: white;
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .form-submit:hover {
+    transform: scale(1.03);
+  }
+
+  .form-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .form-privacy {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+  }
+
+  .form-status {
+    font-size: 0.85rem;
+    padding: 0.5rem 0;
+  }
+
+  .form-status-success {
+    color: #27ae60;
+  }
+
+  .form-status-error {
+    color: #e74c3c;
+  }
+
+  @media (max-width: 768px) {
+    .form-row {
+      flex-direction: column;
+    }
+  }
+</style>

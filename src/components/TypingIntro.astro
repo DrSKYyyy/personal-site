@@ -1,0 +1,198 @@
+---
+import { siteConfig } from '../data/siteData';
+const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = siteConfig.intro;
+---
+
+<div id="typing-intro" class="typing-intro">
+  <div class="typing-bg" style="background: linear-gradient(135deg, {bgColorStart}, {bgColorEnd});"></div>
+  <div class="typing-content">
+    <div class="typing-lines" id="typing-lines"></div>
+    <div class="typing-hint" id="typing-hint">点击任意位置跳过</div>
+  </div>
+</div>
+
+<script is:inline>
+  (function() {
+    var intro = document.getElementById('typing-intro');
+    var hint = document.getElementById('typing-hint');
+    var container = document.getElementById('typing-lines');
+
+    var skip = false;
+
+    function dismiss() {
+      if (!intro) return;
+      intro.classList.add('fade-out');
+      setTimeout(function() {
+        intro.style.display = 'none';
+      }, 600);
+    }
+
+    function startTyping() {
+      var lines = [];
+      try {
+        var data = document.getElementById('typing-data');
+        if (data) lines = JSON.parse(data.textContent || '[]');
+      } catch(e) { lines = []; }
+      if (lines.length === 0) { dismiss(); return; }
+
+      var speed = 80;
+      var pause = 600;
+      var lineIndex = 0;
+      var charIndex = 0;
+
+      function typeLine() {
+        if (skip || lineIndex >= lines.length) {
+          dismiss();
+          return;
+        }
+
+        if (charIndex === 0) {
+          var p = document.createElement('p');
+          p.className = 'typing-line';
+          container.appendChild(p);
+        }
+
+        var currentP = container.lastElementChild;
+        var currentLine = lines[lineIndex];
+
+        if (charIndex < currentLine.length) {
+          currentP.textContent += currentLine[charIndex];
+          charIndex++;
+          setTimeout(typeLine, speed);
+        } else {
+          currentP.classList.add('done');
+          charIndex = 0;
+          lineIndex++;
+          if (lineIndex < lines.length) {
+            setTimeout(typeLine, pause);
+          } else {
+            setTimeout(dismiss, pause + 400);
+          }
+        }
+      }
+
+      setTimeout(typeLine, 300);
+    }
+
+    intro.addEventListener('click', function() {
+      skip = true;
+      dismiss();
+    });
+
+    if (intro) {
+      var navEntries = performance.getEntriesByType('navigation');
+      if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+        sessionStorage.removeItem('intro_shown');
+      }
+
+      var shown = sessionStorage.getItem('intro_shown');
+      if (!shown) {
+        sessionStorage.setItem('intro_shown', '1');
+        intro.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        setTimeout(startTyping, 200);
+
+        setTimeout(function() {
+          if (hint) hint.style.opacity = '1';
+        }, 3000);
+      } else {
+        intro.style.display = 'none';
+      }
+    }
+  })();
+</script>
+
+<script id="typing-data" type="application/json">{JSON.stringify(lines)}</script>
+
+<style>
+  .typing-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: introFadeIn 0.8s ease forwards;
+  }
+
+  .typing-intro.fade-out {
+    animation: introFadeOut 0.6s ease forwards;
+  }
+
+  @keyframes introFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes introFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  .typing-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.95;
+  }
+
+  .typing-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 2rem;
+    max-width: 700px;
+  }
+
+  .typing-lines {
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .typing-line {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    color: white;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    line-height: 1.6;
+    opacity: 0;
+    min-height: 1.8em;
+  }
+
+  .typing-line.done {
+    opacity: 1;
+  }
+
+  .typing-line:last-child:not(.done)::after {
+    content: '|';
+    animation: cursorBlink 0.7s step-end infinite;
+  }
+
+  @keyframes cursorBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .typing-hint {
+    margin-top: 2.5rem;
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    animation: hintBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes hintBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  @media (max-width: 768px) {
+    .typing-line {
+      font-size: 1.3rem;
+    }
+  }
+</style>

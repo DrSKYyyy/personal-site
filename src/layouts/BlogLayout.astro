@@ -1,0 +1,257 @@
+---
+import Layout from './Layout.astro';
+import GiscusComments from '../components/GiscusComments.astro';
+import VisitorMessageForm from '../components/VisitorMessageForm.astro';
+import { siteConfig } from '../data/siteData';
+
+export interface Props {
+  title: string;
+  date: string;
+  tags?: string[];
+  coverImage?: string;
+}
+
+const { title, date, tags = [], coverImage } = Astro.props;
+const giscusConfigured = siteConfig.giscus.repo !== 'your-username/your-repo';
+---
+
+<Layout title={title}>
+  <article class="blog-article container page-enter">
+    <header class="article-header">
+      <h1 class="article-title gradient-text">{title}</h1>
+      <div class="article-meta">
+        <time datetime={date}>{date}</time>
+        {tags.length > 0 && (
+          <div class="article-tags">
+            {tags.map(tag => <span class="tag">{tag}</span>)}
+          </div>
+        )}
+      </div>
+      {coverImage && <img src={coverImage} alt={title} class="article-cover" />}
+    </header>
+
+    <div class="article-content">
+      <slot />
+    </div>
+
+    <div class="comments-area">
+      <div class="comments-tabs">
+        <button class="comments-tab active" data-tab="discuss">💬 公开讨论</button>
+        <button class="comments-tab" data-tab="message">💌 匿名留言</button>
+      </div>
+
+      <div id="comments-tab-discuss" class="comments-tab-content active">
+        {giscusConfigured ? (
+          <GiscusComments />
+        ) : (
+          <div class="comments-placeholder">
+            <p>🔧 公开讨论功能正在配置中...</p>
+            <p class="placeholder-hint">站长完成 Giscus 配置后即可使用</p>
+          </div>
+        )}
+      </div>
+
+      <div id="comments-tab-message" class="comments-tab-content">
+        <VisitorMessageForm
+          title="💌 匿名留言"
+          subtitle="无需登录，只有站长能看到你的留言"
+          placeholder="写下你对这篇文章的想法..."
+        />
+      </div>
+    </div>
+
+    <nav class="article-footer">
+      <a href="/writing" class="btn btn-outline">
+        ← 返回文章列表
+      </a>
+    </nav>
+  </article>
+</Layout>
+
+<script is:inline>
+  (function() {
+    var tabs = document.querySelectorAll('.comments-tab');
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        tab.classList.add('active');
+
+        var target = tab.dataset.tab;
+        document.querySelectorAll('.comments-tab-content').forEach(function(c) {
+          c.classList.remove('active');
+        });
+        var el = document.getElementById('comments-tab-' + target);
+        if (el) el.classList.add('active');
+      });
+    });
+
+    var subject = document.getElementById('form-subject');
+    if (subject) {
+      subject.value = '来自文章评论 - ' + document.title;
+    }
+  })();
+</script>
+
+<style>
+  .blog-article {
+    max-width: 800px;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+
+  .article-header {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+
+  .article-title {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+  }
+
+  .article-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    justify-content: center;
+  }
+
+  .article-cover {
+    margin-top: 1.5rem;
+    border-radius: var(--radius-md);
+    width: 100%;
+    object-fit: cover;
+    max-height: 400px;
+  }
+
+  .article-content {
+    line-height: 1.9;
+    font-size: 1.05rem;
+  }
+
+  .article-content :global(h2) {
+    margin: 2rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .article-content :global(h3) {
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  .article-content :global(p) {
+    margin-bottom: 1.25rem;
+  }
+
+  .article-content :global(ul), .article-content :global(ol) {
+    margin: 1rem 0;
+    padding-left: 1.5rem;
+  }
+
+  .article-content :global(li) {
+    margin-bottom: 0.5rem;
+  }
+
+  .article-content :global(blockquote) {
+    border-left: 4px solid var(--color-primary);
+    margin: 1.5rem 0;
+    padding: 1rem 1.5rem;
+    background: var(--color-surface);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-style: italic;
+  }
+
+  .article-content :global(code) {
+    background: var(--color-surface);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .article-content :global(pre) {
+    background: var(--color-surface);
+    padding: 1.25rem;
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border: 1px solid var(--color-border);
+  }
+
+  .article-content :global(img) {
+    border-radius: var(--radius-md);
+    margin: 1.5rem 0;
+  }
+
+  .comments-area {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .comments-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .comments-tab {
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .comments-tab:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .comments-tab.active {
+    background: var(--color-gradient);
+    border-color: transparent;
+    color: white;
+  }
+
+  .comments-tab-content {
+    display: none;
+  }
+
+  .comments-tab-content.active {
+    display: block;
+  }
+
+  .comments-placeholder {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-secondary);
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+  }
+
+  .placeholder-hint {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    opacity: 0.7;
+  }
+
+  .article-footer {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--color-border);
+  }
+</style>

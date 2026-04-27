@@ -1,0 +1,171 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+const projects = await getCollection('projects');
+const sortedProjects = projects
+  .sort((a, b) => {
+    const dateA = a.data.date || '';
+    const dateB = b.data.date || '';
+    return dateB.localeCompare(dateA);
+  });
+
+const categories = ['全部', ...new Set(sortedProjects.map(p => p.data.category))];
+---
+
+<Layout title="项目">
+  <section class="projects-page container page-enter">
+    <h1 class="section-title">我的项目</h1>
+
+    <div class="filter-bar">
+      {categories.map(cat => (
+        <button class="filter-btn" data-category={cat}>
+          {cat}
+        </button>
+      ))}
+    </div>
+
+    <div class="projects-grid" id="projects-grid">
+      {sortedProjects.map(project => (
+        <a
+          href={project.data.link}
+          target={project.data.link.startsWith('http') ? '_blank' : undefined}
+          rel={project.data.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+          class="project-card card"
+          data-category={project.data.category}
+        >
+          <div class="project-category">{project.data.category}</div>
+          <h3 class="project-title">{project.data.title}</h3>
+          <p class="project-desc">{project.data.description}</p>
+          {project.data.date && (
+            <div class="project-meta">
+              <span class="project-date">{project.data.date}</span>
+            </div>
+          )}
+          {project.data.tags && (
+            <div class="project-tags">
+              {project.data.tags.map(tag => <span class="tag">{tag}</span>)}
+            </div>
+          )}
+        </a>
+      ))}
+    </div>
+  </section>
+</Layout>
+
+<script is:inline>
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const projects = document.querySelectorAll('.project-card');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const category = btn.dataset.category;
+      projects.forEach(project => {
+        if (category === '全部' || project.dataset.category === category) {
+          project.style.display = 'flex';
+          project.style.animation = 'fadeInUp 0.4s ease forwards';
+        } else {
+          project.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  document.querySelector('.filter-btn')?.classList.add('active');
+</script>
+
+<style>
+  .projects-page {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+  }
+
+  .filter-bar {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .filter-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .filter-btn.active {
+    background: var(--color-gradient);
+    border-color: transparent;
+    color: white;
+  }
+
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .project-card {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .project-category {
+    font-size: 0.75rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .project-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    transition: color var(--transition-fast);
+  }
+
+  .project-card:hover .project-title {
+    color: var(--color-primary);
+  }
+
+  .project-desc {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    flex: 1;
+    margin-bottom: 1rem;
+  }
+
+  .project-meta {
+    margin-bottom: 0.75rem;
+  }
+
+  .project-date {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+  }
+
+  .project-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+---
+
+<button id="theme-toggle" class="theme-toggle" aria-label="切换暗黑模式">
+  <span class="sun-icon">☀️</span>
+  <span class="moon-icon">🌙</span>
+</button>
+
+<style>
+  .theme-toggle {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.3rem;
+    padding: 0.4rem;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .theme-toggle:hover {
+    transform: scale(1.15);
+    box-shadow: var(--shadow-md);
+  }
+
+  [data-theme="dark"] .sun-icon { display: block; }
+  [data-theme="dark"] .moon-icon { display: none; }
+  .sun-icon { display: none; }
+  .moon-icon { display: block; }
+</style>
+
+<script>
+  (function() {
+    const toggle = document.getElementById('theme-toggle');
+    const stored = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = stored || (prefersDark ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+
+    toggle.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    });
+  })();
+</script>

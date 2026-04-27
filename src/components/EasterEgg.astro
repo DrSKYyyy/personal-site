@@ -1,0 +1,78 @@
+---
+
+---
+
+<div id="easter-egg-container" aria-hidden="true"></div>
+
+<script is:inline>
+  (function() {
+    const container = document.getElementById('easter-egg-container');
+    if (!container) return;
+
+    let buffer = '';
+
+    function createPaperPlane() {
+      const plane = document.createElement('div');
+      plane.className = 'paper-plane';
+      plane.innerHTML = '✈️';
+      plane.style.left = Math.random() * 80 + 10 + '%';
+      plane.style.top = Math.random() * 80 + 10 + '%';
+      plane.style.fontSize = (Math.random() * 16 + 16) + 'px';
+
+      const angle = Math.random() * 360;
+      const distance = 300 + Math.random() * 400;
+      const rad = (angle * Math.PI) / 180;
+      plane.style.setProperty('--fly-x', Math.cos(rad) * distance + 'px');
+      plane.style.setProperty('--fly-y', Math.sin(rad) * distance + 'px');
+      plane.style.setProperty('--fly-rotate', (Math.random() * 720 - 360) + 'deg');
+      plane.style.animationDelay = Math.random() * 0.5 + 's';
+
+      container.appendChild(plane);
+
+      setTimeout(() => plane.remove(), 3000);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key.length === 1) {
+        buffer += e.key;
+        if (buffer.length > 2) buffer = buffer.slice(-2);
+        if (buffer === '少年' || buffer === 'sn') {
+          buffer = '';
+          const count = 30;
+          for (let i = 0; i < count; i++) {
+            setTimeout(createPaperPlane, i * 80);
+          }
+        }
+      }
+    });
+  })();
+</script>
+
+<style>
+  #easter-egg-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .paper-plane {
+    position: absolute;
+    animation: paperPlane 2.5s ease-out forwards;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+
+  @keyframes paperPlane {
+    0% {
+      transform: translate(0, 0) rotate(0deg) scale(1);
+      opacity: 1;
+    }
+    20% {
+      opacity: 1;
+    }
+    100% {
+      transform: translate(var(--fly-x, 300px), var(--fly-y, -300px)) rotate(var(--fly-rotate, 45deg)) scale(0.3);
+      opacity: 0;
+    }
+  }
+</style>
