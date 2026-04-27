@@ -44,14 +44,13 @@ export const siteConfig = {
   },
   intro: {
     lines: [
-      '你好，欢迎来到我的数字花园 🌱',
-      '我是「追风少年」',
-      '一个赤诚、爽朗、不畏风的有趣灵魂',
-      '请随意漫步 🚀',
+      "Hi, I'm 天天",
+      '欢迎来到我的世界',
     ],
+    subtitle: '我追风，也等你',
     typingSpeed: 80,
-    pauseBetweenLines: 600,
-    bgColorStart: '#5DADE2',
-    bgColorEnd: '#F4D03F',
+    eraseSpeed: 40,
+    pauseAfterType: 1500,
+    pauseBeforeNext: 500,
   },
 };

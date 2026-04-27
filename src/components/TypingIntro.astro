@@ -1,32 +1,35 @@
 ---
 import { siteConfig } from '../data/siteData';
-const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = siteConfig.intro;
+const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNext } = siteConfig.intro;
 ---
 
 <div id="typing-intro" class="typing-intro">
-  <div class="typing-bg" style={`background: linear-gradient(135deg, ${bgColorStart}, ${bgColorEnd});`}></div>
+  <div class="typing-bg"></div>
   <div class="typing-content">
     <div class="typing-lines" id="typing-lines"></div>
+    <div class="typing-subtitle" id="typing-subtitle">我追风，也等你</div>
     <div class="typing-hint" id="typing-hint">点击任意位置跳过</div>
   </div>
-  <div id="typing-data" style="display:none">{JSON.stringify(lines)}</div>
+  <div id="typing-data" style="display:none">{JSON.stringify({ lines: lines, subtitle: subtitle })}</div>
 </div>
 
 <script is:inline>
   (function() {
     var intro = document.getElementById('typing-intro');
-    var hint = document.getElementById('typing-hint');
     var container = document.getElementById('typing-lines');
+    var hint = document.getElementById('typing-hint');
+    var subtitleEl = document.getElementById('typing-subtitle');
 
     if (!intro) return;
 
     var skip = false;
 
-    var lines = [];
+    var cfg = { lines: [], subtitle: '' };
     try {
       var dataEl = document.getElementById('typing-data');
-      if (dataEl && dataEl.textContent) lines = JSON.parse(dataEl.textContent);
-    } catch(e) { lines = []; }
+      if (dataEl && dataEl.textContent) cfg = JSON.parse(dataEl.textContent);
+    } catch(e) {}
+    cfg.lines = cfg.lines || [];
 
     function dismiss() {
       if (!intro) return;
@@ -38,45 +41,54 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
     }
 
     function startTyping() {
-      if (!lines || lines.length === 0) { dismiss(); return; }
+      if (cfg.lines.length < 2) { dismiss(); return; }
 
-      var speed = 80;
-      var pause = 600;
-      var lineIndex = 0;
-      var charIndex = 0;
+      var line1 = cfg.lines[0];
+      var line2 = cfg.lines[1];
+      var p = document.createElement('p');
+      p.className = 'typing-line';
+      container.appendChild(p);
 
-      function typeLine() {
-        if (skip || lineIndex >= lines.length) {
-          dismiss();
-          return;
-        }
-
-        if (charIndex === 0) {
-          var p = document.createElement('p');
-          p.className = 'typing-line';
-          container.appendChild(p);
-        }
-
-        var currentP = container.lastElementChild;
-        var currentLine = lines[lineIndex];
-
-        if (charIndex < currentLine.length) {
-          currentP.textContent += currentLine[charIndex];
-          charIndex++;
-          setTimeout(typeLine, speed);
-        } else {
-          currentP.classList.add('done');
-          charIndex = 0;
-          lineIndex++;
-          if (lineIndex < lines.length) {
-            setTimeout(typeLine, pause);
+      function typeForward(text, callback) {
+        var i = 0;
+        function step() {
+          if (skip) { dismiss(); return; }
+          if (i <= text.length) {
+            p.textContent = text.substring(0, i);
+            i++;
+            setTimeout(step, typingSpeed);
           } else {
-            setTimeout(dismiss, pause + 800);
+            p.textContent = text;
+            p.classList.add('done');
+            if (callback) setTimeout(callback, pauseAfterType);
           }
         }
+        step();
       }
 
-      setTimeout(typeLine, 300);
+      function eraseBackward(text, callback) {
+        var i = text.length;
+        function step() {
+          if (skip) { dismiss(); return; }
+          if (i >= 0) {
+            p.textContent = text.substring(0, i);
+            i--;
+            setTimeout(step, eraseSpeed);
+          } else {
+            p.textContent = '';
+            if (callback) setTimeout(callback, pauseBeforeNext);
+          }
+        }
+        step();
+      }
+
+      typeForward(line1, function() {
+        eraseBackward(line1, function() {
+          typeForward(line2, function() {
+            setTimeout(dismiss, pauseAfterType);
+          });
+        });
+      });
     }
 
     intro.addEventListener('click', function() {
@@ -94,7 +106,10 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
       sessionStorage.setItem('intro_shown', '1');
       intro.style.display = 'flex';
       document.body.style.overflow = 'hidden';
-      setTimeout(startTyping, 200);
+      setTimeout(function() {
+        if (subtitleEl) subtitleEl.classList.add('visible');
+        startTyping();
+      }, 200);
 
       setTimeout(function() {
         if (hint) hint.style.opacity = '1';
@@ -134,7 +149,7 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
   .typing-bg {
     position: absolute;
     inset: 0;
-    opacity: 0.95;
+    background: #FFFFFF;
   }
 
   .typing-content {
@@ -142,11 +157,11 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
     z-index: 1;
     text-align: center;
     padding: 2rem;
-    max-width: 700px;
+    max-width: 800px;
   }
 
   .typing-lines {
-    min-height: 120px;
+    min-height: 100px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -155,17 +170,18 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
 
   .typing-line {
     font-family: var(--font-heading);
-    font-size: 1.8rem;
-    color: white;
-    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
-    line-height: 1.6;
+    font-size: 3.2rem;
+    color: #2C3E50;
+    line-height: 1.4;
     opacity: 1;
-    min-height: 1.8em;
+    min-height: 1.4em;
   }
 
   .typing-line:last-child:not(.done)::after {
     content: '|';
+    color: #2C3E50;
     animation: cursorBlink 0.7s step-end infinite;
+    font-weight: 300;
   }
 
   @keyframes cursorBlink {
@@ -173,10 +189,23 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
     50% { opacity: 0; }
   }
 
+  .typing-subtitle {
+    margin-top: 1.5rem;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: #999;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  .typing-subtitle.visible {
+    opacity: 1;
+  }
+
   .typing-hint {
-    margin-top: 2.5rem;
+    margin-top: 3rem;
     font-size: 0.85rem;
-    color: rgba(255,255,255,0.6);
+    color: #ccc;
     opacity: 0;
     transition: opacity 0.8s ease;
     animation: hintBounce 2s ease-in-out infinite;
@@ -189,7 +218,11 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
 
   @media (max-width: 768px) {
     .typing-line {
-      font-size: 1.3rem;
+      font-size: 2rem;
+    }
+
+    .typing-subtitle {
+      font-size: 0.95rem;
     }
   }
 </style>
