@@ -39,7 +39,7 @@ export const siteConfig = {
   },
   admin: {
     password: 'admin123',
-    siteUrl: 'https://your-site.github.io',
+    siteUrl: 'https://drskyyyy.github.io/personal-site',
   },
   intro: {
     lines: [

@@ -3,6 +3,8 @@ import { siteConfig } from '../data/siteData';
 const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = siteConfig.intro;
 ---
 
+<script id="typing-data" type="application/json">{JSON.stringify(lines)}</script>
+
 <div id="typing-intro" class="typing-intro">
   <div class="typing-bg" style="background: linear-gradient(135deg, {bgColorStart}, {bgColorEnd});"></div>
   <div class="typing-content">
@@ -17,6 +19,8 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
     var hint = document.getElementById('typing-hint');
     var container = document.getElementById('typing-lines');
 
+    if (!intro) return;
+
     var skip = false;
 
     function dismiss() {
@@ -24,6 +28,7 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
       intro.classList.add('fade-out');
       setTimeout(function() {
         intro.style.display = 'none';
+        document.body.style.overflow = '';
       }, 600);
     }
 
@@ -33,7 +38,7 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
         var data = document.getElementById('typing-data');
         if (data) lines = JSON.parse(data.textContent || '[]');
       } catch(e) { lines = []; }
-      if (lines.length === 0) { dismiss(); return; }
+      if (!lines || lines.length === 0) { dismiss(); return; }
 
       var speed = 80;
       var pause = 600;
@@ -66,7 +71,7 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
           if (lineIndex < lines.length) {
             setTimeout(typeLine, pause);
           } else {
-            setTimeout(dismiss, pause + 400);
+            setTimeout(dismiss, pause + 800);
           }
         }
       }
@@ -79,30 +84,26 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
       dismiss();
     });
 
-    if (intro) {
-      var navEntries = performance.getEntriesByType('navigation');
-      if (navEntries.length > 0 && navEntries[0].type === 'reload') {
-        sessionStorage.removeItem('intro_shown');
-      }
+    var navEntries = performance.getEntriesByType('navigation');
+    if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+      sessionStorage.removeItem('intro_shown');
+    }
 
-      var shown = sessionStorage.getItem('intro_shown');
-      if (!shown) {
-        sessionStorage.setItem('intro_shown', '1');
-        intro.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-        setTimeout(startTyping, 200);
+    var shown = sessionStorage.getItem('intro_shown');
+    if (!shown) {
+      sessionStorage.setItem('intro_shown', '1');
+      intro.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      setTimeout(startTyping, 200);
 
-        setTimeout(function() {
-          if (hint) hint.style.opacity = '1';
-        }, 3000);
-      } else {
-        intro.style.display = 'none';
-      }
+      setTimeout(function() {
+        if (hint) hint.style.opacity = '1';
+      }, 3000);
+    } else {
+      intro.style.display = 'none';
     }
   })();
 </script>
-
-<script id="typing-data" type="application/json">{JSON.stringify(lines)}</script>
 
 <style>
   .typing-intro {
