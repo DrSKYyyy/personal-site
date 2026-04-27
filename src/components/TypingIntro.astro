@@ -1,6 +1,5 @@
 ---
 import { siteConfig } from '../data/siteData';
-const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNext } = siteConfig.intro;
 ---
 
 <div id="typing-intro" class="typing-intro">
@@ -10,7 +9,14 @@ const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNex
     <div class="typing-subtitle" id="typing-subtitle">我追风，也等你</div>
     <div class="typing-hint" id="typing-hint">点击任意位置跳过</div>
   </div>
-  <div id="typing-data" style="display:none">{JSON.stringify({ lines: lines, subtitle: subtitle })}</div>
+  <div id="typing-data" style="display:none">{JSON.stringify({
+    lines: siteConfig.intro.lines,
+    subtitle: siteConfig.intro.subtitle,
+    typingSpeed: siteConfig.intro.typingSpeed,
+    eraseSpeed: siteConfig.intro.eraseSpeed,
+    pauseAfterType: siteConfig.intro.pauseAfterType,
+    pauseBeforeNext: siteConfig.intro.pauseBeforeNext,
+  })}</div>
 </div>
 
 <script is:inline>
@@ -24,12 +30,16 @@ const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNex
 
     var skip = false;
 
-    var cfg = { lines: [], subtitle: '' };
+    var cfg = {};
     try {
       var dataEl = document.getElementById('typing-data');
       if (dataEl && dataEl.textContent) cfg = JSON.parse(dataEl.textContent);
     } catch(e) {}
     cfg.lines = cfg.lines || [];
+    cfg.typingSpeed = cfg.typingSpeed || 80;
+    cfg.eraseSpeed = cfg.eraseSpeed || 40;
+    cfg.pauseAfterType = cfg.pauseAfterType || 1500;
+    cfg.pauseBeforeNext = cfg.pauseBeforeNext || 500;
 
     function dismiss() {
       if (!intro) return;
@@ -56,11 +66,11 @@ const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNex
           if (i <= text.length) {
             p.textContent = text.substring(0, i);
             i++;
-            setTimeout(step, typingSpeed);
+            setTimeout(step, cfg.typingSpeed);
           } else {
             p.textContent = text;
             p.classList.add('done');
-            if (callback) setTimeout(callback, pauseAfterType);
+            if (callback) setTimeout(callback, cfg.pauseAfterType);
           }
         }
         step();
@@ -73,10 +83,10 @@ const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNex
           if (i >= 0) {
             p.textContent = text.substring(0, i);
             i--;
-            setTimeout(step, eraseSpeed);
+            setTimeout(step, cfg.eraseSpeed);
           } else {
             p.textContent = '';
-            if (callback) setTimeout(callback, pauseBeforeNext);
+            if (callback) setTimeout(callback, cfg.pauseBeforeNext);
           }
         }
         step();
@@ -85,7 +95,7 @@ const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNex
       typeForward(line1, function() {
         eraseBackward(line1, function() {
           typeForward(line2, function() {
-            setTimeout(dismiss, pauseAfterType);
+            setTimeout(dismiss, cfg.pauseAfterType);
           });
         });
       });
@@ -179,14 +189,15 @@ const { lines, subtitle, typingSpeed, eraseSpeed, pauseAfterType, pauseBeforeNex
 
   .typing-line:last-child:not(.done)::after {
     content: '|';
-    color: #2C3E50;
-    animation: cursorBlink 0.7s step-end infinite;
-    font-weight: 300;
+    color: #5DADE2;
+    font-weight: 700;
+    animation: cursorPulse 0.6s ease-in-out infinite;
+    margin-left: 2px;
   }
 
-  @keyframes cursorBlink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+  @keyframes cursorPulse {
+    0%, 100% { opacity: 1; transform: scaleY(1); }
+    50% { opacity: 0.2; transform: scaleY(0.6); }
   }
 
   .typing-subtitle {
