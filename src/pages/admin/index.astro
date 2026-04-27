@@ -6,6 +6,7 @@ import { siteConfig } from '../../data/siteData';
 <Layout title="后台管理">
   <section class="admin-page container page-enter" id="admin-app">
     <div id="admin-content"></div>
+    <div id="admin-config" style="display:none">{JSON.stringify({ password: siteConfig.admin.password, siteUrl: siteConfig.admin.siteUrl })}</div>
   </section>
 </Layout>
 
@@ -348,9 +349,15 @@ import { siteConfig } from '../../data/siteData';
 
 <script is:inline>
 (function() {
+  var adminConfig = { password: '', siteUrl: '' };
+  try {
+    var configEl = document.getElementById('admin-config');
+    if (configEl && configEl.textContent) adminConfig = JSON.parse(configEl.textContent);
+  } catch(e) {}
+
   var APP = {
-    password: '{{siteConfig.admin.password}}',
-    siteUrl: '{{siteConfig.admin.siteUrl}}',
+    password: adminConfig.password || '',
+    siteUrl: adminConfig.siteUrl || '',
     state: 'login',
     token: '',
     repoOwner: '',

@@ -25,7 +25,7 @@ const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description || siteConfig.description} />
     <title>{title ? `${title} | ${siteConfig.title}` : siteConfig.title}</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={siteConfig.base + '/favicon.svg'} />
     {siteConfig.analytics.cloudflare && (
       <script src={siteConfig.analytics.cloudflare} defer></script>
     )}

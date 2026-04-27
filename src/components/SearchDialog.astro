@@ -1,4 +1,6 @@
 ---
+import { siteConfig } from '../data/siteData';
+
 export interface SearchResult {
   title: string;
   url: string;
@@ -9,7 +11,7 @@ export interface SearchResult {
 
 const { posts = [] } = Astro.props as { posts?: any[] };
 
-const base = '/personal-site';
+const base = siteConfig.base;
 
 const searchData: SearchResult[] = posts.map((post: any) => ({
   title: post.data?.title || post.title || '',
@@ -19,8 +21,6 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
   tags: post.data?.tags || post.tags || [],
 })).filter(p => p.title && p.url);
 ---
-
-<script id="search-data" type="application/json">{JSON.stringify(searchData)}</script>
 
 <dialog id="search-dialog" class="search-dialog">
   <div class="search-overlay" data-close></div>
@@ -45,6 +45,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
       <div class="search-hint">输入关键词开始搜索...</div>
     </div>
   </div>
+  <div id="search-data" style="display:none">{JSON.stringify(searchData)}</div>
 </dialog>
 
 <script is:inline>
@@ -58,7 +59,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
       var postsData = [];
       try {
         var searchDataEl = document.getElementById('search-data');
-        if (searchDataEl && searchDataEl.textContent) {
+        if (searchDataEl && searchDataEl.textContent && searchDataEl.textContent !== '[]') {
           postsData = JSON.parse(searchDataEl.textContent);
         }
       } catch (e) {

@@ -3,14 +3,13 @@ import { siteConfig } from '../data/siteData';
 const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = siteConfig.intro;
 ---
 
-<script id="typing-data" type="application/json">{JSON.stringify(lines)}</script>
-
 <div id="typing-intro" class="typing-intro">
-  <div class="typing-bg" style="background: linear-gradient(135deg, {bgColorStart}, {bgColorEnd});"></div>
+  <div class="typing-bg" style={`background: linear-gradient(135deg, ${bgColorStart}, ${bgColorEnd});`}></div>
   <div class="typing-content">
     <div class="typing-lines" id="typing-lines"></div>
     <div class="typing-hint" id="typing-hint">点击任意位置跳过</div>
   </div>
+  <div id="typing-data" style="display:none">{JSON.stringify(lines)}</div>
 </div>
 
 <script is:inline>
@@ -23,6 +22,12 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
 
     var skip = false;
 
+    var lines = [];
+    try {
+      var dataEl = document.getElementById('typing-data');
+      if (dataEl && dataEl.textContent) lines = JSON.parse(dataEl.textContent);
+    } catch(e) { lines = []; }
+
     function dismiss() {
       if (!intro) return;
       intro.classList.add('fade-out');
@@ -33,11 +38,6 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
     }
 
     function startTyping() {
-      var lines = [];
-      try {
-        var data = document.getElementById('typing-data');
-        if (data) lines = JSON.parse(data.textContent || '[]');
-      } catch(e) { lines = []; }
       if (!lines || lines.length === 0) { dismiss(); return; }
 
       var speed = 80;
@@ -159,12 +159,8 @@ const { lines, typingSpeed, pauseBetweenLines, bgColorStart, bgColorEnd } = site
     color: white;
     text-shadow: 0 2px 12px rgba(0,0,0,0.15);
     line-height: 1.6;
-    opacity: 0;
-    min-height: 1.8em;
-  }
-
-  .typing-line.done {
     opacity: 1;
+    min-height: 1.8em;
   }
 
   .typing-line:last-child:not(.done)::after {
