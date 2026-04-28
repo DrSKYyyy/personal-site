@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { siteConfig } from '../data/siteData';
 const base = siteConfig.base;
+const about = siteConfig.about;
 ---
 
 <Layout title="关于">
@@ -10,119 +11,75 @@ const base = siteConfig.base;
       <div class="about-avatar">
         <img src={base + siteConfig.avatar} alt="头像" />
       </div>
-      <h1 class="section-title">关于我</h1>
+      <h1 class="section-title">{about.pageTitle}</h1>
     </div>
 
     <div class="about-content">
       <div class="about-intro card">
-        <h2 class="gradient-text">👋 你好呀！</h2>
-        <p>我是一个热爱生活、热爱技术的追风少年。</p>
-        <p>我相信技术是为了让生活更美好，文字是为了让思想更清晰。这个网站是我的数字花园，记录着我的思考、项目和生活中的小确幸。</p>
+        <h2 class="gradient-text">{about.intro.greeting}</h2>
+        {about.intro.paragraphs.map(p => <p>{p}</p>)}
 
         <div class="collapsible-section">
           <button class="collapsible-toggle" id="about-toggle">
-            <span>📖 查看完整介绍</span>
+            <span>{about.intro.toggleLabel}</span>
             <span class="toggle-icon">▼</span>
           </button>
           <div class="collapsible-content" id="about-detail">
             <div class="about-detail-inner">
-              <h3>关于"追风少年"</h3>
-              <p>"追风少年"不仅仅是一个名字，更是一种生活态度。它代表着赤诚、爽朗、不畏风的精神内核。</p>
-              <p>从小我就对世界充满好奇，喜欢拆解各种东西看看里面是什么样子。这种好奇心引导我走进了编程的世界——一个可以无限创造、无限探索的数字宇宙。</p>
-              <p>编程对我来说不仅仅是一份技能，更是表达自我的方式。就像作家用文字、画家用色彩，我用代码构建想法，用技术解决问题。</p>
-
-              <h3>我的数字花园哲学</h3>
-              <p>这个网站不是传统的博客——流水账式的日记本。它是一个数字花园，每一篇文章都是一株精心栽培的植物。</p>
-              <p>有些内容会成熟结果（完整的教程、项目总结），有些还在生长中（正在进行的学习笔记），有些可能会被修剪整理（过时的观点更新）。</p>
-              <p>我邀请你在这里漫步，感受思维生长的过程。</p>
-
-              <h3>关于长期主义</h3>
-              <p>我信奉长期主义。在这个网站上，我不追求爆款文章或短期流量，而是持续地、稳定地记录和输出。</p>
-              <p>我相信 5 年、10 年后回看这些记录，会发现时间的力量。这也正是我选择 Markdown 文件作为内容存储的原因——无论技术如何变迁，文字永远是我的。</p>
+              {about.detail.sections.map(section => (
+                <>{section.title && <h3>{section.title}</h3>}
+                {section.paragraphs.map(p => <p>{p}</p>)}</>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
       <div class="about-gallery card">
-        <h3>📸 生活剪影</h3>
-        <p class="gallery-desc">一些记录生活的小瞬间</p>
+        <h3>{about.gallery.title}</h3>
+        <p class="gallery-desc">{about.gallery.desc}</p>
         <div class="gallery-grid">
-          <div class="gallery-item">
-            <div class="gallery-placeholder" style="background: linear-gradient(135deg, #5DADE2, #48C9B0);">
-              <span>☀️</span>
+          {about.gallery.items.map(item => (
+            <div class="gallery-item">
+              <div class="gallery-placeholder" style={'background: ' + item.gradient}>
+                <span>{item.emoji}</span>
+              </div>
             </div>
-          </div>
-          <div class="gallery-item">
-            <div class="gallery-placeholder" style="background: linear-gradient(135deg, #F4D03F, #F5B041);">
-              <span>🌊</span>
-            </div>
-          </div>
-          <div class="gallery-item">
-            <div class="gallery-placeholder" style="background: linear-gradient(135deg, #58D68D, #2ECC71);">
-              <span>📚</span>
-            </div>
-          </div>
-          <div class="gallery-item">
-            <div class="gallery-placeholder" style="background: linear-gradient(135deg, #AF7AC5, #8E44AD);">
-              <span>🎵</span>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
 
       <div class="about-details">
         <div class="detail-card card">
-          <h3>🎯 现在在做</h3>
+          <h3>{about.details.current.title}</h3>
           <ul>
-            <li>探索 AI 与前端技术的结合</li>
-            <li>阅读《代码大全》和《人类简史》</li>
-            <li>保持每日健身打卡</li>
-            <li>维护这个数字花园</li>
+            {about.details.current.items.map(item => <li>{item}</li>)}
           </ul>
         </div>
 
         <div class="detail-card card">
-          <h3>💻 技术栈</h3>
+          <h3>{about.details.techStack.title}</h3>
           <div class="skills">
-            <span class="tag">JavaScript</span>
-            <span class="tag">TypeScript</span>
-            <span class="tag">React</span>
-            <span class="tag">Vue</span>
-            <span class="tag">Node.js</span>
-            <span class="tag">Astro</span>
-            <span class="tag">Python</span>
-            <span class="tag">Git</span>
+            {about.details.techStack.skills.map(skill => <span class="tag">{skill}</span>)}
           </div>
         </div>
 
         <div class="detail-card card">
-          <h3>🎨 兴趣爱好</h3>
+          <h3>{about.details.hobbies.title}</h3>
           <div class="hobbies">
-            <span class="hobby-tag">📖 阅读</span>
-            <span class="hobby-tag">✍️ 写作</span>
-            <span class="hobby-tag">🏃 跑步</span>
-            <span class="hobby-tag">🎮 游戏</span>
-            <span class="hobby-tag">🎵 音乐</span>
-            <span class="hobby-tag">📷 摄影</span>
+            {about.details.hobbies.items.map(item => <span class="hobby-tag">{item}</span>)}
           </div>
         </div>
 
         <div class="detail-card card status-card">
-          <h3>✨ 此刻状态</h3>
+          <h3>{about.details.status.title}</h3>
           <div class="status-content">
-            <div class="status-item">
-              <span class="status-dot"></span>
-              <span><strong>心情</strong>：阳光明媚 ☀️</span>
-            </div>
-            <div class="status-item">
-              <span class="status-dot"></span>
-              <span><strong>在听</strong>：轻音乐 · 钢琴曲</span>
-            </div>
-            <div class="status-item">
-              <span class="status-dot"></span>
-              <span><strong>在读</strong>：《代码大全》</span>
-            </div>
+            {about.details.status.items.map(item => (
+              <div class="status-item">
+                <span class="status-dot"></span>
+                <span><strong>{item.label}</strong>：{item.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

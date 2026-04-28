@@ -4,8 +4,15 @@ const { giscus } = siteConfig;
 ---
 
 <section class="comments-section" id="comments">
-  <h2 class="comments-title">💬 评论</h2>
-  <div class="giscus-wrapper">
+  <h2 class="comments-title">{giscus.fallbackTitle}</h2>
+  <div class="giscus-wrapper" id="giscus-wrapper">
+    <div id="giscus-loading" class="giscus-loading">
+      <div class="giscus-spinner"></div>
+      <span>{giscus.loadingText}</span>
+    </div>
+    <div id="giscus-timeout" class="giscus-timeout" style="display:none">
+      <p>{giscus.timeoutText}</p>
+    </div>
     <div id="giscus-container"
       data-repo={giscus.repo}
       data-repo-id={giscus.repoId}
@@ -23,12 +30,20 @@ const { giscus } = siteConfig;
 
 <script is:inline>
   (function() {
-    const container = document.getElementById('giscus-container');
+    var container = document.getElementById('giscus-container');
     if (!container) return;
 
-    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    var loadingEl = document.getElementById('giscus-loading');
+    var timeoutEl = document.getElementById('giscus-timeout');
 
-    const script = document.createElement('script');
+    var timeoutId = setTimeout(function() {
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (timeoutEl) timeoutEl.style.display = 'block';
+    }, 10000);
+
+    var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+
+    var script = document.createElement('script');
     script.src = 'https://giscus.app/client.js';
     script.setAttribute('data-repo', container.dataset.repo);
     script.setAttribute('data-repo-id', container.dataset.repoId);
@@ -44,11 +59,23 @@ const { giscus } = siteConfig;
     script.setAttribute('crossorigin', 'anonymous');
     script.async = true;
 
+    script.onload = function() {
+      clearTimeout(timeoutId);
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (timeoutEl) timeoutEl.style.display = 'none';
+    };
+
+    script.onerror = function() {
+      clearTimeout(timeoutId);
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (timeoutEl) timeoutEl.style.display = 'block';
+    };
+
     container.appendChild(script);
 
-    const themeObserver = new MutationObserver(() => {
-      const newTheme = document.documentElement.getAttribute('data-theme');
-      const iframe = document.querySelector('iframe.giscus-frame');
+    var themeObserver = new MutationObserver(function() {
+      var newTheme = document.documentElement.getAttribute('data-theme');
+      var iframe = document.querySelector('iframe.giscus-frame');
       if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage({
           giscus: { setConfig: { theme: newTheme === 'dark' ? 'dark' : 'light' } }
@@ -83,5 +110,41 @@ const { giscus } = siteConfig;
 
   .giscus-wrapper {
     min-height: 200px;
+    position: relative;
+  }
+
+  .giscus-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 2rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .giscus-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: giscusSpin 0.8s linear infinite;
+  }
+
+  @keyframes giscusSpin {
+    to { transform: rotate(360deg); }
+  }
+
+  .giscus-timeout {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
+    border: 1px dashed var(--color-border);
   }
 </style>

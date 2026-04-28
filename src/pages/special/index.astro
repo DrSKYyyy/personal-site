@@ -1,40 +1,18 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-
-const books = [
-  { title: '代码大全', author: 'Steve McConnell', status: '在读', rating: '⭐⭐⭐⭐', note: '软件构建的百科全书' },
-  { title: '人类简史', author: '尤瓦尔·赫拉利', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '从宏观视角看人类文明' },
-  { title: '设计模式', author: 'GoF', status: '已读', rating: '⭐⭐⭐⭐', note: '面向对象设计的经典之作' },
-  { title: '深入理解计算机系统', author: 'Randal E. Bryant', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '理解计算机的底层运作' },
-  { title: '百年孤独', author: '加西亚·马尔克斯', status: '想读', rating: '', note: '魔幻现实主义的巅峰' },
-  { title: '活着', author: '余华', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '人是为了活着本身而活着' },
-];
-
-const fitnessData = [
-  { label: '跑步', current: 120, target: 200, unit: '公里' },
-  { label: '俯卧撑', current: 45, target: 100, unit: '天' },
-  { label: '引体向上', current: 30, target: 50, unit: '天' },
-  { label: '深蹲', current: 35, target: 80, unit: '天' },
-];
-
-const travelSpots = [
-  { name: '北京', lat: 39.9042, lng: 116.4074, emoji: '🏛️', desc: '故宫看雪' },
-  { name: '上海', lat: 31.2304, lng: 121.4737, emoji: '🌆', desc: '外滩夜景' },
-  { name: '杭州', lat: 30.2741, lng: 120.1551, emoji: '🌊', desc: '西湖泛舟' },
-  { name: '成都', lat: 30.5728, lng: 104.0668, emoji: '🐼', desc: '看大熊猫' },
-  { name: '西安', lat: 34.3416, lng: 108.9398, emoji: '🏯', desc: '兵马俑' },
-];
+import { siteConfig } from '../../data/siteData';
+const special = siteConfig.special;
 ---
 
 <Layout title="特别">
   <section class="special-page container page-enter">
-    <h1 class="section-title">🌟 特别角落</h1>
+    <h1 class="section-title">{special.pageTitle}</h1>
 
     <section class="special-section">
-      <h2 class="special-section-title">📚 读书角落</h2>
-      <p class="special-section-desc">正在读、读过、想读的好书</p>
+      <h2 class="special-section-title">{special.books.title}</h2>
+      <p class="special-section-desc">{special.books.desc}</p>
       <div class="books-grid">
-        {books.map(book => (
+        {special.books.list.map(book => (
           <div class="book-card card">
             <div class="book-rating">{book.rating || '📖'}</div>
             <h3 class="book-title">{book.title}</h3>
@@ -49,10 +27,10 @@ const travelSpots = [
     </section>
 
     <section class="special-section">
-      <h2 class="special-section-title">💪 健身日志</h2>
-      <p class="special-section-desc">持续进步，成为更好的自己</p>
+      <h2 class="special-section-title">{special.fitness.title}</h2>
+      <p class="special-section-desc">{special.fitness.desc}</p>
       <div class="fitness-grid">
-        {fitnessData.map(item => {
+        {special.fitness.items.map(item => {
           const pct = Math.min(Math.round((item.current / item.target) * 100), 100);
           return (
             <div class="fitness-card card">
@@ -71,12 +49,12 @@ const travelSpots = [
     </section>
 
     <section class="special-section">
-      <h2 class="special-section-title">🗺️ 旅行足迹</h2>
-      <p class="special-section-desc">用脚步丈量世界</p>
+      <h2 class="special-section-title">{special.travel.title}</h2>
+      <p class="special-section-desc">{special.travel.desc}</p>
       <div class="travel-map card">
         <div class="map-placeholder">
           <div class="map-content">
-            {travelSpots.map(spot => (
+            {special.travel.spots.map(spot => (
               <div class="travel-spot">
                 <span class="spot-emoji">{spot.emoji}</span>
                 <div class="spot-info">
@@ -100,11 +78,11 @@ const travelSpots = [
     </section>
 
     <section class="special-section easter-egg-section">
-      <h2 class="special-section-title">🎮 彩蛋入口</h2>
-      <p class="special-section-desc">在任意页面输入 <strong>"少年"</strong>，看看会发生什么 ✈️</p>
+      <h2 class="special-section-title">{special.easterEgg.title}</h2>
+      <p class="special-section-desc" set:html={special.easterEgg.desc}></p>
       <div class="egg-hint card">
         <span class="egg-icon">✈️</span>
-        <p>提示：试试在键盘上输入 <code>少年</code> 或 <code>sn</code></p>
+        <p set:html={special.easterEgg.hint}></p>
       </div>
     </section>
   </section>

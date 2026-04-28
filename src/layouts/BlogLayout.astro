@@ -3,6 +3,7 @@ import Layout from './Layout.astro';
 import GiscusComments from '../components/GiscusComments.astro';
 import VisitorMessageForm from '../components/VisitorMessageForm.astro';
 import { siteConfig } from '../data/siteData';
+const { giscus } = siteConfig;
 
 export interface Props {
   title: string;
@@ -39,8 +40,8 @@ const base = siteConfig.base;
 
     <div class="comments-area">
       <div class="comments-tabs">
-        <button class="comments-tab active" data-tab="discuss">💬 公开讨论</button>
-        <button class="comments-tab" data-tab="message">💌 匿名留言</button>
+        <button class="comments-tab active" data-tab="discuss">{siteConfig.homeComments.discussTab}</button>
+        <button class="comments-tab" data-tab="message">{siteConfig.homeComments.messageTab}</button>
       </div>
 
       <div id="comments-tab-discuss" class="comments-tab-content active">
@@ -48,8 +49,8 @@ const base = siteConfig.base;
           <GiscusComments />
         ) : (
           <div class="comments-placeholder">
-            <p>🔧 公开讨论功能正在配置中...</p>
-            <p class="placeholder-hint">站长完成 Giscus 配置后即可使用</p>
+            <p>{siteConfig.homeComments.discussPlaceholder}</p>
+            <p class="placeholder-hint">{siteConfig.homeComments.discussHint}</p>
           </div>
         )}
       </div>
@@ -112,38 +113,33 @@ const base = siteConfig.base;
       var header = document.querySelector('.article-header');
       if (!header) return;
 
-      var btn = document.createElement('div');
-      btn.className = 'article-edit-btn';
-      btn.textContent = '···';
-      btn.title = '文章管理';
-      header.appendChild(btn);
+      var actions = document.createElement('div');
+      actions.className = 'article-admin-actions';
 
-      var menu = document.createElement('div');
-      menu.className = 'article-edit-menu';
-      menu.innerHTML =
-        '<div class="aem-item edit">✏️ 编辑文章</div>' +
-        '<div class="aem-item del">🗑️ 删除文章</div>';
-      header.appendChild(menu);
+      var editBtn = document.createElement('button');
+      editBtn.className = 'article-admin-btn edit-btn';
+      editBtn.innerHTML = '✏️ 编辑';
+      editBtn.title = '编辑文章';
+      actions.appendChild(editBtn);
 
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        menu.classList.toggle('open');
-      });
+      var delBtn = document.createElement('button');
+      delBtn.className = 'article-admin-btn delete-btn';
+      delBtn.innerHTML = '🗑️ 删除';
+      delBtn.title = '删除文章';
+      actions.appendChild(delBtn);
 
-      document.addEventListener('click', function() { menu.classList.remove('open'); });
+      header.appendChild(actions);
 
-      menu.querySelector('.edit').addEventListener('click', function() {
-        menu.classList.remove('open');
+      editBtn.addEventListener('click', function() {
         var filePath = 'src/content/blog/' + slug + '.md';
         window.location.href = '/admin?edit=' + encodeURIComponent(filePath);
       });
 
-      menu.querySelector('.del').addEventListener('click', function() {
-        menu.classList.remove('open');
+      delBtn.addEventListener('click', function() {
         var filePath = 'src/content/blog/' + slug + '.md';
         if (!confirm('确定要删除这篇文章吗？此操作不可撤销！')) return;
-        var delItem = menu.querySelector('.del');
-        delItem.textContent = '⏳ 删除中...';
+        delBtn.disabled = true;
+        delBtn.innerHTML = '⏳ 删除中...';
 
         (async function() {
           try {
@@ -170,7 +166,8 @@ const base = siteConfig.base;
             window.location.href = '/writing';
           } catch(err) {
             alert('删除失败: ' + err.message);
-            delItem.textContent = '🗑️ 删除文章';
+            delBtn.disabled = false;
+            delBtn.innerHTML = '🗑️ 删除';
           }
         })();
       });
@@ -375,84 +372,55 @@ const base = siteConfig.base;
     position: relative;
   }
 
-  .article-edit-btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 36px;
-    height: 36px;
-    display: none;
-    align-items: center;
+  .article-admin-actions {
+    display: flex;
+    gap: 0.5rem;
     justify-content: center;
-    border-radius: 999px;
+    margin-top: 1rem;
+  }
+
+  .article-admin-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 1rem;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-border);
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    cursor: pointer;
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 2px;
     color: var(--color-text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    cursor: pointer;
     transition: all 0.2s ease;
-    z-index: 10;
     box-shadow: var(--shadow-sm);
     line-height: 1;
   }
 
-  .article-edit-btn:hover {
-    background: var(--color-primary);
-    color: white;
+  .article-admin-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .article-admin-btn.edit-btn:hover {
     border-color: var(--color-primary);
-    box-shadow: 0 2px 8px rgba(93,173,226,0.3);
+    color: var(--color-primary);
+    background: rgba(93, 173, 226, 0.06);
   }
 
-  .article-header:hover .article-edit-btn {
-    display: flex;
-  }
-
-  .article-edit-menu {
-    position: absolute;
-    top: 2.5rem;
-    right: 0;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 20;
-    min-width: 140px;
-    overflow: hidden;
-    display: none;
-    opacity: 0;
-    transform: translateY(-8px);
-    transition: all 0.2s ease;
-  }
-
-  .article-edit-menu.open {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  .aem-item {
-    padding: 0.65rem 1rem;
-    font-size: 0.85rem;
-    cursor: pointer;
-    transition: background 0.15s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--color-text);
-  }
-
-  .aem-item:hover {
-    background: var(--color-bg);
-  }
-
-  .aem-item.del {
+  .article-admin-btn.delete-btn {
     color: #e74c3c;
-    border-top: 1px solid var(--color-border);
+    border-color: #f5c6cb;
   }
 
-  .aem-item.del:hover {
+  .article-admin-btn.delete-btn:hover {
     background: #fde8e8;
+    border-color: #e74c3c;
+    color: #c0392b;
+  }
+
+  .article-admin-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
   }
 </style>

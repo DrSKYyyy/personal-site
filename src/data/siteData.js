@@ -1,16 +1,93 @@
+/**
+ * ==========================================
+ *  🌐 网站全局配置文件
+ *  📍 位置: src/data/siteData.js
+ *  💡 修改此文件中的内容即可更新全站对应文字
+ *  ⚠️ 修改后需要重新构建部署才能生效，本地开发会自动热更新
+ *  ==========================================
+ *  目录：
+ *  1. 站点基本信息     — 标题、作者、头像等
+ *  2. 首页打字机动画   — 打字机逐行文字
+ *  3. 首页英雄区       — slogan、描述、按钮文字
+ *  4. 首页最新文章     — 区域标题
+ *  5. 首页评论区       — 标签页文字
+ *  6. 导航栏           — 菜单项
+ *  7. 关于页面         — 全部文字内容
+ *  8. Special页面      — 读书/健身/旅行数据
+ *  9. 页脚             — 版权文案
+ *  10. 社交链接        — GitHub/Twitter/Email
+ *  11. 彩蛋配置        — 触发词
+ *  12. Giscus 评论     — GitHub Discussions 配置
+ *  13. 网站统计        — Cloudflare
+ *  14. 管理员后台       — 密码/站点URL
+ *  15. 留言接口        — 匿名留言表单提交地址
+ * ==========================================
+ */
+
 export const siteConfig = {
-  base: '',
-  title: '追风少年',
-  description: '一个有趣、真诚的年轻人的数字花园',
-  author: '追风少年',
-  avatar: '/images/avatar.svg',
-  slogan: 'Hi, I\'m 追风少年',
-  subSlogan: '赤诚、爽朗、不畏风',
-  social: {
-    github: 'https://github.com',
-    twitter: 'https://twitter.com',
-    email: 'hello@example.com',
+  // ====================================================================
+  //  1. 站点基本信息
+  // ====================================================================
+  base: '',                              // 部署子路径，空=根路径。如果部署在子目录如 /blog 则填 '/blog'
+  title: '追风少年',                      // 网站名称（导航栏logo、页脚、浏览器标签标题）
+  description: '一个有趣、真诚的年轻人的数字花园',  // 网站描述（SEO 和页脚副标题）
+  author: '追风少年',                     // 作者名
+  avatar: '/images/avatar.svg',          // 头像图片路径（图片放在 public/images/ 下）
+
+  // ====================================================================
+  //  2. 首页打字机动画（src/components/TypingIntro.astro）
+  // ====================================================================
+  intro: {
+    lines: [                             // 逐行打出的文字，按顺序循环
+      "你好，我是 天天",
+      '欢迎来到我的世界',
+    ],
+    subtitle: '我追风，也等你',           // 打字机下方的装饰文字
+    typingSpeed: 80,                     // 打字速度（毫秒/字，数值越小越快）
+    eraseSpeed: 40,                      // 删除速度（毫秒/字）
+    pauseAfterType: 1500,                // 打完一行后的停顿（毫秒）
+    pauseBeforeNext: 500,                // 切换到下一行前的停顿（毫秒）
   },
+
+  // ====================================================================
+  //  3. 首页英雄区（src/pages/index.astro）
+  // ====================================================================
+  hero: {
+    slogan: "Hi, I'm 追风少年",           // 顶部大标题（渐变文字）
+    subSlogan: '赤诚、爽朗、不畏风',       // 副标题
+    description: '这是一个有趣的、真诚的人的数字花园。<br/>在这里，我用文字记录成长，用代码表达想法，用生活感受世界。',
+    speechBubbles: [                     // 悬停头像时随机显示的气泡文字
+      '今天很开心！🎉',
+      '欢迎来到我的世界 🌍',
+      '一起追风吧！🌪️',
+    ],
+    learnMoreBtn: '了解更多 →',
+    readArticlesBtn: '阅读文章',
+    scrollHint: '向下滚动',
+  },
+
+  // ====================================================================
+  //  4. 首页"最新文章"区域
+  // ====================================================================
+  recentPosts: {
+    title: '最新文章',
+    viewAll: '查看全部文章 →',
+    maxCount: 3,                         // 首页显示的最新文章数量
+  },
+
+  // ====================================================================
+  //  5. 首页评论区
+  // ====================================================================
+  homeComments: {
+    discussTab: '💬 公开讨论',            // Giscus GitHub 讨论
+    messageTab: '💌 匿名留言',            // 站长可见的匿名留言
+    discussPlaceholder: '🔧 公开讨论功能正在配置中...',
+    discussHint: '站长完成 Giscus 配置后即可使用',
+  },
+
+  // ====================================================================
+  //  6. 导航栏
+  // ====================================================================
   navLinks: [
     { name: 'Home', href: '/', icon: '😊' },
     { name: 'About', href: '/about', icon: '☁️' },
@@ -18,40 +95,211 @@ export const siteConfig = {
     { name: 'Writing', href: '/writing', icon: '✍️' },
     { name: 'Special', href: '/special', icon: '⭐' },
   ],
+  // CMS 管理后台的导航项（管理员登录后自动显示在导航栏）
+  navCMS: {
+    label: 'CMS',
+    icon: '⚙️',
+    href: '/admin',
+  },
+
+  // ====================================================================
+  //  7. 关于页面（src/pages/about.astro）
+  // ====================================================================
+  about: {
+    pageTitle: '关于我',
+    // 顶部简介区
+    intro: {
+      greeting: '👋 你好呀！',
+      paragraphs: [
+        '我是一个热爱生活、热爱技术的追风少年。',
+        '我相信技术是为了让生活更美好，文字是为了让思想更清晰。这个网站是我的数字花园，记录着我的思考、项目和生活中的小确幸。',
+      ],
+      toggleLabel: '📖 查看完整介绍',
+      toggleLabelCollapsed: '📕 收起完整介绍',
+    },
+    // 可折叠的详细介绍（点击"查看完整介绍"展开）
+    detail: {
+      sections: [
+        {
+          title: '关于"追风少年"',
+          paragraphs: [
+            '"追风少年"不仅仅是一个名字，更是一种生活态度。它代表着赤诚、爽朗、不畏风的精神内核。',
+            '从小我就对世界充满好奇，喜欢拆解各种东西看看里面是什么样子。这种好奇心引导我走进了编程的世界——一个可以无限创造、无限探索的数字宇宙。',
+            '编程对我来说不仅仅是一份技能，更是表达自我的方式。就像作家用文字、画家用色彩，我用代码构建想法，用技术解决问题。',
+          ],
+        },
+        {
+          title: '我的数字花园哲学',
+          paragraphs: [
+            '这个网站不是传统的博客——流水账式的日记本。它是一个数字花园，每一篇文章都是一株精心栽培的植物。',
+            '有些内容会成熟结果（完整的教程、项目总结），有些还在生长中（正在进行的学习笔记），有些可能会被修剪整理（过时的观点更新）。',
+            '我邀请你在这里漫步，感受思维生长的过程。',
+          ],
+        },
+        {
+          title: '关于长期主义',
+          paragraphs: [
+            '我信奉长期主义。在这个网站上，我不追求爆款文章或短期流量，而是持续地、稳定地记录和输出。',
+            '我相信 5 年、10 年后回看这些记录，会发现时间的力量。这也正是我选择 Markdown 文件作为内容存储的原因——无论技术如何变迁，文字永远是我的。',
+          ],
+        },
+      ],
+    },
+    // 生活剪影（图片占位块）
+    gallery: {
+      title: '📸 生活剪影',
+      desc: '一些记录生活的小瞬间',
+      items: [
+        { emoji: '☀️', gradient: 'linear-gradient(135deg, #5DADE2, #48C9B0)' },
+        { emoji: '🌊', gradient: 'linear-gradient(135deg, #F4D03F, #F5B041)' },
+        { emoji: '📚', gradient: 'linear-gradient(135deg, #58D68D, #2ECC71)' },
+        { emoji: '🎵', gradient: 'linear-gradient(135deg, #AF7AC5, #8E44AD)' },
+      ],
+    },
+    // 详细信息卡片
+    details: {
+      current: {
+        title: '🎯 现在在做',
+        items: [
+          '探索 AI 与前端技术的结合',
+          '阅读《代码大全》和《人类简史》',
+          '保持每日健身打卡',
+          '维护这个数字花园',
+        ],
+      },
+      techStack: {
+        title: '💻 技术栈',
+        skills: ['JavaScript', 'TypeScript', 'React', 'Vue', 'Node.js', 'Astro', 'Python', 'Git'],
+      },
+      hobbies: {
+        title: '🎨 兴趣爱好',
+        items: ['📖 阅读', '✍️ 写作', '🏃 跑步', '🎮 游戏', '🎵 音乐', '📷 摄影'],
+      },
+      status: {
+        title: '✨ 此刻状态',
+        items: [
+          { label: '心情', value: '阳光明媚 ☀️' },
+          { label: '在听', value: '轻音乐 · 钢琴曲' },
+          { label: '在读', value: '《代码大全》' },
+        ],
+      },
+    },
+  },
+
+  // ====================================================================
+  //  8. Special 页面（src/pages/special/index.astro）
+  // ====================================================================
+  special: {
+    pageTitle: '🌟 特别角落',
+    // 读书角落
+    books: {
+      title: '📚 读书角落',
+      desc: '正在读、读过、想读的好书',
+      list: [
+        { title: '代码大全', author: 'Steve McConnell', status: '在读', rating: '⭐⭐⭐⭐', note: '软件构建的百科全书' },
+        { title: '人类简史', author: '尤瓦尔·赫拉利', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '从宏观视角看人类文明' },
+        { title: '设计模式', author: 'GoF', status: '已读', rating: '⭐⭐⭐⭐', note: '面向对象设计的经典之作' },
+        { title: '深入理解计算机系统', author: 'Randal E. Bryant', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '理解计算机的底层运作' },
+        { title: '百年孤独', author: '加西亚·马尔克斯', status: '想读', rating: '', note: '魔幻现实主义的巅峰' },
+        { title: '活着', author: '余华', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '人是为了活着本身而活着' },
+      ],
+    },
+    // 健身日志
+    fitness: {
+      title: '💪 健身日志',
+      desc: '持续进步，成为更好的自己',
+      items: [
+        { label: '跑步', current: 120, target: 200, unit: '公里' },
+        { label: '俯卧撑', current: 45, target: 100, unit: '天' },
+        { label: '引体向上', current: 30, target: 50, unit: '天' },
+        { label: '深蹲', current: 35, target: 80, unit: '天' },
+      ],
+    },
+    // 旅行足迹
+    travel: {
+      title: '🗺️ 旅行足迹',
+      desc: '用脚步丈量世界',
+      spots: [
+        { name: '北京', emoji: '🏛️', desc: '故宫看雪' },
+        { name: '上海', emoji: '🌆', desc: '外滩夜景' },
+        { name: '杭州', emoji: '🌊', desc: '西湖泛舟' },
+        { name: '成都', emoji: '🐼', desc: '看大熊猫' },
+        { name: '西安', emoji: '🏯', desc: '兵马俑' },
+      ],
+    },
+    // 彩蛋入口
+    easterEgg: {
+      title: '🎮 彩蛋入口',
+      desc: '在任意页面输入 <strong>"少年"</strong>，看看会发生什么 ✈️',
+      hint: '提示：试试在键盘上输入 <code>少年</code> 或 <code>sn</code>',
+    },
+  },
+
+  // ====================================================================
+  //  9. 页脚（src/components/Footer.astro）
+  // ====================================================================
+  footer: {
+    copyright: '用 ❤️ 和 ☀️ 建造',      // 版权文字（年份自动填充）
+  },
+
+  // ====================================================================
+  //  10. 社交链接
+  // ====================================================================
+  social: {
+    github: 'https://github.com',
+    twitter: 'https://twitter.com',
+    email: 'hello@example.com',          // 显示在页脚邮件图标的收件地址
+  },
+
+  // ====================================================================
+  //  11. 彩蛋配置（src/components/EasterEgg.astro）
+  // ====================================================================
   easterEggs: {
-    trigger: '少年',
-    paperCount: 30,
+    trigger: '少年',                       // 触发彩蛋的关键词
+    paperCount: 30,                       // 纸飞机数量
   },
+
+  // ====================================================================
+  //  12. Giscus 评论系统配置
+  //     基于 GitHub Discussions，详见 https://giscus.app/zh-CN
+  // ====================================================================
   giscus: {
-    repo: 'DrSKYyyy/personal-site',
-    repoId: 'R_kgDOSJuDOg',
-    category: 'Announcements',
-    categoryId: 'DIC_kwDOSJuDOs4C7z4Q',
-    mapping: 'pathname',
+    repo: 'DrSKYyyy/personal-site',       // GitHub 仓库名（格式: 用户名/仓库名）
+    repoId: 'R_kgDOSJuDOg',               // 仓库 ID（在 giscus.app 获取）
+    category: 'Announcements',             // Discussions 分类名
+    categoryId: 'DIC_kwDOSJuDOs4C7z4Q',  // 分类 ID（在 giscus.app 获取）
+    mapping: 'pathname',                   // 页面与讨论的映射方式
     strict: '0',
-    reactionsEnabled: '1',
+    reactionsEnabled: '1',                // 是否启用回应
     emitMetadata: '0',
-    inputPosition: 'bottom',
-    lang: 'zh-CN',
-    theme: 'preferred_color_scheme',
+    inputPosition: 'bottom',              // 评论输入框位置
+    lang: 'zh-CN',                        // 语言
+    theme: 'preferred_color_scheme',      // 跟随系统主题
+    // 如果 gitcus.app 无法加载的提示文字
+    fallbackTitle: '💬 评论',
+    loadingText: '正在加载评论系统...',
+    timeoutText: '评论加载超时（giscus.app 响应较慢），请稍后刷新页面重试。你也可以直接前往 GitHub Discussions 参与讨论。',
   },
+
+  // ====================================================================
+  //  13. 网站统计（Cloudflare Web Analytics）
+  // ====================================================================
   analytics: {
-    cloudflare: '',
+    cloudflare: '',                        // Cloudflare 分析 Token（留空则不启用）
   },
+
+  // ====================================================================
+  //  14. 管理员后台
+  // ====================================================================
   admin: {
-    password: 'SHTskycool200417',
-    siteUrl: 'https://xxs.beauty',
+    password: 'SHTskycool200417',          // CMS 登录密码
+    siteUrl: 'https://xxs.beauty',         // 站点 URL（用于 API 回调等）
   },
-  formEndpoint: 'https://xxs.beauty/api/message', // 匿名留言接口
-  intro: {
-    lines: [
-      "你好，我是 天天",
-      '欢迎来到我的世界',
-    ],
-    subtitle: '我追风，也等你',
-    typingSpeed: 80,
-    eraseSpeed: 40,
-    pauseAfterType: 1500,
-    pauseBeforeNext: 500,
-  },
+
+  // ====================================================================
+  //  15. 匿名留言接口
+  //    提交地址，目前指向 Cloudflare Pages Functions
+  //    对应文件: functions/api/message.js
+  // ====================================================================
+  formEndpoint: 'https://xxs.beauty/api/message',
 };

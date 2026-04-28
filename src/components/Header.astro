@@ -17,9 +17,9 @@ const base = siteConfig.base;
           <span class="nav-label">{link.name}</span>
         </a>
       ))}
-      <a href="/admin" class="nav-link nav-cms-link" id="nav-cms-link" style="display:none;">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-label">CMS</span>
+      <a href={siteConfig.navCMS.href} class="nav-link nav-cms-link" id="nav-cms-link" style="display:none;">
+        <span class="nav-icon">{siteConfig.navCMS.icon}</span>
+        <span class="nav-label">{siteConfig.navCMS.label}</span>
       </a>
     </div>
 

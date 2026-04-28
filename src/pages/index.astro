@@ -20,12 +20,12 @@ const base = siteConfig.base;
   <section class="hero">
     <div class="container hero-content page-enter">
       <div class="hero-text">
-        <h1 class="hero-title gradient-text">{siteConfig.slogan}</h1>
-        <p class="hero-subtitle">{siteConfig.subSlogan}</p>
-        <p class="hero-desc">这是一个有趣的、真诚的人的数字花园。<br/>在这里，我用文字记录成长，用代码表达想法，用生活感受世界。</p>
+        <h1 class="hero-title gradient-text">{siteConfig.hero.slogan}</h1>
+        <p class="hero-subtitle">{siteConfig.hero.subSlogan}</p>
+        <p class="hero-desc" set:html={siteConfig.hero.description}></p>
         <div class="hero-actions">
-          <a href={base + '/about'} class="btn btn-primary">了解更多 →</a>
-          <a href={base + '/writing'} class="btn btn-outline">阅读文章</a>
+          <a href={base + '/about'} class="btn btn-primary">{siteConfig.hero.learnMoreBtn}</a>
+          <a href={base + '/writing'} class="btn btn-outline">{siteConfig.hero.readArticlesBtn}</a>
         </div>
       </div>
       <div class="hero-avatar" id="avatar-area">
@@ -33,18 +33,18 @@ const base = siteConfig.base;
           <img src={base + siteConfig.avatar} alt="头像" class="avatar-img" id="avatar-img" />
           <div class="avatar-glow"></div>
         </div>
-        <div class="speech-bubble" id="speech-bubble">今天很开心！🎉</div>
+        <div class="speech-bubble" id="speech-bubble" data-bubbles={JSON.stringify(siteConfig.hero.speechBubbles)}>{siteConfig.hero.speechBubbles[0]}</div>
       </div>
     </div>
 
     <div class="scroll-indicator">
-      <span>向下滚动</span>
+      <span>{siteConfig.hero.scrollHint}</span>
       <div class="scroll-arrow">↓</div>
     </div>
   </section>
 
   <section class="recent-posts container page-enter">
-    <h2 class="section-title">最新文章</h2>
+    <h2 class="section-title">{siteConfig.recentPosts.title}</h2>
     <div class="posts-grid">
       {recentPosts.map(post => (
         <a href={base + '/writing/' + post.slug} class="post-card card">
@@ -62,15 +62,15 @@ const base = siteConfig.base;
       ))}
     </div>
     <div class="view-all">
-      <a href={base + '/writing'} class="btn btn-outline">查看全部文章 →</a>
+      <a href={base + '/writing'} class="btn btn-outline">{siteConfig.recentPosts.viewAll}</a>
     </div>
   </section>
 
   <section class="home-comments container page-enter">
     <h2 class="section-title">💬 留言互动</h2>
     <div class="comments-tabs">
-      <button class="comments-tab active" data-tab="discuss-home">💬 公开讨论</button>
-      <button class="comments-tab" data-tab="message-home">💌 匿名留言</button>
+      <button class="comments-tab active" data-tab="discuss-home">{siteConfig.homeComments.discussTab}</button>
+      <button class="comments-tab" data-tab="message-home">{siteConfig.homeComments.messageTab}</button>
     </div>
 
     <div id="comments-tab-discuss-home" class="comments-tab-content active">
@@ -78,8 +78,8 @@ const base = siteConfig.base;
         <GiscusComments />
       ) : (
         <div class="home-comment-placeholder">
-          <p>🔧 公开讨论功能正在配置中...</p>
-          <p class="placeholder-hint">站长完成 Giscus 配置后即可使用</p>
+          <p>{siteConfig.homeComments.discussPlaceholder}</p>
+          <p class="placeholder-hint">{siteConfig.homeComments.discussHint}</p>
         </div>
       )}
     </div>
@@ -110,6 +110,19 @@ const base = siteConfig.base;
         if (el) el.classList.add('active');
       });
     });
+
+    var bubble = document.getElementById('speech-bubble');
+    if (bubble && bubble.dataset.bubbles) {
+      try {
+        var texts = JSON.parse(bubble.dataset.bubbles);
+        if (texts && texts.length > 1) {
+          setInterval(function() {
+            var idx = Math.floor(Math.random() * texts.length);
+            bubble.textContent = texts[idx];
+          }, 4000);
+        }
+      } catch(e) {}
+    }
   })();
 </script>
 
