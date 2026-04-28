@@ -1,5 +1,5 @@
 export const siteConfig = {
-  base: '/personal-site',
+  base: '',
   title: '追风少年',
   description: '一个有趣、真诚的年轻人的数字花园',
   author: '追风少年',
@@ -40,7 +40,7 @@ export const siteConfig = {
   },
   admin: {
     password: 'admin123',
-    siteUrl: 'https://drskyyyy.github.io/personal-site',
+    siteUrl: 'https://xxs.beauty',
   },
   intro: {
     lines: [

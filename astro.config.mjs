@@ -1,8 +1,7 @@
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://drskyyyy.github.io',
-  base: '/personal-site',
+  site: 'https://xxs.beauty',
   output: 'static',
   integrations: [],
   build: {
