@@ -39,7 +39,7 @@ export const siteConfig = {
     cloudflare: '',
   },
   admin: {
-    password: 'admin123',
+    password: 'SHTskycool200417',
     siteUrl: 'https://xxs.beauty',
   },
   formEndpoint: 'https://xxs.beauty/api/message', // 匿名留言接口

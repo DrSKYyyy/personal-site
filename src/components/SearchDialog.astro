@@ -22,262 +22,306 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
 })).filter(p => p.title && p.url);
 ---
 
-<dialog id="search-dialog" class="search-dialog">
-  <div class="search-overlay" data-close></div>
-  <div class="search-panel">
-    <div class="search-header">
-      <span class="search-icon">🔍</span>
-      <input
-        type="text"
-        id="search-input"
-        class="search-input"
-        placeholder="搜索文章标题、描述或标签..."
-        autocomplete="off"
-      />
-      <button class="search-close" data-close aria-label="关闭搜索">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-    <div id="search-results" class="search-results">
-      <div class="search-hint">输入关键词开始搜索...</div>
-    </div>
+<div class="search-bar-container" id="search-bar-container">
+  <div class="search-bar-inner" id="search-bar-inner">
+    <svg class="search-bar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input type="text" id="search-input" class="search-input" placeholder="搜索文章..." autocomplete="off" />
+    <button class="search-close-btn" id="search-close-btn" aria-label="关闭搜索">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
   </div>
+  <div id="search-dropdown" class="search-dropdown"></div>
   <div id="search-data" style="display:none">{JSON.stringify(searchData)}</div>
-</dialog>
+</div>
 
 <script is:inline>
   (function() {
-    if (document.getElementById('search-dialog')) {
-      var dialog = document.getElementById('search-dialog');
-      var input = document.getElementById('search-input');
-      var results = document.getElementById('search-results');
-      var openBtn = document.getElementById('search-open');
+    var container = document.getElementById('search-bar-container');
+    var inner = document.getElementById('search-bar-inner');
+    var input = document.getElementById('search-input');
+    var dropdown = document.getElementById('search-dropdown');
+    var closeBtn = document.getElementById('search-close-btn');
 
-      var postsData = [];
-      try {
-        var searchDataEl = document.getElementById('search-data');
-        if (searchDataEl && searchDataEl.textContent && searchDataEl.textContent !== '[]') {
-          postsData = JSON.parse(searchDataEl.textContent);
-        }
-      } catch (e) {
-        postsData = [];
+    var postsData = [];
+    try {
+      var searchDataEl = document.getElementById('search-data');
+      if (searchDataEl && searchDataEl.textContent && searchDataEl.textContent !== '[]') {
+        postsData = JSON.parse(searchDataEl.textContent);
       }
+    } catch(e) { postsData = []; }
 
-      function openSearch() {
-        if (!dialog) return;
-        dialog.style.display = 'flex';
-        setTimeout(function() { dialog.classList.add('visible'); }, 10);
-        if (input) {
-          input.value = '';
-          setTimeout(function() { input.focus(); }, 150);
-        }
-        if (results) {
-          results.innerHTML = '<div class="search-hint">输入关键词开始搜索...</div>';
-        }
-      }
+    var isOpen = false;
 
-      function closeSearch() {
-        if (!dialog) return;
-        dialog.classList.remove('visible');
-        setTimeout(function() { dialog.style.display = 'none'; }, 200);
-      }
+    function openSearch() {
+      if (isOpen) return;
+      isOpen = true;
+      container.classList.add('active');
+      inner.classList.add('active');
+      setTimeout(function() { if (input) { input.value = ''; input.focus(); } }, 200);
+      dropdown.innerHTML = '<div class="sd-hint">输入关键词开始搜索...</div>';
+    }
 
-      if (openBtn) {
-        openBtn.addEventListener('click', openSearch);
-      }
+    function closeSearch() {
+      if (!isOpen) return;
+      isOpen = false;
+      container.classList.remove('active');
+      inner.classList.remove('active');
+      dropdown.innerHTML = '';
+      if (input) input.value = '';
+    }
 
-      if (dialog) {
-        dialog.addEventListener('click', function(e) {
-          if (e.target.hasAttribute('data-close')) closeSearch();
-        });
-      }
+    inner.addEventListener('click', function(e) {
+      if (!isOpen) openSearch();
+    });
 
-      document.addEventListener('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-          e.preventDefault();
-          openSearch();
-        }
-        if (e.key === 'Escape' && dialog && dialog.style.display === 'flex') {
-          closeSearch();
-        }
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeSearch();
       });
+    }
 
-      if (input) {
-        input.addEventListener('input', function() {
-          var q = input.value.trim().toLowerCase();
-          if (!q) {
-            results.innerHTML = '<div class="search-hint">输入关键词开始搜索...</div>';
-            return;
-          }
-
-          var filtered = postsData.filter(function(p) {
-            return (p.title && p.title.toLowerCase().includes(q)) ||
-                   (p.description && p.description.toLowerCase().includes(q)) ||
-                   (p.tags && p.tags.some(function(t) { return t.toLowerCase().includes(q); }));
-          });
-
-          if (filtered.length === 0) {
-            results.innerHTML = '<div class="search-no-results">未找到与 "<strong>' + input.value + '</strong>" 相关的内容</div>';
-            return;
-          }
-
-          results.innerHTML = filtered.map(function(p) {
-            var tagsHtml = '';
-            if (p.tags && p.tags.length > 0) {
-              tagsHtml = '· ' + p.tags.map(function(t) { return '#' + t; }).join(' ');
-            }
-            return '<a href="' + p.url + '" class="search-result-item">' +
-              '<div class="result-title">' + p.title + '</div>' +
-              '<div class="result-meta">' + p.date + ' ' + tagsHtml + '</div>' +
-              '<div class="result-desc">' + (p.description || '') + '</div>' +
-              '</a>';
-          }).join('');
-        });
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (isOpen) closeSearch();
+        else openSearch();
       }
+      if (e.key === 'Escape' && isOpen) {
+        closeSearch();
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (isOpen && container && !container.contains(e.target)) {
+        closeSearch();
+      }
+    });
+
+    if (input) {
+      input.addEventListener('input', function() {
+        var q = input.value.trim().toLowerCase();
+        if (!q) {
+          dropdown.innerHTML = '<div class="sd-hint">输入关键词开始搜索...</div>';
+          return;
+        }
+
+        var filtered = postsData.filter(function(p) {
+          return (p.title && p.title.toLowerCase().includes(q)) ||
+                 (p.description && p.description.toLowerCase().includes(q)) ||
+                 (p.tags && p.tags.some(function(t) { return t.toLowerCase().includes(q); }));
+        });
+
+        if (filtered.length === 0) {
+          dropdown.innerHTML = '<div class="sd-empty">未找到与 "<strong>' + input.value + '</strong>" 相关的内容</div>';
+          return;
+        }
+
+        dropdown.innerHTML = filtered.map(function(p) {
+          var tagsHtml = '';
+          if (p.tags && p.tags.length > 0) {
+            tagsHtml = p.tags.map(function(t) { return '<span class="sd-tag">#' + t + '</span>'; }).join('');
+          }
+          return '<a href="' + p.url + '" class="sd-item">' +
+            '<div class="sd-item-title">' + highlightMatch(p.title, q) + '</div>' +
+            '<div class="sd-item-meta">' + p.date + ' ' + tagsHtml + '</div>' +
+            '<div class="sd-item-desc">' + (p.description ? highlightMatch(p.description, q) : '') + '</div>' +
+            '</a>';
+        }).join('');
+      });
+    }
+
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      var idx = text.toLowerCase().indexOf(query);
+      if (idx === -1) return text;
+      return text.substring(0, idx) + '<strong>' + text.substring(idx, idx + query.length) + '</strong>' + text.substring(idx + query.length);
     }
   })();
 </script>
 
 <style>
-  .search-dialog {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    background: transparent;
-    border: none;
-    display: none;
-    padding: 0;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s ease;
-    opacity: 0;
-  }
-
-  .search-dialog.visible {
-    opacity: 1;
-  }
-
-  .search-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.4);
-    backdrop-filter: blur(4px);
-  }
-
-  .search-panel {
+  .search-bar-container {
     position: relative;
-    width: 90%;
-    max-width: 560px;
-    margin: 0 auto;
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    animation: slideDown 0.25s ease;
   }
 
-  @keyframes slideDown {
-    from { transform: translateY(-20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  .search-header {
+  .search-bar-inner {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--color-border);
+    gap: 0.5rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0 0.75rem;
+    height: 36px;
+    width: 36px;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    box-sizing: border-box;
   }
 
-  .search-icon {
-    font-size: 1.2rem;
+  .search-bar-inner.active {
+    width: 260px;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(93,173,226,0.12), var(--shadow-sm);
+    cursor: text;
+  }
+
+  .search-bar-icon {
     flex-shrink: 0;
+    color: var(--color-text-secondary);
+    min-width: 16px;
+  }
+
+  .search-bar-inner.active .search-bar-icon {
+    color: var(--color-primary);
   }
 
   .search-input {
-    flex: 1;
     border: none;
     outline: none;
-    font-size: 1rem;
+    background: transparent;
+    font-size: 0.88rem;
     font-family: var(--font-body);
     color: var(--color-text);
-    background: transparent;
+    width: 0;
+    opacity: 0;
+    transition: all 0.25s ease 0.1s;
+    padding: 0;
+    flex: 1;
+  }
+
+  .search-bar-inner.active .search-input {
+    width: auto;
+    opacity: 1;
   }
 
   .search-input::placeholder {
     color: var(--color-text-secondary);
   }
 
-  .search-close {
-    background: none;
+  .search-close-btn {
+    display: none;
     border: none;
+    background: none;
     cursor: pointer;
     color: var(--color-text-secondary);
-    padding: 0.3rem;
+    padding: 0.2rem;
     border-radius: 50%;
-    transition: all var(--transition-fast);
+    transition: all 0.15s ease;
     flex-shrink: 0;
+    line-height: 1;
   }
 
-  .search-close:hover {
-    background: var(--color-bg);
+  .search-close-btn:hover {
     color: var(--color-text);
+    background: var(--color-bg);
   }
 
-  .search-results {
+  .search-bar-inner.active .search-close-btn {
+    display: flex;
+  }
+
+  .search-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: 360px;
     max-height: 400px;
     overflow-y: auto;
-    padding: 0.5rem 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+    transition: all 0.2s ease;
+    pointer-events: none;
+    transform-origin: top right;
   }
 
-  .search-hint {
-    padding: 2rem 1.25rem;
+  .search-bar-container.active .search-dropdown {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .sd-hint {
+    padding: 1.5rem 1rem;
     text-align: center;
     color: var(--color-text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.85rem;
   }
 
-  .search-result-item {
+  .sd-empty {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+  }
+
+  .sd-item {
     display: block;
-    padding: 0.75rem 1.25rem;
+    padding: 0.7rem 1rem;
     text-decoration: none;
     color: var(--color-text);
-    transition: background var(--transition-fast);
+    transition: background 0.15s ease;
     border-left: 3px solid transparent;
   }
 
-  .search-result-item:hover {
+  .sd-item:hover {
     background: var(--color-bg);
     border-left-color: var(--color-primary);
   }
 
-  .search-result-item .result-title {
-    font-family: var(--font-heading);
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
+  .sd-item + .sd-item {
+    border-top: 1px solid var(--color-border);
   }
 
-  .search-result-item .result-meta {
+  .sd-item-title {
+    font-family: var(--font-heading);
+    font-size: 0.92rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .sd-item-title strong {
+    color: var(--color-primary);
+  }
+
+  .sd-item-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .sd-tag {
+    font-size: 0.72rem;
+    color: var(--color-primary);
+  }
+
+  .sd-item-desc {
     font-size: 0.8rem;
     color: var(--color-text-secondary);
-  }
-
-  .search-result-item .result-desc {
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-    margin-top: 0.25rem;
+    margin-top: 0.2rem;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .search-no-results {
-    padding: 2rem 1.25rem;
-    text-align: center;
-    color: var(--color-text-secondary);
+  .sd-item-desc strong {
+    color: var(--color-primary);
   }
 </style>

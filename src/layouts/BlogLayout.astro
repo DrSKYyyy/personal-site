@@ -9,9 +9,10 @@ export interface Props {
   date: string;
   tags?: string[];
   coverImage?: string;
+  slug?: string;
 }
 
-const { title, date, tags = [], coverImage } = Astro.props;
+const { title, date, tags = [], coverImage, slug } = Astro.props;
 const giscusConfigured = siteConfig.giscus.repo !== 'your-username/your-repo';
 const base = siteConfig.base;
 ---
@@ -29,6 +30,7 @@ const base = siteConfig.base;
         )}
       </div>
       {coverImage && <img src={coverImage} alt={title} class="article-cover" />}
+      {slug && <span id="article-slug" style="display:none">{slug}</span>}
     </header>
 
     <div class="article-content">
@@ -91,6 +93,88 @@ const base = siteConfig.base;
     if (subject) {
       subject.value = '来自文章评论 - ' + document.title;
     }
+  })();
+</script>
+
+<script is:inline>
+  (function() {
+    var slugEl = document.getElementById('article-slug');
+    if (!slugEl || !slugEl.textContent) return;
+    var slug = slugEl.textContent.trim();
+    if (!slug) return;
+
+    try {
+      var sessionData = sessionStorage.getItem('admin_session');
+      if (!sessionData) return;
+      var session = JSON.parse(sessionData);
+      if (!session.token) return;
+
+      var header = document.querySelector('.article-header');
+      if (!header) return;
+
+      var btn = document.createElement('div');
+      btn.className = 'article-edit-btn';
+      btn.textContent = '···';
+      btn.title = '文章管理';
+      header.appendChild(btn);
+
+      var menu = document.createElement('div');
+      menu.className = 'article-edit-menu';
+      menu.innerHTML =
+        '<div class="aem-item edit">✏️ 编辑文章</div>' +
+        '<div class="aem-item del">🗑️ 删除文章</div>';
+      header.appendChild(menu);
+
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        menu.classList.toggle('open');
+      });
+
+      document.addEventListener('click', function() { menu.classList.remove('open'); });
+
+      menu.querySelector('.edit').addEventListener('click', function() {
+        menu.classList.remove('open');
+        sessionStorage.setItem('admin_edit_target', 'src/content/blog/' + slug + '.md');
+        window.location.href = '/admin';
+      });
+
+      menu.querySelector('.del').addEventListener('click', function() {
+        menu.classList.remove('open');
+        var filePath = 'src/content/blog/' + slug + '.md';
+        if (!confirm('确定要删除这篇文章吗？此操作不可撤销！')) return;
+        var delItem = menu.querySelector('.del');
+        delItem.textContent = '⏳ 删除中...';
+
+        (async function() {
+          try {
+            var url = 'https://api.github.com/repos/' + session.owner + '/' + session.repo + '/contents/' + filePath;
+            var res = await fetch(url, {
+              headers: { 'Authorization': 'Bearer ' + session.token, 'Accept': 'application/vnd.github.v3+json' }
+            });
+            var data = await res.json();
+            if (!res.ok) throw new Error(data.message);
+            var delRes = await fetch(url, {
+              method: 'DELETE',
+              headers: {
+                'Authorization': 'Bearer ' + session.token,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ message: '🗑️ 删除文章: ' + slug, sha: data.sha, branch: 'main' })
+            });
+            if (!delRes.ok) {
+              var errData = await delRes.json();
+              throw new Error(errData.message);
+            }
+            alert('✅ 文章已删除！');
+            window.location.href = '/writing';
+          } catch(err) {
+            alert('删除失败: ' + err.message);
+            delItem.textContent = '🗑️ 删除文章';
+          }
+        })();
+      });
+    } catch(e) {}
   })();
 </script>
 
@@ -195,37 +279,60 @@ const base = siteConfig.base;
 
   .comments-area {
     margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--color-border);
+    padding: 1.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+
+  .comments-area:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
   }
 
   .comments-tabs {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.75rem;
     margin-bottom: 1.5rem;
   }
 
   .comments-tab {
-    padding: 0.5rem 1.2rem;
-    border-radius: var(--radius-xl);
-    border: 2px solid var(--color-border);
+    padding: 0.6rem 1.5rem;
+    border-radius: 999px;
+    border: none;
     background: var(--color-surface);
-    color: var(--color-text);
+    color: var(--color-text-secondary);
     font-family: var(--font-heading);
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    position: relative;
+    overflow: hidden;
   }
 
   .comments-tab:hover {
-    border-color: var(--color-primary);
     color: var(--color-primary);
+    box-shadow: 0 2px 10px rgba(93,173,226,0.15);
+    transform: translateY(-1px);
   }
 
   .comments-tab.active {
     background: var(--color-gradient);
-    border-color: transparent;
     color: white;
+    box-shadow: 0 4px 14px rgba(93,173,226,0.35);
+    transform: translateY(-1px);
+  }
+
+  .comments-tab.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent 60%);
+    pointer-events: none;
   }
 
   .comments-tab-content {
@@ -243,6 +350,13 @@ const base = siteConfig.base;
     background: var(--color-surface);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+
+  .comments-placeholder:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
   }
 
   .placeholder-hint {
@@ -255,5 +369,90 @@ const base = siteConfig.base;
     margin-top: 2rem;
     padding-top: 2rem;
     border-top: 1px solid var(--color-border);
+  }
+
+  .article-header {
+    position: relative;
+  }
+
+  .article-edit-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+    z-index: 10;
+    box-shadow: var(--shadow-sm);
+    line-height: 1;
+  }
+
+  .article-edit-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(93,173,226,0.3);
+  }
+
+  .article-header:hover .article-edit-btn {
+    display: flex;
+  }
+
+  .article-edit-menu {
+    position: absolute;
+    top: 2.5rem;
+    right: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 20;
+    min-width: 140px;
+    overflow: hidden;
+    display: none;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+  }
+
+  .article-edit-menu.open {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .aem-item {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-text);
+  }
+
+  .aem-item:hover {
+    background: var(--color-bg);
+  }
+
+  .aem-item.del {
+    color: #e74c3c;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .aem-item.del:hover {
+    background: #fde8e8;
   }
 </style>

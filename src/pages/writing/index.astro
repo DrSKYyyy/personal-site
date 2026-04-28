@@ -158,6 +158,109 @@ const months = [
       filterPosts();
     });
   });
+
+  (function() {
+    try {
+      var sessionData = sessionStorage.getItem('admin_session');
+      if (!sessionData) return;
+      var session = JSON.parse(sessionData);
+      if (!session.token || !session.owner || !session.repo) return;
+
+      var token = session.token;
+      var owner = session.owner;
+      var repo = session.repo;
+
+      document.querySelectorAll('.post-item').forEach(function(item) {
+        var slug = item.getAttribute('href') ? item.getAttribute('href').replace(/\/writing\//, '') : '';
+        if (!slug) return;
+        slug = slug.replace(/^\//, '');
+
+        var contentEl = item.querySelector('.post-item-content');
+        if (!contentEl) return;
+
+        var btnWrap = document.createElement('div');
+        btnWrap.className = 'post-item-actions';
+
+        var menuBtn = document.createElement('button');
+        menuBtn.className = 'post-item-menu-btn';
+        menuBtn.setAttribute('aria-label', '文章管理');
+        menuBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>';
+        btnWrap.appendChild(menuBtn);
+
+        var menu = document.createElement('div');
+        menu.className = 'post-item-menu';
+        menu.innerHTML =
+          '<div class="pim-item edit">✏️ 编辑</div>' +
+          '<div class="pim-item del">🗑️ 删除</div>';
+        btnWrap.appendChild(menu);
+
+        item.appendChild(btnWrap);
+
+        menuBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          e.preventDefault();
+          document.querySelectorAll('.post-item-menu.open').forEach(function(m) {
+            if (m !== menu) m.classList.remove('open');
+          });
+          menu.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function() {
+          menu.classList.remove('open');
+        });
+
+        menu.querySelector('.edit').addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.remove('open');
+          var filePath = 'src/content/blog/' + slug + '.md';
+          sessionStorage.setItem('admin_edit_target', filePath);
+          window.location.href = '/admin';
+        });
+
+        menu.querySelector('.del').addEventListener('click', function(e) {
+          e.stopPropagation();
+          menu.classList.remove('open');
+          var filePath = 'src/content/blog/' + slug + '.md';
+          if (!confirm('确定要删除「' + (item.querySelector('.post-item-title')?.textContent || slug) + '」吗？此操作不可撤销！')) return;
+          var delItem = menu.querySelector('.del');
+          delItem.textContent = '⏳ 删除中...';
+
+          (async function() {
+            try {
+              var url = 'https://api.github.com/repos/' + owner + '/' + repo + '/contents/' + filePath;
+              var res = await fetch(url, {
+                headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github.v3+json' }
+              });
+              var data = await res.json();
+              if (!res.ok) throw new Error(data.message);
+              var sha = data.sha;
+
+              var delRes = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': 'Bearer ' + token,
+                  'Accept': 'application/vnd.github.v3+json',
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: '🗑️ 删除文章: ' + slug, sha: sha, branch: 'main' })
+              });
+              if (!delRes.ok) {
+                var delData = await delRes.json();
+                throw new Error(delData.message);
+              }
+              item.style.transition = 'all 0.3s ease';
+              item.style.opacity = '0';
+              item.style.transform = 'scale(0.95)';
+              setTimeout(function() { item.style.display = 'none'; }, 300);
+            } catch(err) {
+              alert('删除失败: ' + err.message);
+              delItem.textContent = '🗑️ 删除';
+            }
+          })();
+        });
+      });
+    } catch(e) {}
+  })();
 </script>
 
 <style>
@@ -213,26 +316,40 @@ const months = [
   }
 
   .tag-filter {
-    padding: 0.35rem 1rem;
-    border-radius: var(--radius-xl);
-    border: 2px solid var(--color-border);
+    padding: 0.4rem 1.2rem;
+    border-radius: 999px;
+    border: none;
     background: var(--color-surface);
-    color: var(--color-text);
-    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    font-size: 0.82rem;
     font-family: var(--font-heading);
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: relative;
+    overflow: hidden;
   }
 
   .tag-filter:hover {
-    border-color: var(--color-primary);
     color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(93,173,226,0.12);
+    transform: translateY(-1px);
   }
 
   .tag-filter.active {
     background: var(--color-gradient);
-    border-color: transparent;
     color: white;
+    box-shadow: 0 3px 12px rgba(93,173,226,0.3);
+    transform: translateY(-1px);
+  }
+
+  .tag-filter.active::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.25), transparent 60%);
+    pointer-events: none;
   }
 
   .advanced-filters {
@@ -330,5 +447,95 @@ const months = [
     display: flex;
     flex-wrap: wrap;
     gap: 0.25rem;
+  }
+
+  .post-item-actions {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .post-item:hover .post-item-actions {
+    opacity: 1;
+  }
+
+  .post-item-menu-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-sm);
+    padding: 0;
+    line-height: 1;
+  }
+
+  .post-item-menu-btn:hover {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(93,173,226,0.3);
+  }
+
+  .post-item-menu {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    right: 0;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 20;
+    min-width: 120px;
+    overflow: hidden;
+    display: none;
+    opacity: 0;
+    transform: translateY(4px) scale(0.95);
+    transition: all 0.15s ease;
+    transform-origin: bottom right;
+  }
+
+  .post-item-menu.open {
+    display: block;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .pim-item {
+    padding: 0.55rem 0.9rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  .pim-item:hover {
+    background: var(--color-bg);
+  }
+
+  .pim-item.del {
+    color: #e74c3c;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .pim-item.del:hover {
+    background: #fde8e8;
+  }
+
+  .post-item {
+    position: relative;
   }
 </style>

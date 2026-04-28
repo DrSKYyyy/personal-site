@@ -20,6 +20,7 @@ const { Content } = await post.render();
   date={post.data.date}
   tags={post.data.tags}
   coverImage={post.data.coverImage}
+  slug={post.slug}
 >
   <Content />
 </BlogLayout>
