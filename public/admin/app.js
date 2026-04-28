@@ -138,19 +138,23 @@
         if (Array.isArray(data)) APP.files = data.filter(function(f) { return f.name.endsWith('.md'); });
       } catch(e) { APP.files = []; }
       renderFileCards(content);
+
       var editTarget = sessionStorage.getItem('admin_edit_target');
       if (editTarget) {
         sessionStorage.removeItem('admin_edit_target');
         setTimeout(function() {
-          var targetEl = document.querySelector('.admin-file-card[data-path="' + esc(editTarget) + '"]');
-          if (targetEl) {
-            targetEl.style.borderColor = 'var(--color-primary)';
-            targetEl.style.boxShadow = '0 0 0 3px rgba(93,173,226,0.2)';
-            targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            var editBtn = targetEl.querySelector('.edit-btn');
-            if (editBtn) editBtn.click();
+          var cards = content.querySelectorAll('.admin-file-card');
+          for (var i = 0; i < cards.length; i++) {
+            if (cards[i].dataset.path === editTarget) {
+              cards[i].style.borderColor = 'var(--color-primary)';
+              cards[i].style.boxShadow = '0 0 0 3px rgba(93,173,226,0.2)';
+              cards[i].scrollIntoView({ behavior: 'smooth', block: 'center' });
+              var editBtn = cards[i].querySelector('.edit-btn');
+              if (editBtn) setTimeout(function() { editBtn.click(); }, 100);
+              break;
+            }
           }
-        }, 500);
+        }, 600);
       }
     } catch(e) {
       content.innerHTML = '<div class="admin-error">加载失败: ' + esc(e.message) + '</div>';
@@ -164,10 +168,11 @@
     }
     var html = '<div class="admin-card-grid">';
     APP.files.forEach(function(f) {
+      var fileName = f.name.replace(/\.md$/i, '');
       html +=
         '<div class="admin-file-card" data-path="' + esc(f.path) + '" data-sha="' + esc(f.sha) + '">' +
           '<div class="card-icon">~</div>' +
-          '<div class="card-title">' + esc(f.name.replace(/\.md$/i, '')) + '</div>' +
+          '<div class="card-title">' + esc(fileName) + '</div>' +
           '<div class="card-meta">' + (f.sha ? f.sha.substring(0, 7) : '-') + '</div>' +
           '<div class="card-actions">' +
             '<button class="edit-btn">编辑</button>' +
@@ -180,7 +185,11 @@
       btn.addEventListener('click', function(e) {
         var item = e.target.closest('.admin-file-card');
         if (!item) return;
-        startEdit(item.dataset.path, item.dataset.sha);
+        var path = item.dataset.path;
+        var sha = item.dataset.sha;
+        APP.state = 'editor';
+        APP.currentFile = { path: path, sha: sha };
+        render();
       });
     });
     container.querySelectorAll('.del').forEach(function(btn) {
@@ -399,21 +408,24 @@
     status.className = ''; status.textContent = '正在保存...';
     try {
       var b64 = btoa(unescape(encodeURIComponent(body)));
-      await githubApi('contents/' + path, 'PUT', { message: '新建: ' + title, content: b64, branch: 'main' });
+      var reqBody = { message: '新建: ' + title, content: b64, branch: 'main' };
+      try {
+        var existing = await githubApi('contents/' + path);
+        if (existing && existing.sha) reqBody.sha = existing.sha;
+      } catch(e) {}
+      await githubApi('contents/' + path, 'PUT', reqBody);
       status.className = 'admin-success'; status.textContent = '文章已发布！';
       btn.textContent = '已保存';
+      APP.files = [];
+      setTimeout(function() { APP.state = 'dashboard'; render(); }, 1200);
     } catch(e) { status.className = 'admin-error'; status.textContent = '' + esc(e.message); btn.disabled = false; btn.textContent = '保存'; }
-  }
-
-  function startEdit(path, sha) {
-    APP.state = 'editor'; APP.currentFile = { path: path, sha: sha }; render();
   }
 
   function renderEditor() {
     root.innerHTML =
       '<div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">' +
-        '<button class="admin-btn secondary sm" onclick="window.goBack()">返回列表</button>' +
-        '<span style="font-size:1.05rem;font-weight:600;">' + (APP.currentFile ? '' + esc(APP.currentFile.path) : '新建') + '</span></div>' +
+        '<button class="admin-btn secondary sm" id="editor-back-btn">← 返回列表</button>' +
+        '<span style="font-size:1.05rem;font-weight:600;" id="editor-title-header">编辑器</span></div>' +
       '<div class="admin-card">' +
         '<div id="editor-loading" class="admin-loading"><div class="spinner"></div><span>加载中...</span></div>' +
         '<div id="editor-form" class="hidden">' +
@@ -437,11 +449,12 @@
           '<div class="editor-footer">' +
             '<button class="admin-btn primary" id="editor-save-btn">保存</button>' +
             '<span id="editor-status" class="hidden" style="font-size:0.82rem;"></span></div></div></div>';
-    window.goBack = function() { APP.state = 'dashboard'; render(); };
+
+    document.getElementById('editor-back-btn').addEventListener('click', function() { APP.state = 'dashboard'; render(); });
     setupToolbar('toolbar-edit', 'editor-content', 'preview-edit');
     document.getElementById('editor-save-btn').addEventListener('click', saveEditedFile);
     document.getElementById('editor-content').addEventListener('input', function() { updatePreview('editor-content', 'preview-edit'); });
-    if (APP.currentFile) loadFileContent(APP.currentFile.path);
+    if (APP.currentFile && APP.currentFile.path) loadFileContent(APP.currentFile.path);
   }
 
   async function loadFileContent(path) {
@@ -461,6 +474,8 @@
         var v = fm.match(/visibility:\s*(.+)$/m);
         if (v) visibility = v[1].trim();
       }
+      var headerEl = document.getElementById('editor-title-header');
+      if (headerEl) headerEl.textContent = '✏️ ' + (title || path.split('/').pop());
       document.getElementById('editor-loading').className = 'hidden';
       document.getElementById('editor-form').className = '';
       document.getElementById('editor-title').value = title;
@@ -485,7 +500,9 @@
     try {
       var body = getFrontmatter(title, tags, visibility) + content;
       var b64 = btoa(unescape(encodeURIComponent(body)));
-      await githubApi('contents/' + APP.currentFile.path, 'PUT', { message: '更新: ' + title, content: b64, sha: APP.currentFile.sha, branch: 'main' });
+      var reqBody = { message: '更新: ' + title, content: b64, branch: 'main' };
+      if (APP.currentFile && APP.currentFile.sha) reqBody.sha = APP.currentFile.sha;
+      await githubApi('contents/' + APP.currentFile.path, 'PUT', reqBody);
       status.className = 'admin-success'; status.textContent = '已保存！';
       btn.textContent = '已保存';
     } catch(e) { status.className = 'admin-error'; status.textContent = '' + esc(e.message); btn.disabled = false; btn.textContent = '保存'; }
@@ -501,7 +518,33 @@
     } catch(e) { alert('删除失败: ' + e.message); }
   }
 
+  // Parse URL params for direct edit
+  function checkQueryParam() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var editPath = params.get('edit');
+      if (editPath) {
+        var stored = sessionStorage.getItem('admin_session');
+        if (stored) {
+          var s = JSON.parse(stored);
+          APP.token = s.token;
+          APP.repoOwner = s.owner;
+          APP.repoName = s.repo;
+          APP.state = 'editor';
+          APP.currentFile = { path: editPath, sha: '' };
+          render();
+        }
+      }
+    } catch(e) {}
+  }
+
   window.APP = APP;
-  document.addEventListener('DOMContentLoaded', render);
-  if (document.readyState !== 'loading') render();
+  document.addEventListener('DOMContentLoaded', function() {
+    render();
+    checkQueryParam();
+  });
+  if (document.readyState !== 'loading') {
+    render();
+    checkQueryParam();
+  }
 })();

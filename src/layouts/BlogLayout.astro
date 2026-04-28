@@ -134,8 +134,8 @@ const base = siteConfig.base;
 
       menu.querySelector('.edit').addEventListener('click', function() {
         menu.classList.remove('open');
-        sessionStorage.setItem('admin_edit_target', 'src/content/blog/' + slug + '.md');
-        window.location.href = '/admin';
+        var filePath = 'src/content/blog/' + slug + '.md';
+        window.location.href = '/admin?edit=' + encodeURIComponent(filePath);
       });
 
       menu.querySelector('.del').addEventListener('click', function() {

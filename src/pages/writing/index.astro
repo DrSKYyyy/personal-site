@@ -213,8 +213,7 @@ const months = [
           e.stopPropagation();
           menu.classList.remove('open');
           var filePath = 'src/content/blog/' + slug + '.md';
-          sessionStorage.setItem('admin_edit_target', filePath);
-          window.location.href = '/admin';
+          window.location.href = '/admin?edit=' + encodeURIComponent(filePath);
         });
 
         menu.querySelector('.del').addEventListener('click', function(e) {
