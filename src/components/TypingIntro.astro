@@ -5,41 +5,31 @@ import { siteConfig } from '../data/siteData';
 <div id="typing-intro" class="typing-intro">
   <div class="typing-bg"></div>
   <div class="typing-content">
-    <div class="typing-lines" id="typing-lines"></div>
-    <div class="typing-subtitle" id="typing-subtitle">我追风，也等你</div>
+    <h1 id="typewriter-text"></h1>
+    <p class="typing-subtitle" id="typing-subtitle">我追风，也等你</p>
     <div class="typing-hint" id="typing-hint">点击任意位置跳过</div>
   </div>
-  <div id="typing-data" style="display:none">{JSON.stringify({
-    lines: siteConfig.intro.lines,
-    subtitle: siteConfig.intro.subtitle,
-    typingSpeed: siteConfig.intro.typingSpeed,
-    eraseSpeed: siteConfig.intro.eraseSpeed,
-    pauseAfterType: siteConfig.intro.pauseAfterType,
-    pauseBeforeNext: siteConfig.intro.pauseBeforeNext,
-  })}</div>
+  <div id="typing-data" style="display:none">{JSON.stringify(siteConfig.intro.lines)}</div>
 </div>
 
 <script is:inline>
   (function() {
     var intro = document.getElementById('typing-intro');
-    var container = document.getElementById('typing-lines');
-    var hint = document.getElementById('typing-hint');
+    var textEl = document.getElementById('typewriter-text');
     var subtitleEl = document.getElementById('typing-subtitle');
+    var hint = document.getElementById('typing-hint');
+    var siteHeader = document.getElementById('header');
 
     if (!intro) return;
 
     var skip = false;
 
-    var cfg = {};
+    var texts = [];
     try {
       var dataEl = document.getElementById('typing-data');
-      if (dataEl && dataEl.textContent) cfg = JSON.parse(dataEl.textContent);
+      if (dataEl && dataEl.textContent) texts = JSON.parse(dataEl.textContent);
     } catch(e) {}
-    cfg.lines = cfg.lines || [];
-    cfg.typingSpeed = cfg.typingSpeed || 80;
-    cfg.eraseSpeed = cfg.eraseSpeed || 40;
-    cfg.pauseAfterType = cfg.pauseAfterType || 1500;
-    cfg.pauseBeforeNext = cfg.pauseBeforeNext || 500;
+    if (!texts || texts.length === 0) { texts = ["你好，我是 天天", '欢迎来到我的世界']; }
 
     function dismiss() {
       if (!intro) return;
@@ -47,58 +37,52 @@ import { siteConfig } from '../data/siteData';
       setTimeout(function() {
         intro.style.display = 'none';
         document.body.style.overflow = '';
+        if (siteHeader) siteHeader.style.display = '';
       }, 600);
     }
 
     function startTyping() {
-      if (cfg.lines.length < 2) { dismiss(); return; }
+      var currentTextIndex = 0;
+      var currentCharIndex = 0;
+      var isDeleting = false;
 
-      var line1 = cfg.lines[0];
-      var line2 = cfg.lines[1];
-      var p = document.createElement('p');
-      p.className = 'typing-line';
-      container.appendChild(p);
+      function type() {
+        if (skip) { dismiss(); return; }
 
-      function typeForward(text, callback) {
-        var i = 0;
-        function step() {
-          if (skip) { dismiss(); return; }
-          if (i <= text.length) {
-            p.textContent = text.substring(0, i);
-            i++;
-            setTimeout(step, cfg.typingSpeed);
-          } else {
-            p.textContent = text;
-            p.classList.add('done');
-            if (callback) setTimeout(callback, cfg.pauseAfterType);
-          }
+        var currentText = texts[currentTextIndex];
+
+        if (isDeleting) {
+          textEl.textContent = currentText.substring(0, currentCharIndex - 1);
+          currentCharIndex--;
+        } else {
+          textEl.textContent = currentText.substring(0, currentCharIndex + 1);
+          currentCharIndex++;
         }
-        step();
+
+        if (!isDeleting && currentCharIndex === currentText.length) {
+          textEl.classList.add('done');
+          setTimeout(function() {
+            textEl.classList.remove('done');
+            isDeleting = true;
+            setTimeout(type, 0);
+          }, 1000);
+          return;
+        } else if (isDeleting && currentCharIndex === 0) {
+          isDeleting = false;
+          currentTextIndex++;
+          if (currentTextIndex >= texts.length) {
+            setTimeout(dismiss, 500);
+            return;
+          }
+          setTimeout(type, 200);
+          return;
+        }
+
+        var typingSpeed = isDeleting ? 100 : 150;
+        setTimeout(type, typingSpeed);
       }
 
-      function eraseBackward(text, callback) {
-        var i = text.length;
-        function step() {
-          if (skip) { dismiss(); return; }
-          if (i >= 0) {
-            p.textContent = text.substring(0, i);
-            i--;
-            setTimeout(step, cfg.eraseSpeed);
-          } else {
-            p.textContent = '';
-            if (callback) setTimeout(callback, cfg.pauseBeforeNext);
-          }
-        }
-        step();
-      }
-
-      typeForward(line1, function() {
-        eraseBackward(line1, function() {
-          typeForward(line2, function() {
-            setTimeout(dismiss, cfg.pauseAfterType);
-          });
-        });
-      });
+      setTimeout(type, 300);
     }
 
     intro.addEventListener('click', function() {
@@ -116,6 +100,7 @@ import { siteConfig } from '../data/siteData';
       sessionStorage.setItem('intro_shown', '1');
       intro.style.display = 'flex';
       document.body.style.overflow = 'hidden';
+      if (siteHeader) siteHeader.style.display = 'none';
       setTimeout(function() {
         if (subtitleEl) subtitleEl.classList.add('visible');
         startTyping();
@@ -170,34 +155,25 @@ import { siteConfig } from '../data/siteData';
     max-width: 800px;
   }
 
-  .typing-lines {
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .typing-line {
-    font-family: var(--font-heading);
-    font-size: 3.2rem;
+  #typewriter-text {
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     color: #2C3E50;
-    line-height: 1.4;
-    opacity: 1;
+    margin-bottom: 1rem;
     min-height: 1.4em;
+    line-height: 1.4;
   }
 
-  .typing-line:last-child:not(.done)::after {
+  #typewriter-text::after {
     content: '|';
-    color: #5DADE2;
-    font-weight: 700;
-    animation: cursorPulse 0.6s ease-in-out infinite;
-    margin-left: 2px;
+    animation: blink 1s infinite;
+    color: #2C3E50;
   }
 
-  @keyframes cursorPulse {
-    0%, 100% { opacity: 1; transform: scaleY(1); }
-    50% { opacity: 0.2; transform: scaleY(0.6); }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
   }
 
   .typing-subtitle {
@@ -228,8 +204,8 @@ import { siteConfig } from '../data/siteData';
   }
 
   @media (max-width: 768px) {
-    .typing-line {
-      font-size: 2rem;
+    #typewriter-text {
+      font-size: 1.8rem;
     }
 
     .typing-subtitle {

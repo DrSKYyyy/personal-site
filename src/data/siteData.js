@@ -44,7 +44,7 @@ export const siteConfig = {
   },
   intro: {
     lines: [
-      "Hi, I'm 天天",
+      "你好，我是 天天",
       '欢迎来到我的世界',
     ],
     subtitle: '我追风，也等你',
