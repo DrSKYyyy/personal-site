@@ -512,10 +512,20 @@
     if (!confirm('确定要删除 ' + path + ' 吗？')) return;
     try {
       await githubApi('contents/' + path, 'DELETE', { message: '删除: ' + path.split('/').pop(), sha: sha, branch: 'main' });
-      APP.files = APP.files.filter(function(f) { return f.path !== path; });
-      var content = document.getElementById('dashboard-content');
-      if (content) loadTabContent();
-    } catch(e) { alert('删除失败: ' + e.message); }
+    } catch(e) {
+      if (e.message && e.message.indexOf('404') !== -1) {
+        // File already deleted on GitHub, just refresh local
+      } else {
+        alert('删除失败: ' + e.message);
+        return;
+      }
+    }
+    APP.files = [];
+    var content = document.getElementById('dashboard-content');
+    if (content) {
+      content.innerHTML = '<div class="admin-loading"><div class="spinner"></div><span>正在刷新...</span></div>';
+      setTimeout(function() { loadTabContent(); }, 300);
+    }
   }
 
   // Parse URL params for direct edit
