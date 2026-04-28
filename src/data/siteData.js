@@ -298,19 +298,16 @@ export const siteConfig = {
   },
 
   // ====================================================================
-  //  15. 匿名留言接口
-  //    由于网站部署在 GitHub Pages（不支持后端 API），需要一个独立的
-  //    Cloudflare Worker 来处理留言。Worker 部署后会将留言通过
-  //    MailChannels 免费邮件服务发送到你的邮箱。
-  //
-  //    部署方法：
-  //      方式 A（推荐）：登录 Cloudflare Dashboard → Workers & Pages →
-  //        创建 Worker → 粘贴 workers/message-worker.js 的内容 → 部署
-  //      方式 B：npm install wrangler --save-dev → 在 workers/ 目录下运行
-  //        npx wrangler deploy
-  //
-  //    部署后把下面地址替换成你的 Worker 地址，例如：
-  //    'https://website-message.你的子域名.workers.dev'
+  //  15. 管理员邮箱（用于匿名留言的 mailto: 备选方案）
+  //    当 Cloudflare Worker 不可用时，访客可以通过点击邮件链接
+  //    直接给你发邮件。这是一个零依赖、永远可用的备选方案。
+  // ====================================================================
+  adminEmail: '121622090@qq.com',
+
+  // ====================================================================
+  //  16. 匿名留言表单接口
+  //    指向 Cloudflare Worker，用于处理留言表单提交
+  //    对应 Worker 文件: workers/message-worker.js
   // ====================================================================
   formEndpoint: 'https://website-message.121622090.workers.dev',
 };

@@ -4,7 +4,10 @@ const {
   subtitle = '无需登录，只有站长能看到你的留言',
   endpoint = '',
   placeholder = '写下你想说的话...',
+  adminEmail = '',
 } = Astro.props;
+const mailtoSubject = encodeURIComponent('来自网站留言');
+const mailtoBody = encodeURIComponent('请在此写下你的留言：\n\n');
 ---
 
 <section class="message-form-section">
@@ -24,6 +27,25 @@ const {
     </div>
     <div id="form-status" class="form-status"></div>
   </form>
+
+  {adminEmail && (
+    <div class="email-fallback">
+      <span class="email-fallback-line"></span>
+      <span class="email-fallback-text">或直接给我发邮件</span>
+      <span class="email-fallback-line"></span>
+    </div>
+  )}
+
+  {adminEmail && (
+    <a href={"mailto:" + adminEmail + "?subject=" + mailtoSubject + "&body=" + mailtoBody} class="email-link-card">
+      <span class="email-link-icon">📧</span>
+      <span class="email-link-text">
+        <strong>发送邮件到 {adminEmail}</strong>
+        <span class="email-link-hint">使用你的默认邮件客户端 · 无需登录本站</span>
+      </span>
+      <span class="email-link-arrow">✉️</span>
+    </a>
+  )}
 </section>
 
 <script is:inline>
@@ -84,7 +106,7 @@ const {
       })
       .catch(function() {
         statusEl.className = 'form-status form-status-error';
-        statusEl.textContent = '❌ 发送失败，请稍后再试。你也可以直接发邮件给我。';
+        statusEl.textContent = '❌ 发送失败，你也可以试试用下面的邮件链接直接联系我。';
       })
       .finally(function() {
         btn.disabled = false;
@@ -102,12 +124,6 @@ const {
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     box-shadow: var(--shadow-sm);
-    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
-  }
-
-  .message-form-section:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
   }
 
   .message-form-title {
@@ -204,6 +220,73 @@ const {
 
   .form-status-error {
     color: #e74c3c;
+  }
+
+  .email-fallback {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.25rem 0 0.75rem;
+  }
+
+  .email-fallback-line {
+    flex: 1;
+    height: 1px;
+    background: var(--color-border);
+  }
+
+  .email-fallback-text {
+    font-size: 0.82rem;
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+  }
+
+  .email-link-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1.1rem;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: all 0.25s ease;
+  }
+
+  .email-link-card:hover {
+    border-color: #e74c3c;
+    box-shadow: 0 2px 12px rgba(231, 76, 60, 0.1);
+    transform: translateY(-2px);
+    color: var(--color-text);
+  }
+
+  .email-link-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+
+  .email-link-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .email-link-text strong {
+    font-size: 0.9rem;
+    font-family: var(--font-heading);
+    word-break: break-all;
+  }
+
+  .email-link-hint {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+  }
+
+  .email-link-arrow {
+    font-size: 1.1rem;
+    flex-shrink: 0;
   }
 
   @media (max-width: 768px) {
