@@ -247,9 +247,9 @@ export const siteConfig = {
   //  10. 社交链接
   // ====================================================================
   social: {
-    github: 'https://github.com',
+    github: 'https://github.com/DrSKYyyy',   // GitHub 个人主页
     csdn: 'https://blog.csdn.net/SKY_PPCH',  // CSDN 博客主页
-    twitter: 'https://twitter.com',
+    twitter: 'https://twitter.com',           // 暂未使用（保留备用）
     email: 'hello@example.com',          // 显示在页脚邮件图标的收件地址
   },
 
