@@ -42,6 +42,7 @@ export const siteConfig = {
     password: 'admin123',
     siteUrl: 'https://xxs.beauty',
   },
+  formEndpoint: 'https://xxs.beauty/api/message', // 匿名留言接口
   intro: {
     lines: [
       "你好，我是 天天",

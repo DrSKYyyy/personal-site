@@ -11,7 +11,7 @@ const {
   <h3 class="message-form-title">{title}</h3>
   <p class="message-form-subtitle">{subtitle}</p>
 
-  <form id="message-form" class="message-form">
+  <form id="message-form" class="message-form" data-endpoint={endpoint}>
     <div class="form-row">
       <input type="text" name="name" class="form-input" placeholder="你的名字（必填）" required />
       <input type="email" name="email" class="form-input" placeholder="邮箱（可选，方便我回复你）" />
@@ -58,8 +58,14 @@ const {
 
       var data = new FormData(form);
 
-      var defaultEndpoint = 'https://formspree.io/f/your-form-id';
-      var endpoint = form.getAttribute('data-endpoint') || defaultEndpoint;
+      var endpoint = form.getAttribute('data-endpoint');
+      if (!endpoint) {
+        statusEl.className = 'form-status form-status-error';
+        statusEl.textContent = '❌ 留言功能未配置，请联系站长设置留言接口';
+        btn.disabled = false;
+        btn.textContent = '发送留言 ✈️';
+        return;
+      }
 
       fetch(endpoint, {
         method: 'POST',
@@ -95,6 +101,13 @@ const {
     background: var(--color-surface);
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+
+  .message-form-section:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
   }
 
   .message-form-title {
@@ -133,11 +146,12 @@ const {
     color: var(--color-text);
     background: var(--color-bg);
     outline: none;
-    transition: border-color var(--transition-fast);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
   .form-input:focus, .form-textarea:focus {
     border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.15);
   }
 
   .form-textarea {
