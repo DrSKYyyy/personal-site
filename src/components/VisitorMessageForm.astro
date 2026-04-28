@@ -8,6 +8,7 @@ const {
 } = Astro.props;
 const mailtoSubject = encodeURIComponent('来自网站留言');
 const mailtoBody = encodeURIComponent('请在此写下你的留言：\n\n');
+const qqMailUrl = 'https://mail.qq.com/cgi-bin/write?to=121622090@qq.com&subject=' + mailtoSubject + '&body=' + mailtoBody;
 ---
 
 <section class="message-form-section">
@@ -37,11 +38,11 @@ const mailtoBody = encodeURIComponent('请在此写下你的留言：\n\n');
   )}
 
   {adminEmail && (
-    <a href={"mailto:" + adminEmail + "?subject=" + mailtoSubject + "&body=" + mailtoBody} class="email-link-card">
+    <a href={qqMailUrl} target="_blank" rel="noopener noreferrer" class="email-link-card">
       <span class="email-link-icon">📧</span>
       <span class="email-link-text">
         <strong>发送邮件到 {adminEmail}</strong>
-        <span class="email-link-hint">使用你的默认邮件客户端 · 无需登录本站</span>
+        <span class="email-link-hint">打开 QQ 邮箱网页版 · 无需登录本站</span>
       </span>
       <span class="email-link-arrow">✉️</span>
     </a>

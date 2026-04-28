@@ -250,7 +250,7 @@ export const siteConfig = {
     github: 'https://github.com/DrSKYyyy',   // GitHub 个人主页
     csdn: 'https://blog.csdn.net/SKY_PPCH',  // CSDN 博客主页
     twitter: 'https://twitter.com',           // 暂未使用（保留备用）
-    email: 'hello@example.com',          // 显示在页脚邮件图标的收件地址
+    email: '121622090@qq.com',           // 邮箱地址（页脚图标点击直接打开 QQ 邮箱网页版）
   },
 
   // ====================================================================
