@@ -53,7 +53,8 @@ export const siteConfig = {
   //  3. 首页英雄区（src/pages/index.astro）
   // ====================================================================
   hero: {
-    slogan: "Hi, I'm 追风少年",           // 顶部大标题（渐变文字）
+    sloganEn: "Hi, I'm",                 // 顶部大标题英文部分（使用 Gaegu 手写字体）
+    sloganZh: '追风少年',                 // 顶部大标题中文部分（沿用 ZCOOL KuaiLe 字体）
     subSlogan: '赤诚、爽朗、不畏风',       // 副标题
     description: '这是一个有趣的、真诚的人的数字花园。<br/>在这里，我用文字记录成长，用代码表达想法，用生活感受世界。',
     speechBubbles: [                     // 悬停头像时随机显示的气泡文字

@@ -4,7 +4,7 @@
 
 基于 **Astro 5** 构建的静态个人网站，部署于 **Cloudflare Pages**，使用 **GitHub API** 实现内容管理。
 
----
+***
 
 ## 目录
 
@@ -24,7 +24,7 @@
 - [部署](#部署)
 - [技术栈](#技术栈)
 
----
+***
 
 ## 快速开始
 
@@ -42,7 +42,7 @@ npm run build
 npm run preview
 ```
 
----
+***
 
 ## 项目结构
 
@@ -85,7 +85,7 @@ website-v5/
 └── siteData.js              # 不再使用，见 src/data/siteData.js
 ```
 
----
+***
 
 ## 如何修改网站内容
 
@@ -97,24 +97,25 @@ website-v5/
 
 **包含的内容：**
 
-| 配置项 | 说明 | 默认值示例 |
-|--------|------|-----------|
-| `title` | 网站名称（导航栏、页脚、浏览器标签） | 追风少年 |
-| `description` | 网站描述（SEO） | 一个有趣、真诚的年轻人的数字花园 |
-| `avatar` | 头像图片路径 | /images/avatar.svg |
-| `hero.slogan` | 首页大标题 | Hi, I'm 追风少年 |
-| `hero.description` | 首页描述文字 | 这是一个有趣的... |
-| `hero.speechBubbles` | 头像气泡文字列表 | ['今天很开心！🎉', ...] |
-| `intro.lines` | 打字机逐行文字 | ['你好，我是 天天', ...] |
-| `intro.typingSpeed` | 打字速度（毫秒/字） | 80 |
-| `navLinks` | 导航栏菜单项 | [...] |
-| `about.*` | 关于页面全部文字 | 见文件内注释 |
-| `special.*` | Special页面全部数据 | 见文件内注释 |
-| `giscus.*` | Giscus 评论系统配置 | 见下方说明 |
-| `admin.password` | CMS 登录密码 | SHTskycool200417 |
-| `social.*` | 社交链接 | GitHub、Twitter、Email |
-| `formEndpoint` | 匿名留言接口地址 | https://xxs.beauty/api/message |
-| `footer.copyright` | 页脚版权文字 | 用 ❤️ 和 ☀️ 建造 |
+| 配置项                  | 说明                 | 默认值示例                            |
+| -------------------- | ------------------ | -------------------------------- |
+| `title`              | 网站名称（导航栏、页脚、浏览器标签） | 追风少年                             |
+| `description`        | 网站描述（SEO）          | 一个有趣、真诚的年轻人的数字花园                 |
+| `avatar`             | 头像图片路径             | /images/avatar.svg               |
+| `hero.sloganEn`      | 首页大标题英文部分          | Hi, I'm                          |
+| `hero.sloganZh`      | 首页大标题中文部分          | 追风少年                             |
+| `hero.description`   | 首页描述文字             | 这是一个有趣的...                       |
+| `hero.speechBubbles` | 头像气泡文字列表           | \['今天很开心！🎉', ...]               |
+| `intro.lines`        | 打字机逐行文字            | \['你好，我是 天天', ...]               |
+| `intro.typingSpeed`  | 打字速度（毫秒/字）         | 80                               |
+| `navLinks`           | 导航栏菜单项             | \[...]                           |
+| `about.*`            | 关于页面全部文字           | 见文件内注释                           |
+| `special.*`          | Special页面全部数据      | 见文件内注释                           |
+| `giscus.*`           | Giscus 评论系统配置      | 见下方说明                            |
+| `admin.password`     | CMS 登录密码           | SHTskycool200417                 |
+| `social.*`           | 社交链接               | GitHub、Twitter、Email             |
+| `formEndpoint`       | 匿名留言接口地址           | <https://xxs.beauty/api/message> |
+| `footer.copyright`   | 页脚版权文字             | 用 ❤️ 和 ☀️ 建造                     |
 
 **示例：修改首页大标题**
 
@@ -122,7 +123,8 @@ website-v5/
 
 ```js
 hero: {
-    slogan: "Hi, I'm 追风少年",  // ← 修改这里
+    sloganEn: "Hi, I'm",  // ← 修改英文部分
+    sloganZh: '追风少年',  // ← 修改中文部分
     // ...
 }
 ```
@@ -171,7 +173,7 @@ date: "2025-02"
 ---
 ```
 
----
+***
 
 ## 后台管理 CMS
 
@@ -188,19 +190,21 @@ date: "2025-02"
 
 CMS 通过 GitHub API 直接操作仓库文件，修改会实时同步到 GitHub。
 
----
+***
 
 ## 常见操作
 
 ### 添加新文章
 
 **方法一（推荐）：本地添加文件**
+
 1. 在 `src/content/blog/` 下创建 `2025-04-28-my-new-post.md`
 2. 写入 frontmatter + 正文
 3. 保存后运行 `git add . && git commit -m "新文章" && git push`
 4. GitHub Actions 自动部署
 
 **方法二：CMS 后台**
+
 1. 访问 `/admin` 登录
 2. 点击"新建文章"
 3. 写内容并发布
@@ -212,6 +216,7 @@ CMS 通过 GitHub API 直接操作仓库文件，修改会实时同步到 GitHub
 ### 修改关于页面
 
 编辑 `siteData.js` 中的 `about` 字段，包括：
+
 - 简介段落（`about.intro.paragraphs`）
 - 详细介绍（`about.detail.sections`）
 - 当前任务（`about.details.current.items`）
@@ -225,12 +230,12 @@ CMS 通过 GitHub API 直接操作仓库文件，修改会实时同步到 GitHub
 
 ### 修改 Giscus 评论配置
 
-1. 访问 https://giscus.app/zh-CN
+1. 访问 <https://giscus.app/zh-CN>
 2. 填写你的 GitHub 仓库信息
 3. 获取 `repo`, `repoId`, `category`, `categoryId`
 4. 更新 `siteData.js` 中的 `giscus` 字段
 
----
+***
 
 ## 部署
 
@@ -252,7 +257,7 @@ npm run build     # 构建到 dist/ 目录
 
 然后将 `dist/` 目录上传到任何静态托管服务。
 
----
+***
 
 ## 技术栈
 
@@ -263,3 +268,4 @@ npm run build     # 构建到 dist/ 目录
 - **部署：** Cloudflare Pages + GitHub Actions
 - **内容管理：** 本地 Markdown 文件 + GitHub API
 - **留言：** Cloudflare Pages Functions + MailChannels
+

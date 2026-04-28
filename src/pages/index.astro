@@ -20,7 +20,10 @@ const base = siteConfig.base;
   <section class="hero">
     <div class="container hero-content page-enter">
       <div class="hero-text">
-        <h1 class="hero-title gradient-text">{siteConfig.hero.slogan}</h1>
+        <h1 class="hero-title">
+          <span class="hero-title-en font-english">{siteConfig.hero.sloganEn}</span>
+          <span class="hero-title-zh gradient-text"> {siteConfig.hero.sloganZh}</span>
+        </h1>
         <p class="hero-subtitle">{siteConfig.hero.subSlogan}</p>
         <p class="hero-desc" set:html={siteConfig.hero.description}></p>
         <div class="hero-actions">
@@ -142,7 +145,7 @@ const base = siteConfig.base;
     align-items: center;
     justify-content: space-between;
     gap: 3rem;
-    padding-top: 2rem;
+    padding-top: 0.5rem;
     padding-bottom: 2rem;
   }
 
@@ -152,9 +155,17 @@ const base = siteConfig.base;
   }
 
   .hero-title {
-    font-size: 2.8rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.2;
+    font-size: 4.2rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.15;
+  }
+
+  .hero-title-en {
+    color: var(--color-text);
+  }
+
+  .hero-title-zh {
+    font-size: inherit;
   }
 
   .hero-subtitle {
@@ -429,7 +440,7 @@ const base = siteConfig.base;
     }
 
     .hero-title {
-      font-size: 2rem;
+      font-size: 2.5rem;
     }
 
     .hero-actions {
