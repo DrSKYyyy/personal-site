@@ -248,6 +248,7 @@ export const siteConfig = {
   // ====================================================================
   social: {
     github: 'https://github.com',
+    csdn: 'https://blog.csdn.net/SKY_PPCH',  // CSDN 博客主页
     twitter: 'https://twitter.com',
     email: 'hello@example.com',          // 显示在页脚邮件图标的收件地址
   },
