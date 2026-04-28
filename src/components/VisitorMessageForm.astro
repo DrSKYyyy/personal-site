@@ -59,9 +59,9 @@ const {
       var data = new FormData(form);
 
       var endpoint = form.getAttribute('data-endpoint');
-      if (!endpoint) {
+      if (!endpoint || endpoint.indexOf('http') !== 0) {
         statusEl.className = 'form-status form-status-error';
-        statusEl.textContent = '❌ 留言功能未配置，请联系站长设置留言接口';
+        statusEl.textContent = '❌ 留言功能暂未启用（站长尚未配置留言接口）';
         btn.disabled = false;
         btn.textContent = '发送留言 ✈️';
         return;

@@ -10,8 +10,9 @@ const { giscus } = siteConfig;
       <div class="giscus-spinner"></div>
       <span>{giscus.loadingText}</span>
     </div>
-    <div id="giscus-timeout" class="giscus-timeout" style="display:none">
+    <div id="giscus-error" class="giscus-error" style="display:none">
       <p>{giscus.timeoutText}</p>
+      <button id="giscus-retry-btn" class="giscus-retry-btn">🔄 重新加载</button>
     </div>
     <div id="giscus-container"
       data-repo={giscus.repo}
@@ -34,44 +35,64 @@ const { giscus } = siteConfig;
     if (!container) return;
 
     var loadingEl = document.getElementById('giscus-loading');
-    var timeoutEl = document.getElementById('giscus-timeout');
+    var errorEl = document.getElementById('giscus-error');
+    var retryBtn = document.getElementById('giscus-retry-btn');
+    var loadAttempted = false;
 
-    var timeoutId = setTimeout(function() {
-      if (loadingEl) loadingEl.style.display = 'none';
-      if (timeoutEl) timeoutEl.style.display = 'block';
-    }, 10000);
+    function loadGiscus() {
+      if (!container) return;
 
-    var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      if (loadAttempted) {
+        container.innerHTML = '';
+      }
+      loadAttempted = true;
 
-    var script = document.createElement('script');
-    script.src = 'https://giscus.app/client.js';
-    script.setAttribute('data-repo', container.dataset.repo);
-    script.setAttribute('data-repo-id', container.dataset.repoId);
-    script.setAttribute('data-category', container.dataset.category);
-    script.setAttribute('data-category-id', container.dataset.categoryId);
-    script.setAttribute('data-mapping', container.dataset.mapping);
-    script.setAttribute('data-strict', container.dataset.strict);
-    script.setAttribute('data-reactions-enabled', container.dataset.reactionsEnabled);
-    script.setAttribute('data-emit-metadata', container.dataset.emitMetadata);
-    script.setAttribute('data-input-position', container.dataset.inputPosition);
-    script.setAttribute('data-lang', container.dataset.lang);
-    script.setAttribute('data-theme', theme);
-    script.setAttribute('crossorigin', 'anonymous');
-    script.async = true;
+      if (loadingEl) loadingEl.style.display = 'flex';
+      if (errorEl) errorEl.style.display = 'none';
 
-    script.onload = function() {
-      clearTimeout(timeoutId);
-      if (loadingEl) loadingEl.style.display = 'none';
-      if (timeoutEl) timeoutEl.style.display = 'none';
-    };
+      var theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
 
-    script.onerror = function() {
-      clearTimeout(timeoutId);
-      if (loadingEl) loadingEl.style.display = 'none';
-      if (timeoutEl) timeoutEl.style.display = 'block';
-    };
+      var timeoutId = setTimeout(function() {
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'block';
+      }, 20000);
 
-    container.appendChild(script);
+      var script = document.createElement('script');
+      script.src = 'https://giscus.app/client.js';
+      script.setAttribute('data-repo', container.dataset.repo);
+      script.setAttribute('data-repo-id', container.dataset.repoId);
+      script.setAttribute('data-category', container.dataset.category);
+      script.setAttribute('data-category-id', container.dataset.categoryId);
+      script.setAttribute('data-mapping', container.dataset.mapping);
+      script.setAttribute('data-strict', container.dataset.strict);
+      script.setAttribute('data-reactions-enabled', container.dataset.reactionsEnabled);
+      script.setAttribute('data-emit-metadata', container.dataset.emitMetadata);
+      script.setAttribute('data-input-position', container.dataset.inputPosition);
+      script.setAttribute('data-lang', container.dataset.lang);
+      script.setAttribute('data-theme', theme);
+      script.setAttribute('crossorigin', 'anonymous');
+      script.async = true;
+
+      script.onload = function() {
+        clearTimeout(timeoutId);
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'none';
+      };
+
+      script.onerror = function() {
+        clearTimeout(timeoutId);
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'block';
+      };
+
+      container.appendChild(script);
+    }
+
+    loadGiscus();
+
+    if (retryBtn) {
+      retryBtn.addEventListener('click', loadGiscus);
+    }
 
     var themeObserver = new MutationObserver(function() {
       var newTheme = document.documentElement.getAttribute('data-theme');
@@ -137,7 +158,7 @@ const { giscus } = siteConfig;
     to { transform: rotate(360deg); }
   }
 
-  .giscus-timeout {
+  .giscus-error {
     text-align: center;
     padding: 2rem;
     color: var(--color-text-secondary);
@@ -146,5 +167,24 @@ const { giscus } = siteConfig;
     background: var(--color-bg);
     border-radius: var(--radius-sm);
     border: 1px dashed var(--color-border);
+  }
+
+  .giscus-retry-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-xl);
+    border: 2px solid var(--color-primary);
+    background: transparent;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .giscus-retry-btn:hover {
+    background: var(--color-primary);
+    color: white;
   }
 </style>

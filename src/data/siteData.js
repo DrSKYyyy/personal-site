@@ -279,7 +279,7 @@ export const siteConfig = {
     // 如果 gitcus.app 无法加载的提示文字
     fallbackTitle: '💬 评论',
     loadingText: '正在加载评论系统...',
-    timeoutText: '评论加载超时（giscus.app 响应较慢），请稍后刷新页面重试。你也可以直接前往 GitHub Discussions 参与讨论。',
+    timeoutText: 'giscus.app 加载超时，请检查网络连接或点击下方按钮重新加载。你也可以直接前往 GitHub Discussions 参与讨论。',
   },
 
   // ====================================================================
@@ -299,8 +299,18 @@ export const siteConfig = {
 
   // ====================================================================
   //  15. 匿名留言接口
-  //    提交地址，目前指向 Cloudflare Pages Functions
-  //    对应文件: functions/api/message.js
+  //    由于网站部署在 GitHub Pages（不支持后端 API），需要一个独立的
+  //    Cloudflare Worker 来处理留言。Worker 部署后会将留言通过
+  //    MailChannels 免费邮件服务发送到你的邮箱。
+  //
+  //    部署方法：
+  //      方式 A（推荐）：登录 Cloudflare Dashboard → Workers & Pages →
+  //        创建 Worker → 粘贴 workers/message-worker.js 的内容 → 部署
+  //      方式 B：npm install wrangler --save-dev → 在 workers/ 目录下运行
+  //        npx wrangler deploy
+  //
+  //    部署后把下面地址替换成你的 Worker 地址，例如：
+  //    'https://website-message.你的子域名.workers.dev'
   // ====================================================================
-  formEndpoint: 'https://xxs.beauty/api/message',
+  formEndpoint: 'https://website-message.121622090.workers.dev',
 };

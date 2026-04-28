@@ -1,0 +1,7 @@
+name = "website-message"
+main = "message-worker.js"
+compatibility_date = "2025-04-01"
+
+# 部署后 Worker 的访问地址:
+# https://website-message.<你的Cloudflare子域名>.workers.dev
+# 在 siteData.js 中将 formEndpoint 更新为该地址
