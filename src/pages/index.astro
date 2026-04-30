@@ -71,6 +71,7 @@ const base = siteConfig.base;
 
   <section class="home-comments container page-enter">
     <h2 class="section-title">💬 留言互动</h2>
+    {siteConfig.homeComments.subtitle && <p class="section-subtitle">{siteConfig.homeComments.subtitle}</p>}
     <div class="comments-tabs">
       <button class="comments-tab active" data-tab="discuss-home">{siteConfig.homeComments.discussTab}</button>
       <button class="comments-tab" data-tab="message-home">{siteConfig.homeComments.messageTab}</button>
@@ -427,6 +428,15 @@ const base = siteConfig.base;
     font-size: 0.85rem;
     margin-top: 0.5rem;
     opacity: 0.7;
+  }
+
+  .section-subtitle {
+    text-align: center;
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
+    margin-top: -1.8rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
   }
 
   @media (max-width: 768px) {
