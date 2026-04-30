@@ -239,19 +239,25 @@
     var lightboxImg = lightboxOverlay.querySelector('.lightbox-image');
     var lightboxClose = lightboxOverlay.querySelector('.lightbox-close');
 
-    document.querySelectorAll('.gallery-item img').forEach(function(img) {
-      img.addEventListener('click', function(e) {
-        var fullSrc = e.currentTarget.getAttribute('data-full');
-        if (fullSrc) {
-          lightboxImg.src = '';
-          lightboxOverlay.classList.add('open');
-          document.body.style.overflow = 'hidden';
-          var tempImg = new Image();
-          tempImg.onload = function() {
-            lightboxImg.src = fullSrc;
-          };
-          tempImg.src = fullSrc;
-        }
+    document.querySelectorAll('.gallery-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var img = item.querySelector('img');
+        if (!img) return;
+        var fullSrc = img.getAttribute('data-full');
+        if (!fullSrc) return;
+
+        lightboxImg.src = '';
+        lightboxOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        var tempImg = new Image();
+        tempImg.onload = function() {
+          lightboxImg.src = fullSrc;
+        };
+        tempImg.onerror = function() {
+          lightboxImg.src = fullSrc;
+        };
+        tempImg.src = fullSrc;
       });
     });
 
