@@ -84,7 +84,7 @@ export const siteConfig = {
     messageTab: '💌 匿名留言',            // 站长可见的匿名留言
     discussPlaceholder: '🔧 公开讨论功能正在配置中...',
     discussHint: '站长完成 Giscus 配置后即可使用',
-    subtitle: '',                        // 评论区标题下方的小字提示（留空则不显示）
+    subtitle: '评论功能真是太难搞了，现在这两个都是理论可用实际不行😭 所以如果你有我的好友请直接给我发消息呀我会很开心的😏 如果是陌生的朋友可以选择匿名留言中的邮箱链接哦，点击自动跳转QQ邮箱，收件人就是我。',                        // 评论区标题下方的小字提示（留空则不显示）
   },
 
   // ====================================================================
@@ -251,7 +251,7 @@ export const siteConfig = {
     github: 'https://github.com/DrSKYyyy',   // GitHub 个人主页
     csdn: 'https://blog.csdn.net/SKY_PPCH',  // CSDN 博客主页
     twitter: 'https://twitter.com',           // 暂未使用（保留备用）
-    email: '121622090@qq.com',           // 邮箱地址（页脚图标点击直接打开 QQ 邮箱网页版）
+    email: 'sunhaotian_game@163.com',    // 163 邮箱地址（页脚图标点击跳转 163 邮箱网页版）
   },
 
   // ====================================================================
