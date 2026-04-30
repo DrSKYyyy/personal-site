@@ -147,15 +147,25 @@ export const siteConfig = {
         },
       ],
     },
-    // 生活剪影（图片占位块）
+    // 生活剪影（照片墙）
+    //   展示在 about 页面，照片存放在 public/images/ 目录下
+    //   image:      缩略图路径（填写 /images/xxx.jpg）
+    //   imageFull:  高清大图路径（留空则点击不放大）
+    //   emoji:      当 image 为空时显示的占位符图标
+    //   gradient:   当 image 为空时显示的占位符渐变背景
     gallery: {
       title: '📸 生活剪影',
-      desc: '一些记录生活的小瞬间',
+      desc: '感觉自己今天超帅😉',
+      maxPreview: 4,                       // 默认展示的照片数，其余点"查看全部"后显示
       items: [
-        { emoji: '☀️', gradient: 'linear-gradient(135deg, #5DADE2, #48C9B0)' },
-        { emoji: '🌊', gradient: 'linear-gradient(135deg, #F4D03F, #F5B041)' },
-        { emoji: '📚', gradient: 'linear-gradient(135deg, #58D68D, #2ECC71)' },
-        { emoji: '🎵', gradient: 'linear-gradient(135deg, #AF7AC5, #8E44AD)' },
+        { image: '/images/婚礼自拍.jpg', imageFull: '', emoji: '☀️', gradient: 'linear-gradient(135deg, #5DADE2, #48C9B0)' },
+        { image: '', imageFull: '', emoji: '🌊', gradient: 'linear-gradient(135deg, #F4D03F, #F5B041)' },
+        { image: '', imageFull: '', emoji: '📚', gradient: 'linear-gradient(135deg, #58D68D, #2ECC71)' },
+        { image: '', imageFull: '', emoji: '🎵', gradient: 'linear-gradient(135deg, #AF7AC5, #8E44AD)' },
+        { image: '', imageFull: '', emoji: '🌈', gradient: 'linear-gradient(135deg, #E74C8B, #8E44AD)' },
+        { image: '', imageFull: '', emoji: '🌙', gradient: 'linear-gradient(135deg, #2C3E50, #3498DB)' },
+        { image: '', imageFull: '', emoji: '🌸', gradient: 'linear-gradient(135deg, #F8BBD0, #F06292)' },
+        { image: '', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
       ],
     },
     // 详细信息卡片
