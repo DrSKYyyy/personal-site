@@ -160,9 +160,14 @@ const hasMore = galleryItems.length > previewCount;
         img.addEventListener('click', function(e) {
           var fullSrc = e.currentTarget.getAttribute('data-full');
           if (fullSrc) {
-            lightboxImg.src = fullSrc;
+            lightboxImg.src = '';
             lightbox.classList.add('open');
             document.body.style.overflow = 'hidden';
+            var tempImg = new Image();
+            tempImg.onload = function() {
+              lightboxImg.src = fullSrc;
+            };
+            tempImg.src = fullSrc;
           }
         });
       });
@@ -170,7 +175,9 @@ const hasMore = galleryItems.length > previewCount;
       function closeLightbox() {
         lightbox.classList.remove('open');
         document.body.style.overflow = '';
-        lightboxImg.src = '';
+        setTimeout(function() {
+          lightboxImg.src = '';
+        }, 300);
       }
 
       lightboxClose.addEventListener('click', closeLightbox);
@@ -407,32 +414,36 @@ const hasMore = galleryItems.length > previewCount;
 
   /* ===== Lightbox 大图查看 ===== */
   .lightbox-overlay {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     z-index: 9999;
     background: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(6px);
     cursor: zoom-out;
-    visibility: hidden;
     opacity: 0;
-    transition: visibility 0s linear 0.2s, opacity 0.2s ease;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
   }
 
   .lightbox-overlay.open {
-    visibility: visible;
     opacity: 1;
-    transition: visibility 0s linear 0s, opacity 0.2s ease;
+    pointer-events: auto;
   }
 
   .lightbox-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
     max-width: 90vw;
     max-height: 90vh;
     width: auto;
     height: auto;
-    object-fit: contain;
     border-radius: var(--radius-md);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
     cursor: default;
