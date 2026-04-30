@@ -86,12 +86,6 @@ const hasMore = galleryItems.length > previewCount;
         )}
       </div>
 
-      <!-- Lightbox -->
-      <div class="lightbox-overlay" id="lightbox">
-        <button class="lightbox-close" id="lightbox-close">✕</button>
-        <img class="lightbox-image" id="lightbox-image" src="" alt="" />
-      </div>
-
       <div class="about-details">
         <div class="detail-card card">
           <h3>{about.details.current.title}</h3>
@@ -152,42 +146,45 @@ const hasMore = galleryItems.length > previewCount;
       });
     }
 
-    var lightbox = document.getElementById('lightbox');
-    var lightboxImg = document.getElementById('lightbox-image');
-    var lightboxClose = document.getElementById('lightbox-close');
-    if (lightbox && lightboxImg && lightboxClose) {
-      document.querySelectorAll('.gallery-item img').forEach(function(img) {
-        img.addEventListener('click', function(e) {
-          var fullSrc = e.currentTarget.getAttribute('data-full');
-          if (fullSrc) {
-            lightboxImg.src = '';
-            lightbox.classList.add('open');
-            document.body.style.overflow = 'hidden';
-            var tempImg = new Image();
-            tempImg.onload = function() {
-              lightboxImg.src = fullSrc;
-            };
-            tempImg.src = fullSrc;
-          }
-        });
-      });
+    var lightboxOverlay = document.createElement('div');
+    lightboxOverlay.className = 'lightbox-overlay';
+    lightboxOverlay.innerHTML = '<button class="lightbox-close">✕</button><img class="lightbox-image" src="" alt="" />';
+    document.body.appendChild(lightboxOverlay);
 
-      function closeLightbox() {
-        lightbox.classList.remove('open');
-        document.body.style.overflow = '';
-        setTimeout(function() {
+    var lightboxImg = lightboxOverlay.querySelector('.lightbox-image');
+    var lightboxClose = lightboxOverlay.querySelector('.lightbox-close');
+
+    document.querySelectorAll('.gallery-item img').forEach(function(img) {
+      img.addEventListener('click', function(e) {
+        var fullSrc = e.currentTarget.getAttribute('data-full');
+        if (fullSrc) {
           lightboxImg.src = '';
-        }, 300);
-      }
+          lightboxOverlay.classList.add('open');
+          document.body.style.overflow = 'hidden';
+          var tempImg = new Image();
+          tempImg.onload = function() {
+            lightboxImg.src = fullSrc;
+          };
+          tempImg.src = fullSrc;
+        }
+      });
+    });
 
-      lightboxClose.addEventListener('click', closeLightbox);
-      lightbox.addEventListener('click', function(e) {
-        if (e.target === lightbox) closeLightbox();
-      });
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
-      });
+    function closeLightbox() {
+      lightboxOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+      setTimeout(function() {
+        lightboxImg.src = '';
+      }, 300);
     }
+
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightboxOverlay.addEventListener('click', function(e) {
+      if (e.target === lightboxOverlay) closeLightbox();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && lightboxOverlay.classList.contains('open')) closeLightbox();
+    });
   })();
 </script>
 
@@ -414,18 +411,21 @@ const hasMore = galleryItems.length > previewCount;
 
   /* ===== Lightbox 大图查看 ===== */
   .lightbox-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 9999;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(6px);
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.88);
     cursor: zoom-out;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
+    overscroll-behavior: contain;
   }
 
   .lightbox-overlay.open {
@@ -434,12 +434,7 @@ const hasMore = galleryItems.length > previewCount;
   }
 
   .lightbox-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: auto;
+    display: block;
     max-width: 90vw;
     max-height: 90vh;
     width: auto;
@@ -447,6 +442,7 @@ const hasMore = galleryItems.length > previewCount;
     border-radius: var(--radius-md);
     box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
     cursor: default;
+    object-fit: contain;
   }
 
   .lightbox-close {
@@ -461,8 +457,8 @@ const hasMore = galleryItems.length > previewCount;
     color: white;
     font-size: 1.3rem;
     cursor: pointer;
-    transition: background var(--transition-fast);
-    z-index: 10000;
+    transition: background 0.2s ease;
+    z-index: 100000;
     display: flex;
     align-items: center;
     justify-content: center;
