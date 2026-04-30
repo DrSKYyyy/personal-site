@@ -6,7 +6,7 @@ const {
   placeholder = '写下你想说的话...',
   adminEmail = '',
 } = Astro.props;
-const qqMailUrl = 'https://mail.qq.com/cgi-bin/write?to=121622090@qq.com';
+const qqMailUrl = 'https://mail.qq.com/';
 ---
 
 <section class="message-form-section">
@@ -40,7 +40,7 @@ const qqMailUrl = 'https://mail.qq.com/cgi-bin/write?to=121622090@qq.com';
       <span class="email-link-icon">📧</span>
       <span class="email-link-text">
         <strong>发送邮件到 121622090@qq.com</strong>
-        <span class="email-link-hint">打开 QQ 邮箱编辑页，收件人已自动填好</span>
+        <span class="email-link-hint">打开 QQ 邮箱，登录后点击"写信"粘贴此地址</span>
       </span>
       <span class="email-link-arrow">✉️</span>
     </a>
