@@ -4,7 +4,9 @@ import Layout from '../../layouts/Layout.astro';
 import { siteConfig } from '../../data/siteData';
 const base = siteConfig.base;
 
-function getTimePeriod(hour) {
+function getTimePeriodFromTime(timeStr) {
+  if (!timeStr) return '';
+  var hour = parseInt(timeStr.split(':')[0], 10);
   if (hour >= 0 && hour < 5) return '凌晨';
   if (hour >= 5 && hour < 7) return '早晨';
   if (hour >= 7 && hour < 11) return '上午';
@@ -16,7 +18,10 @@ function getTimePeriod(hour) {
 
 const allPosts = await getCollection('blog');
 const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
-const sortedPosts = publicPosts
+const pinnedPosts = publicPosts
+  .filter(p => p.data.pinned)
+  .sort((a, b) => a.data.pinned - b.data.pinned);
+const normalPosts = publicPosts
   .sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
 
 const allTags = [...new Set(publicPosts.flatMap(p => p.data.tags || []))];
@@ -77,23 +82,61 @@ const months = [
       </div>
     </div>
 
+    {pinnedPosts.length > 0 && (
+      <div class="pinned-section">
+        <button class="pinned-toggle" id="pinned-toggle">
+          <span>📌 置顶文章</span>
+          <span class="pinned-toggle-icon" id="pinned-toggle-icon">▼</span>
+        </button>
+        <div class="pinned-list" id="pinned-list">
+          {pinnedPosts.map(post => {
+            const timePeriod = getTimePeriodFromTime(post.data.time);
+            return (
+              <a href={base + '/writing/' + post.slug} class="post-item card"
+                data-tags={(post.data.tags || []).join(',')}
+                data-date={post.data.date}
+                data-title={post.data.title}
+                data-year={new Date(post.data.date).getFullYear()}
+                data-month={String(new Date(post.data.date).getMonth() + 1).padStart(2, '0')}
+                data-period={timePeriod}
+              >
+                <div class="post-item-content">
+                  <div class="post-item-meta">
+                    <span class="post-pinned-badge">📌</span>
+                    <span class="post-item-date">{post.data.date}</span>
+                    {timePeriod && <span class="post-item-period">{timePeriod}</span>}
+                  </div>
+                  <h3 class="post-item-title">{post.data.title}</h3>
+                  <p class="post-item-desc">{post.data.description}</p>
+                  {post.data.tags && (
+                    <div class="post-item-tags">
+                      {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
+                    </div>
+                  )}
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    )}
+
     <div class="posts-list" id="posts-list">
-      {sortedPosts.map(post => {
-        const postDate = new Date(post.data.date);
-        const timePeriod = getTimePeriod(postDate.getHours());
+      {normalPosts.map(post => {
+        const timePeriod = getTimePeriodFromTime(post.data.time);
         return (
           <a href={base + '/writing/' + post.slug} class="post-item card"
             data-tags={(post.data.tags || []).join(',')}
             data-date={post.data.date}
             data-title={post.data.title}
-            data-year={postDate.getFullYear()}
-            data-month={String(postDate.getMonth() + 1).padStart(2, '0')}
+            data-year={new Date(post.data.date).getFullYear()}
+            data-month={String(new Date(post.data.date).getMonth() + 1).padStart(2, '0')}
             data-period={timePeriod}
           >
             <div class="post-item-content">
               <div class="post-item-meta">
                 <span class="post-item-date">{post.data.date}</span>
-                <span class="post-item-period">{timePeriod}</span>
+                {timePeriod && <span class="post-item-period">{timePeriod}</span>}
               </div>
               <h3 class="post-item-title">{post.data.title}</h3>
               <p class="post-item-desc">{post.data.description}</p>
@@ -111,6 +154,18 @@ const months = [
 </Layout>
 
 <script is:inline>
+  (function() {
+    var toggleBtn = document.getElementById('pinned-toggle');
+    var pinnedList = document.getElementById('pinned-list');
+    var toggleIcon = document.getElementById('pinned-toggle-icon');
+    if (toggleBtn && pinnedList) {
+      toggleBtn.addEventListener('click', function() {
+        var isCollapsed = pinnedList.classList.toggle('collapsed');
+        if (toggleIcon) toggleIcon.textContent = isCollapsed ? '▶' : '▼';
+      });
+    }
+  })();
+
   const searchInput = document.getElementById('blog-search');
   const tagFilters = document.querySelectorAll('.tag-filter');
   const yearFilter = document.getElementById('year-filter');
@@ -379,6 +434,65 @@ const months = [
     display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .pinned-section {
+    margin-bottom: 2rem;
+  }
+
+  .pinned-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+    margin-bottom: 0.75rem;
+  }
+
+  .pinned-toggle:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .pinned-toggle-icon {
+    margin-left: auto;
+    font-size: 0.75rem;
+    transition: transform var(--transition-fast);
+  }
+
+  .pinned-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+    max-height: 2000px;
+    opacity: 1;
+  }
+
+  .pinned-list.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin: 0;
+  }
+
+  .post-pinned-badge {
+    font-size: 0.85rem;
+    flex-shrink: 0;
   }
 
   .post-item {

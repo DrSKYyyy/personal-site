@@ -8,6 +8,8 @@ const blogCollection = defineCollection({
     description: z.string().optional(),
     tags: z.array(z.string()).optional(),
     coverImage: z.string().optional(),
+    time: z.string().optional(),
+    pinned: z.number().optional(),
     visibility: z.enum(['公开', '私密', '草稿']).default('公开'),
   }),
 });
