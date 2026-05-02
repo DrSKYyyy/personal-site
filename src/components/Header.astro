@@ -78,8 +78,8 @@ const base = siteConfig.base;
     left: 0;
     right: 0;
     z-index: 100;
-    height: calc(var(--nav-height) + var(--safe-area-top));
-    padding-top: var(--safe-area-top);
+    height: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
+    padding-top: env(safe-area-inset-top, 0px);
     transition: all var(--transition-normal);
     background: transparent;
   }
@@ -105,6 +105,7 @@ const base = siteConfig.base;
     font-family: var(--font-heading);
     font-size: 1.4rem;
     text-decoration: none;
+    white-space: nowrap;
   }
 
   .nav-links {
@@ -124,6 +125,7 @@ const base = siteConfig.base;
     font-weight: 500;
     transition: all var(--transition-fast);
     text-decoration: none;
+    white-space: nowrap;
   }
 
   .nav-link:hover {
@@ -140,6 +142,7 @@ const base = siteConfig.base;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    flex-shrink: 0;
   }
 
   .header-icon-btn {
@@ -190,7 +193,7 @@ const base = siteConfig.base;
   @media (max-width: 768px) {
     .nav-links {
       position: fixed;
-      top: calc(var(--nav-height) + var(--safe-area-top));
+      top: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
       left: 0;
       right: 0;
       background: var(--color-surface);
@@ -201,6 +204,7 @@ const base = siteConfig.base;
       transform: translateY(-110%);
       transition: transform var(--transition-normal);
       border-radius: 0 0 var(--radius-md) var(--radius-md);
+      z-index: 99;
     }
 
     .nav-links.open {
