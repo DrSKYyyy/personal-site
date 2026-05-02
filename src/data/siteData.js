@@ -159,12 +159,12 @@ export const siteConfig = {
       maxPreview: 4,                       // 默认展示的照片数，其余点"查看全部"后显示
       items: [
         { image: '/images/婚礼自拍.jpg', imageFull: '', emoji: '☀️', gradient: 'linear-gradient(135deg, #5DADE2, #48C9B0)' },
-        { image: '', imageFull: '', emoji: '🌊', gradient: 'linear-gradient(135deg, #F4D03F, #F5B041)' },
-        { image: '', imageFull: '', emoji: '📚', gradient: 'linear-gradient(135deg, #58D68D, #2ECC71)' },
-        { image: '', imageFull: '', emoji: '🎵', gradient: 'linear-gradient(135deg, #AF7AC5, #8E44AD)' },
-        { image: '', imageFull: '', emoji: '🌈', gradient: 'linear-gradient(135deg, #E74C8B, #8E44AD)' },
-        { image: '', imageFull: '', emoji: '🌙', gradient: 'linear-gradient(135deg, #2C3E50, #3498DB)' },
-        { image: '', imageFull: '', emoji: '🌸', gradient: 'linear-gradient(135deg, #F8BBD0, #F06292)' },
+        { image: '/images/生日.jpg', imageFull: '', emoji: '🌊', gradient: 'linear-gradient(135deg, #F4D03F, #F5B041)' },
+        { image: '/images/秀肌肉.jpg', imageFull: '', emoji: '📚', gradient: 'linear-gradient(135deg, #58D68D, #2ECC71)' },
+        { image: '/images/潇洒黄毛.jpg', imageFull: '', emoji: '🎵', gradient: 'linear-gradient(135deg, #AF7AC5, #8E44AD)' },
+        { image: '/images/坤坤雪人.jpg', imageFull: '', emoji: '🌈', gradient: 'linear-gradient(135deg, #E74C8B, #8E44AD)' },
+        { image: '/images/长头发和我姐.jpg', imageFull: '', emoji: '🌙', gradient: 'linear-gradient(135deg, #2C3E50, #3498DB)' },
+        { image: '/images/白头发小辫子.jpg', imageFull: '', emoji: '🌸', gradient: 'linear-gradient(135deg, #F8BBD0, #F06292)' },
         { image: '', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
       ],
     },
@@ -174,14 +174,13 @@ export const siteConfig = {
         title: '🎯 现在在做',
         items: [
           '探索 AI 与前端技术的结合',
-          '阅读《代码大全》和《人类简史》',
           '保持每日健身打卡',
           '维护这个数字花园',
         ],
       },
       techStack: {
         title: '💻 技术栈',
-        skills: ['JavaScript', 'TypeScript', 'React', 'Vue', 'Node.js', 'Astro', 'Python', 'Git'],
+        skills: ['啥也不会，努力学习用AI中'],
       },
       hobbies: {
         title: '🎨 兴趣爱好',
@@ -207,13 +206,22 @@ export const siteConfig = {
     books: {
       title: '📚 读书角落',
       desc: '正在读、读过、想读的好书',
+      maxPreview: 6,
       list: [
-        { title: '代码大全', author: 'Steve McConnell', status: '在读', rating: '⭐⭐⭐⭐', note: '软件构建的百科全书' },
-        { title: '人类简史', author: '尤瓦尔·赫拉利', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '从宏观视角看人类文明' },
-        { title: '设计模式', author: 'GoF', status: '已读', rating: '⭐⭐⭐⭐', note: '面向对象设计的经典之作' },
-        { title: '深入理解计算机系统', author: 'Randal E. Bryant', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '理解计算机的底层运作' },
-        { title: '百年孤独', author: '加西亚·马尔克斯', status: '想读', rating: '', note: '魔幻现实主义的巅峰' },
-        { title: '活着', author: '余华', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '人是为了活着本身而活着' },
+        { title: '高效能人士的七个习惯', author: '[美]史蒂芬·柯维', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '我该如何变强' },
+        { title: '拖延心理学', author: '[美]简·博克 莱诺拉·袁', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '向与生俱来的行为顽疾宣战' },
+        { title: '掌控习惯', author: '[美]詹姆斯·克利尔', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '如何养成好习惯并戒除坏习惯' },
+        { title: '最重要的事，只有一件', author: '[美]加里·凯勒 杰伊·帕帕森', status: '在读', rating: '⭐⭐⭐⭐⭐', note: 'What\'s your one thing?' },
+        { title: '沉思录', author: '[古罗马]玛克斯·奥勒留', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '贯穿千年的人生智慧' },
+        { title: '游戏设计艺术', author: '[美]Jesse Schell', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '“你好呀！来来来，快请进！真是稀客！我都不知道你今天要来……”' },
+        { title: '体验引擎', author: '[美]Tynan Sylvester', status: '未读', rating: '???', note: 'A Guide to Engineering Experiences' },
+        { title: '当下的力量', author: '[美]埃克哈特·托利', status: '在读', rating: '???', note: '找到内心真正的力量' },
+        { title: '我胆小如鼠', author: '余华', status: '在读', rating: '???', note: '再看看' },
+        { title: '法制的细节', author: '罗翔', status: '已读', rating: '⭐⭐⭐⭐', note: '作为法学殿堂的门童，我邀请大家与人类伟大的先贤对话，感受人类群星的璀璨，超越我们日常生活的庸碌，思考法治真正的要义' },
+        { title: '仿生人会梦见电子羊吗？', author: '[美]菲利普·迪克', status: '已读', rating: '⭐⭐⭐⭐', note: 'AI永远 不会超越人类，因为它们不会流泪' },
+        { title: '瓦尔登湖', author: '[美]亨利·戴维·梭罗', status: '在读', rating: '???', note: '再看看' },
+        
+
       ],
     },
     // 健身日志
@@ -221,22 +229,8 @@ export const siteConfig = {
       title: '💪 健身日志',
       desc: '持续进步，成为更好的自己',
       items: [
-        { label: '跑步', current: 120, target: 200, unit: '公里' },
-        { label: '俯卧撑', current: 45, target: 100, unit: '天' },
-        { label: '引体向上', current: 30, target: 50, unit: '天' },
-        { label: '深蹲', current: 35, target: 80, unit: '天' },
-      ],
-    },
-    // 旅行足迹
-    travel: {
-      title: '🗺️ 旅行足迹',
-      desc: '用脚步丈量世界',
-      spots: [
-        { name: '北京', emoji: '🏛️', desc: '故宫看雪' },
-        { name: '上海', emoji: '🌆', desc: '外滩夜景' },
-        { name: '杭州', emoji: '🌊', desc: '西湖泛舟' },
-        { name: '成都', emoji: '🐼', desc: '看大熊猫' },
-        { name: '西安', emoji: '🏯', desc: '兵马俑' },
+        { label: '卧推', current: 50, target: 100, unit: 'kg' },
+        { label: '引体向上', current: 10, target: 20, unit: '个' },
       ],
     },
     // 彩蛋入口

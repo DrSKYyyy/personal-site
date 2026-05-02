@@ -2,6 +2,9 @@
 import Layout from '../../layouts/Layout.astro';
 import { siteConfig } from '../../data/siteData';
 const special = siteConfig.special;
+const bookList = special.books.list.filter(b => b.title);
+const previewCount = special.books.maxPreview || 6;
+const hasMore = bookList.length > previewCount;
 ---
 
 <Layout title="特别">
@@ -11,8 +14,8 @@ const special = siteConfig.special;
     <section class="special-section">
       <h2 class="special-section-title">{special.books.title}</h2>
       <p class="special-section-desc">{special.books.desc}</p>
-      <div class="books-grid">
-        {special.books.list.map(book => (
+      <div class="books-grid" id="books-preview">
+        {bookList.slice(0, previewCount).map(book => (
           <div class="book-card card">
             <div class="book-rating">{book.rating || '📖'}</div>
             <h3 class="book-title">{book.title}</h3>
@@ -24,6 +27,35 @@ const special = siteConfig.special;
           </div>
         ))}
       </div>
+
+      {hasMore && (
+        <div class="books-actions">
+          <button id="books-toggle-btn" class="books-toggle-btn">
+            <span class="books-toggle-text">📚 查看全部书籍</span>
+            <span class="books-toggle-icon">▼</span>
+          </button>
+        </div>
+      )}
+
+      {hasMore && (
+        <div class="books-expandable" id="books-expandable">
+          <div class="books-scroll-container">
+            <div class="books-grid">
+              {bookList.slice(previewCount).map(book => (
+                <div class="book-card card">
+                  <div class="book-rating">{book.rating || '📖'}</div>
+                  <h3 class="book-title">{book.title}</h3>
+                  <p class="book-author">{book.author}</p>
+                  <div class="book-status" data-status={book.status}>
+                    {book.status === '已读' ? '✅' : book.status === '在读' ? '📖' : '🎯'} {book.status}
+                  </div>
+                  <p class="book-note">{book.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
 
     <section class="special-section">
@@ -48,34 +80,7 @@ const special = siteConfig.special;
       </div>
     </section>
 
-    <section class="special-section">
-      <h2 class="special-section-title">{special.travel.title}</h2>
-      <p class="special-section-desc">{special.travel.desc}</p>
-      <div class="travel-map card">
-        <div class="map-placeholder">
-          <div class="map-content">
-            {special.travel.spots.map(spot => (
-              <div class="travel-spot">
-                <span class="spot-emoji">{spot.emoji}</span>
-                <div class="spot-info">
-                  <strong>{spot.name}</strong>
-                  <span>{spot.desc}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div class="map-decoration">
-            <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
-              <path d="M50 150 Q100 50 150 120 Q200 30 250 100 Q300 60 350 130" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-dasharray="6,4" opacity="0.5"/>
-              <circle cx="50" cy="150" r="5" fill="var(--color-primary)"/>
-              <circle cx="150" cy="120" r="5" fill="var(--color-secondary)"/>
-              <circle cx="250" cy="100" r="5" fill="var(--color-accent)"/>
-              <circle cx="350" cy="130" r="5" fill="var(--color-primary)"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </section>
+
 
     <section class="special-section easter-egg-section">
       <h2 class="special-section-title">{special.easterEgg.title}</h2>
@@ -87,6 +92,20 @@ const special = siteConfig.special;
     </section>
   </section>
 </Layout>
+
+<script is:inline>
+  (function() {
+    var btn = document.getElementById('books-toggle-btn');
+    var expandable = document.getElementById('books-expandable');
+    if (btn && expandable) {
+      btn.addEventListener('click', function() {
+        var isOpen = expandable.classList.toggle('open');
+        btn.querySelector('.books-toggle-text').textContent = isOpen ? '📚 收起书籍列表' : '📚 查看全部书籍';
+        btn.querySelector('.books-toggle-icon').textContent = isOpen ? '▲' : '▼';
+      });
+    }
+  })();
+</script>
 
 <style>
   .special-page {
@@ -153,6 +172,70 @@ const special = siteConfig.special;
     font-style: italic;
   }
 
+  .books-actions {
+    text-align: center;
+    margin-top: 0.75rem;
+  }
+
+  .books-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+  }
+
+  .books-toggle-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 10px rgba(93, 173, 226, 0.12);
+  }
+
+  .books-toggle-icon {
+    font-size: 0.75rem;
+    transition: transform var(--transition-fast);
+  }
+
+  .books-expandable {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+  }
+
+  .books-expandable.open {
+    max-height: 1000px;
+  }
+
+  .books-scroll-container {
+    max-height: 560px;
+    overflow-y: auto;
+    padding: 1rem 0 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) var(--color-border);
+  }
+
+  .books-scroll-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .books-scroll-container::-webkit-scrollbar-track {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+
+  .books-scroll-container::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 3px;
+  }
+
   .fitness-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -200,59 +283,6 @@ const special = siteConfig.special;
     font-size: 0.8rem;
     color: var(--color-primary);
     font-weight: 600;
-  }
-
-  .travel-map {
-    overflow: hidden;
-  }
-
-  .map-placeholder {
-    position: relative;
-  }
-
-  .map-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .travel-spot {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    background: var(--color-bg);
-    border-radius: var(--radius-sm);
-    transition: all var(--transition-fast);
-  }
-
-  .travel-spot:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-sm);
-  }
-
-  .spot-emoji {
-    font-size: 1.5rem;
-  }
-
-  .spot-info {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .spot-info strong {
-    font-size: 0.9rem;
-  }
-
-  .spot-info span {
-    font-size: 0.8rem;
-    color: var(--color-text-secondary);
-  }
-
-  .map-decoration svg {
-    width: 100%;
-    height: auto;
   }
 
   .easter-egg-section .egg-hint {
