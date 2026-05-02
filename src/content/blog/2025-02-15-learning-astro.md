@@ -1,6 +1,7 @@
 ---
 title: "学习 Astro：构建现代静态网站"
-date: "2025-02-15"
+date: "2026-05-01"
+time: "12:00"
 description: "Astro 是一个令人兴奋的静态网站生成器，这篇文章分享了我的学习心得和实践经验。"
 tags: ["技术", "前端", "Astro"]
 visibility: "公开"

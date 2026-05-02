@@ -165,7 +165,12 @@ export const siteConfig = {
         { image: '/images/坤坤雪人.jpg', imageFull: '', emoji: '🌈', gradient: 'linear-gradient(135deg, #E74C8B, #8E44AD)' },
         { image: '/images/长头发和我姐.jpg', imageFull: '', emoji: '🌙', gradient: 'linear-gradient(135deg, #2C3E50, #3498DB)' },
         { image: '/images/白头发小辫子.jpg', imageFull: '', emoji: '🌸', gradient: 'linear-gradient(135deg, #F8BBD0, #F06292)' },
-        { image: '', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/黄毛坐电瓶车.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/小时候超人飞拳.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/小时候蛋糕抹脸.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/白毛外套.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/想象中的相机.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/挡在你面前的只有你自己.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
       ],
     },
     // 详细信息卡片
