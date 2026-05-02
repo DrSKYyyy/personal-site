@@ -78,7 +78,8 @@ const base = siteConfig.base;
     left: 0;
     right: 0;
     z-index: 100;
-    height: var(--nav-height);
+    height: calc(var(--nav-height) + var(--safe-area-top));
+    padding-top: var(--safe-area-top);
     transition: all var(--transition-normal);
     background: transparent;
   }
@@ -189,7 +190,7 @@ const base = siteConfig.base;
   @media (max-width: 768px) {
     .nav-links {
       position: fixed;
-      top: var(--nav-height);
+      top: calc(var(--nav-height) + var(--safe-area-top));
       left: 0;
       right: 0;
       background: var(--color-surface);

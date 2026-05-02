@@ -22,7 +22,7 @@ const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
 <html lang="zh-CN" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content={description || siteConfig.description} />
     <title>{title ? `${title} | ${siteConfig.title}` : siteConfig.title}</title>
     <link rel="icon" type="image/svg+xml" href={siteConfig.base + '/favicon.svg'} />
@@ -44,7 +44,7 @@ const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
 <style>
   .main-content {
     min-height: calc(100vh - var(--nav-height));
-    padding-top: var(--nav-height);
+    padding-top: calc(var(--nav-height) + var(--safe-area-top));
     position: relative;
     z-index: 1;
   }
