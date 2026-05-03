@@ -7,6 +7,7 @@ export interface SearchResult {
   description: string;
   date: string;
   tags: string[];
+  body: string;
 }
 
 const { posts = [] } = Astro.props as { posts?: any[] };
@@ -19,6 +20,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
   description: post.data?.description || post.description || '',
   date: post.data?.date || post.date || '',
   tags: post.data?.tags || post.tags || [],
+  body: post.body || '',
 })).filter(p => p.title && p.url);
 ---
 
@@ -63,8 +65,8 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
       isOpen = true;
       container.classList.add('active');
       inner.classList.add('active');
+      dropdown.innerHTML = '';
       setTimeout(function() { if (input) { input.value = ''; input.focus(); } }, 200);
-      dropdown.innerHTML = '<div class="sd-hint">输入关键词开始搜索...</div>';
     }
 
     function closeSearch() {
@@ -108,14 +110,15 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
       input.addEventListener('input', function() {
         var q = input.value.trim().toLowerCase();
         if (!q) {
-          dropdown.innerHTML = '<div class="sd-hint">输入关键词开始搜索...</div>';
+          dropdown.innerHTML = '';
           return;
         }
 
         var filtered = postsData.filter(function(p) {
           return (p.title && p.title.toLowerCase().includes(q)) ||
                  (p.description && p.description.toLowerCase().includes(q)) ||
-                 (p.tags && p.tags.some(function(t) { return t.toLowerCase().includes(q); }));
+                 (p.tags && p.tags.some(function(t) { return t.toLowerCase().includes(q); })) ||
+                 (p.body && p.body.toLowerCase().includes(q));
         });
 
         if (filtered.length === 0) {
@@ -128,20 +131,69 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
           if (p.tags && p.tags.length > 0) {
             tagsHtml = p.tags.map(function(t) { return '<span class="sd-tag">#' + t + '</span>'; }).join('');
           }
+          var sentence = findSentenceInBody(p.body, q);
+          var sentenceHtml = sentence
+            ? '<div class="sd-item-sentence">' + highlightMatch(sentence, q) + '</div>'
+            : (p.description
+              ? '<div class="sd-item-sentence">' + highlightMatch(p.description, q) + '</div>'
+              : '');
           return '<a href="' + p.url + '" class="sd-item">' +
             '<div class="sd-item-title">' + highlightMatch(p.title, q) + '</div>' +
             '<div class="sd-item-meta">' + p.date + ' ' + tagsHtml + '</div>' +
-            '<div class="sd-item-desc">' + (p.description ? highlightMatch(p.description, q) : '') + '</div>' +
+            sentenceHtml +
             '</a>';
         }).join('');
       });
     }
 
+    function findSentenceInBody(body, query) {
+      if (!body || !query) return '';
+      var plainText = body
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/!\[([^\]]*)\]\([^)]*\)/g, '')
+        .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+        .replace(/[#*`~>_|-]{2,}/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/\s+/g, ' ')
+        .trim();
+      var idx = plainText.toLowerCase().indexOf(query);
+      if (idx === -1) return '';
+      var punctBefore = /[。！？\n]/;
+      var start = idx;
+      while (start > 0) {
+        start--;
+        if (punctBefore.test(plainText[start])) {
+          start++;
+          break;
+        }
+      }
+      if (start < 0) start = 0;
+      var punctAfter = /[。！？\n]/;
+      var end = idx + query.length;
+      while (end < plainText.length) {
+        if (punctAfter.test(plainText[end])) {
+          end++;
+          break;
+        }
+        end++;
+      }
+      if (end > plainText.length) end = plainText.length;
+      var sentence = plainText.substring(start, end).trim();
+      var maxLen = 160;
+      if (sentence.length > maxLen) {
+        var kwIdx = sentence.toLowerCase().indexOf(query);
+        var halfLen = Math.floor(maxLen / 2);
+        var sStart = Math.max(0, kwIdx - halfLen);
+        var sEnd = Math.min(sentence.length, kwIdx + query.length + halfLen);
+        sentence = (sStart > 0 ? '...' : '') + sentence.substring(sStart, sEnd) + (sEnd < sentence.length ? '...' : '');
+      }
+      return sentence;
+    }
+
     function highlightMatch(text, query) {
       if (!query) return text;
-      var idx = text.toLowerCase().indexOf(query);
-      if (idx === -1) return text;
-      return text.substring(0, idx) + '<strong>' + text.substring(idx, idx + query.length) + '</strong>' + text.substring(idx + query.length);
+      var regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
     }
   })();
 </script>
@@ -234,8 +286,8 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
-    width: 360px;
-    max-height: 400px;
+    width: 420px;
+    max-height: 420px;
     overflow-y: auto;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -255,13 +307,6 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
     pointer-events: auto;
   }
 
-  .sd-hint {
-    padding: 1.5rem 1rem;
-    text-align: center;
-    color: var(--color-text-secondary);
-    font-size: 0.85rem;
-  }
-
   .sd-empty {
     padding: 1.5rem 1rem;
     text-align: center;
@@ -271,11 +316,16 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
 
   .sd-item {
     display: block;
-    padding: 0.7rem 1rem;
+    padding: 0.85rem 1rem;
     text-decoration: none;
     color: var(--color-text);
     transition: background 0.15s ease;
     border-left: 3px solid transparent;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sd-item:last-child {
+    border-bottom: none;
   }
 
   .sd-item:hover {
@@ -283,14 +333,11 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
     border-left-color: var(--color-primary);
   }
 
-  .sd-item + .sd-item {
-    border-top: 1px solid var(--color-border);
-  }
-
   .sd-item-title {
     font-family: var(--font-heading);
-    font-size: 0.92rem;
-    margin-bottom: 0.2rem;
+    font-size: 0.95rem;
+    margin-bottom: 0.15rem;
+    line-height: 1.4;
   }
 
   .sd-item-title strong {
@@ -304,6 +351,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
     align-items: center;
     gap: 0.4rem;
     flex-wrap: wrap;
+    margin-bottom: 0.4rem;
   }
 
   .sd-tag {
@@ -311,17 +359,30 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
     color: var(--color-primary);
   }
 
-  .sd-item-desc {
-    font-size: 0.8rem;
+  .sd-item-sentence {
+    font-size: 0.82rem;
     color: var(--color-text-secondary);
-    margin-top: 0.2rem;
+    line-height: 1.6;
+    padding: 0.5rem 0.65rem;
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
+    margin-top: 0.3rem;
     display: -webkit-box;
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .sd-item-desc strong {
+  .sd-item-sentence strong {
     color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .search-dropdown {
+      width: calc(100vw - 2rem);
+      right: -1rem;
+      max-height: 50vh;
+    }
   }
 </style>
