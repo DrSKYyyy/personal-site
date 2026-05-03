@@ -122,33 +122,34 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
         });
 
         if (filtered.length === 0) {
-          dropdown.innerHTML = '<div class="sd-empty">未找到与 "<strong>' + input.value + '</strong>" 相关的内容</div>';
+          dropdown.innerHTML = '<div class="sd-empty">未找到与 "<strong>' + input.value + '"</strong> 相关的内容</div>';
           return;
         }
 
         dropdown.innerHTML = filtered.map(function(p) {
-          var tagsHtml = '';
-          if (p.tags && p.tags.length > 0) {
-            tagsHtml = p.tags.map(function(t) { return '<span class="sd-tag">#' + t + '</span>'; }).join('');
-          }
-          var sentence = findSentenceInBody(p.body, q);
-          var sentenceHtml = sentence
-            ? '<div class="sd-item-sentence">' + highlightMatch(sentence, q) + '</div>'
+          var snippet = extractSnippet(p.body, q);
+          var snippetHtml = snippet
+            ? '<p class="post-item-desc">' + highlightMatch(snippet, q) + '</p>'
             : (p.description
-              ? '<div class="sd-item-sentence">' + highlightMatch(p.description, q) + '</div>'
+              ? '<p class="post-item-desc">' + highlightMatch(p.description, q) + '</p>'
               : '');
           return '<a href="' + p.url + '" class="sd-item">' +
-            '<div class="sd-item-title">' + highlightMatch(p.title, q) + '</div>' +
-            '<div class="sd-item-meta">' + p.date + ' ' + tagsHtml + '</div>' +
-            sentenceHtml +
+            '<div class="post-item-content">' +
+              '<div class="post-item-meta">' +
+                '<span class="post-item-date">' + p.date + '</span>' +
+              '</div>' +
+              '<h3 class="post-item-title">' + highlightMatch(p.title, q) + '</h3>' +
+              snippetHtml +
+            '</div>' +
             '</a>';
         }).join('');
       });
     }
 
-    function findSentenceInBody(body, query) {
+    function extractSnippet(body, query) {
       if (!body || !query) return '';
       var plainText = body
+        .replace(/<[^>]*>/g, '')
         .replace(/```[\s\S]*?```/g, '')
         .replace(/!\[([^\]]*)\]\([^)]*\)/g, '')
         .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
@@ -158,36 +159,43 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
         .trim();
       var idx = plainText.toLowerCase().indexOf(query);
       if (idx === -1) return '';
-      var punctBefore = /[。！？\n]/;
-      var start = idx;
-      while (start > 0) {
-        start--;
-        if (punctBefore.test(plainText[start])) {
-          start++;
+
+      var punct = /[。！？]/;
+      var backwardMax = 6;
+      var lookBackChars = plainText.substring(Math.max(0, idx - backwardMax), idx);
+      var punctIndex = -1;
+      for (var k = lookBackChars.length - 1; k >= 0; k--) {
+        if (punct.test(lookBackChars[k])) {
+          punctIndex = k;
           break;
         }
       }
-      if (start < 0) start = 0;
-      var punctAfter = /[。！？\n]/;
-      var end = idx + query.length;
-      while (end < plainText.length) {
-        if (punctAfter.test(plainText[end])) {
-          end++;
+
+      var start;
+      if (punctIndex !== -1) {
+        start = idx - backwardMax + punctIndex + 1;
+      } else {
+        start = idx - backwardMax;
+        if (start < 0) start = 0;
+      }
+
+      var takeLen = 15;
+      var end = start + takeLen;
+      var hasPunct = false;
+      for (var k2 = start; k2 < end && k2 < plainText.length; k2++) {
+        if (punct.test(plainText[k2])) {
+          end = k2;
+          hasPunct = true;
           break;
         }
-        end++;
       }
       if (end > plainText.length) end = plainText.length;
-      var sentence = plainText.substring(start, end).trim();
-      var maxLen = 160;
-      if (sentence.length > maxLen) {
-        var kwIdx = sentence.toLowerCase().indexOf(query);
-        var halfLen = Math.floor(maxLen / 2);
-        var sStart = Math.max(0, kwIdx - halfLen);
-        var sEnd = Math.min(sentence.length, kwIdx + query.length + halfLen);
-        sentence = (sStart > 0 ? '...' : '') + sentence.substring(sStart, sEnd) + (sEnd < sentence.length ? '...' : '');
+
+      var snippet = plainText.substring(start, end).trim();
+      if (!hasPunct && end === start + takeLen && end < plainText.length) {
+        snippet += '...';
       }
-      return sentence;
+      return snippet;
     }
 
     function highlightMatch(text, query) {
@@ -287,7 +295,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
     top: calc(100% + 6px);
     right: 0;
     width: 420px;
-    max-height: 420px;
+    max-height: 480px;
     overflow-y: auto;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
@@ -316,12 +324,11 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
 
   .sd-item {
     display: block;
-    padding: 0.85rem 1rem;
+    padding: 1rem 1.2rem;
     text-decoration: none;
-    color: var(--color-text);
-    transition: background 0.15s ease;
-    border-left: 3px solid transparent;
+    color: inherit;
     border-bottom: 1px solid var(--color-border);
+    transition: background 0.15s ease;
   }
 
   .sd-item:last-child {
@@ -330,50 +337,51 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
 
   .sd-item:hover {
     background: var(--color-bg);
-    border-left-color: var(--color-primary);
   }
 
-  .sd-item-title {
-    font-family: var(--font-heading);
-    font-size: 0.95rem;
-    margin-bottom: 0.15rem;
-    line-height: 1.4;
-  }
-
-  .sd-item-title strong {
+  .sd-item:hover .post-item-title {
     color: var(--color-primary);
   }
 
-  .sd-item-meta {
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
+  .sd-item .post-item-content {
+    width: 100%;
+  }
+
+  .sd-item .post-item-meta {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.4rem;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
   }
 
-  .sd-tag {
-    font-size: 0.72rem;
+  .sd-item .post-item-date {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+  }
+
+  .sd-item .post-item-title {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    margin-bottom: 0.45rem;
+    transition: color var(--transition-fast);
+  }
+
+  .sd-item .post-item-title strong {
     color: var(--color-primary);
   }
 
-  .sd-item-sentence {
-    font-size: 0.82rem;
+  .sd-item .post-item-desc {
+    font-size: 0.85rem;
     color: var(--color-text-secondary);
     line-height: 1.6;
-    padding: 0.5rem 0.65rem;
-    background: var(--color-bg);
-    border-radius: var(--radius-sm);
-    margin-top: 0.3rem;
+    margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  .sd-item-sentence strong {
+  .sd-item .post-item-desc strong {
     color: var(--color-primary);
     font-weight: 600;
   }
@@ -383,6 +391,14 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
       width: calc(100vw - 2rem);
       right: -1rem;
       max-height: 50vh;
+    }
+
+    .sd-item {
+      padding: 0.85rem 1rem;
+    }
+
+    .sd-item .post-item-title {
+      font-size: 1rem;
     }
   }
 </style>
