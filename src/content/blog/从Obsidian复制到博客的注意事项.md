@@ -4,7 +4,7 @@ date: "2026-05-03"
 time: "00:17"
 tags:
   - 指南
-visibility: 公开
+visibility: 私密
 description: 一些注意事项
 ---
 

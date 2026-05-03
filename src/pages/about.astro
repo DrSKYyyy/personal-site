@@ -12,7 +12,9 @@ const hasMore = galleryItems.length > previewCount;
   <section class="about-page container page-enter">
     <div class="about-header">
       <div class="about-avatar">
-        <img src={base + siteConfig.avatar} alt="头像" />
+        <img src={base + siteConfig.avatar} alt="头像"
+             data-frames={siteConfig.avatarFrames || 0}
+             data-interval={siteConfig.avatarFrameInterval || 380} />
       </div>
       <h1 class="section-title">{about.pageTitle}</h1>
     </div>
@@ -211,6 +213,28 @@ const hasMore = galleryItems.length > previewCount;
       if (e.key === 'ArrowLeft') showPrev();
       if (e.key === 'ArrowRight') showNext();
     });
+
+    var avatarImg = document.querySelector('.about-avatar img');
+    if (avatarImg) {
+      var totalFrames = parseInt(avatarImg.getAttribute('data-frames') || '0', 10);
+      var frameInterval = parseInt(avatarImg.getAttribute('data-interval') || '380', 10);
+      if (totalFrames > 1) {
+        var currentFrame = 1;
+        var basePath = '/images/形象/';
+        var loadedImages = [];
+        for (var fi = 1; fi <= totalFrames; fi++) {
+          (function(idx) {
+            var img = new Image();
+            img.src = basePath + idx + '.png';
+            loadedImages.push(img);
+          })(fi);
+        }
+        setInterval(function() {
+          currentFrame = currentFrame >= totalFrames ? 1 : currentFrame + 1;
+          avatarImg.src = basePath + currentFrame + '.png';
+        }, frameInterval);
+      }
+    }
   })();
 </script>
 

@@ -2,7 +2,7 @@
 title: "文章标题"
 date: "2026-05-01"
 time: "14:30"
-pinned: 1
+pinned: 1 # 是否置顶
 tags:
   - 标签1
   - 标签2
