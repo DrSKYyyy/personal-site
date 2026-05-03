@@ -33,7 +33,9 @@ const base = siteConfig.base;
       </div>
       <div class="hero-avatar" id="avatar-area">
         <div class="avatar-wrapper">
-          <img src={base + siteConfig.avatar} alt="头像" class="avatar-img" id="avatar-img" />
+          <img src={base + siteConfig.avatar} alt="头像" class="avatar-img" id="avatar-img"
+               data-frames={siteConfig.avatarFrames || 0}
+               data-interval={siteConfig.avatarFrameInterval || 380} />
           <div class="avatar-glow"></div>
         </div>
         <div class="speech-bubble" id="speech-bubble" data-bubbles={JSON.stringify(siteConfig.hero.speechBubbles)}>{siteConfig.hero.speechBubbles[0]}</div>
@@ -127,6 +129,28 @@ const base = siteConfig.base;
           }, 4000);
         }
       } catch(e) {}
+    }
+
+    var avatarImg = document.getElementById('avatar-img');
+    if (avatarImg) {
+      var totalFrames = parseInt(avatarImg.getAttribute('data-frames') || '0', 10);
+      var frameInterval = parseInt(avatarImg.getAttribute('data-interval') || '380', 10);
+      if (totalFrames > 1) {
+        var currentFrame = 1;
+        var basePath = '/images/形象/';
+        var loadedImages = [];
+        for (var fi = 1; fi <= totalFrames; fi++) {
+          (function(idx) {
+            var img = new Image();
+            img.src = basePath + idx + '.png';
+            loadedImages.push(img);
+          })(fi);
+        }
+        setInterval(function() {
+          currentFrame = currentFrame >= totalFrames ? 1 : currentFrame + 1;
+          avatarImg.src = basePath + currentFrame + '.png';
+        }, frameInterval);
+      }
     }
   })();
 </script>

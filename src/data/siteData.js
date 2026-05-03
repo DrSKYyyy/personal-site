@@ -32,7 +32,9 @@ export const siteConfig = {
   title: '追风少年',                      // 网站名称（导航栏logo、页脚、浏览器标签标题）
   description: '一个有趣、真诚的年轻人的数字花园',  // 网站描述（SEO 和页脚副标题）
   author: '天天',                     // 作者名
-  avatar: '/images/avatar.svg',          // 头像图片路径（图片放在 public/images/ 下）
+  avatar: '/images/形象/1.png',          // 头像图片路径（图片放在 public/images/ 下）
+  avatarFrames: 17,                      // 头像动画帧数（从1.png到N.png，循环播放，0=单张静态）
+  avatarFrameInterval: 1000,              // 头像动画每帧间隔(ms)，数字越大越慢。380≈抽帧效果，100=流畅
 
   // ====================================================================
   //  2. 首页打字机动画（src/components/TypingIntro.astro）

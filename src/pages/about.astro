@@ -69,7 +69,7 @@ const hasMore = galleryItems.length > previewCount;
           <div class="gallery-expandable" id="gallery-expandable">
             <div class="gallery-scroll-container">
               <div class="gallery-grid gallery-grid-full">
-                {galleryItems.map((item, i) => (
+                {galleryItems.slice(previewCount).map((item, i) => (
                   <div class="gallery-item">
                     {item.image ? (
                       <img src={item.image} alt="" loading="lazy" data-full={item.imageFull || item.image} />
