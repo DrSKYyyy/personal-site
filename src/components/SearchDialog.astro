@@ -160,7 +160,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
       var idx = plainText.toLowerCase().indexOf(query);
       if (idx === -1) return '';
 
-      var punct = /[。！？]/;
+      var punct = /[。！？；]/;
       var backwardMax = 6;
       var lookBackChars = plainText.substring(Math.max(0, idx - backwardMax), idx);
       var punctIndex = -1;
@@ -206,7 +206,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
   })();
 </script>
 
-<style>
+<style is:global>
   .search-bar-container {
     position: relative;
   }
@@ -292,14 +292,14 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
 
   .search-dropdown {
     position: absolute;
-    top: calc(100% + 10px);
+    top: calc(100% + 16px);
     right: 0;
     width: 420px;
-    max-height: 480px;
+    max-height: 520px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
     z-index: 200;
     opacity: 0;
     transform: translateY(-8px) scale(0.96);
@@ -327,7 +327,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
 
   .sd-item {
     display: block;
-    padding: 1.2rem 1.4rem;
+    padding: 1.5rem;
     text-decoration: none;
     color: inherit;
     background: var(--color-surface);
@@ -365,7 +365,7 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
   .sd-item .post-item-title {
     font-family: var(--font-heading);
     font-size: 1.1rem;
-    margin-bottom: 0.45rem;
+    margin-bottom: 0.5rem;
     transition: color var(--transition-fast);
   }
 
@@ -394,11 +394,11 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
       width: calc(100vw - 2rem);
       right: -1rem;
       max-height: 50vh;
-      gap: 6px;
+      gap: 8px;
     }
 
     .sd-item {
-      padding: 0.85rem 1rem;
+      padding: 1rem;
     }
 
     .sd-item .post-item-title {
