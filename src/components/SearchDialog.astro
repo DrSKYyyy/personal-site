@@ -391,8 +391,11 @@ const searchData: SearchResult[] = posts.map((post: any) => ({
 
   @media (max-width: 768px) {
     .search-dropdown {
-      width: calc(100vw - 2rem);
-      right: -1rem;
+      position: fixed;
+      top: calc(var(--nav-height) + env(safe-area-inset-top, 0px) + 16px);
+      left: 0.75rem;
+      right: 0.75rem;
+      width: auto;
       max-height: 50vh;
       gap: 8px;
     }
