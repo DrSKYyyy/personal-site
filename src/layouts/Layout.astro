@@ -11,9 +11,10 @@ export interface Props {
   title?: string;
   description?: string;
   posts?: any[];
+  showAnnouncementBtn?: boolean;
 }
 
-const { title, description, posts: propPosts = [] } = Astro.props;
+const { title, description, posts: propPosts = [], showAnnouncementBtn = false } = Astro.props;
 const blogPosts = await getCollection('blog');
 const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
 ---
@@ -31,7 +32,7 @@ const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
     )}
   </head>
   <body>
-    <Header posts={allPosts} />
+    <Header posts={allPosts} showAnnouncementBtn={showAnnouncementBtn} />
     <CloudBackground />
     <main class="main-content">
       <slot />

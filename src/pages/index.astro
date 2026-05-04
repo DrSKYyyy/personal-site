@@ -5,6 +5,7 @@ import { siteConfig } from '../data/siteData';
 import TypingIntro from '../components/TypingIntro.astro';
 import GiscusComments from '../components/GiscusComments.astro';
 import VisitorMessageForm from '../components/VisitorMessageForm.astro';
+import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 
 const allPosts = await getCollection('blog');
 const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
@@ -15,7 +16,16 @@ const giscusConfigured = siteConfig.giscus.repo !== 'your-username/your-repo';
 const base = siteConfig.base;
 ---
 
-<Layout title="首页">
+<Layout title="首页" showAnnouncementBtn={true}>
+  {siteConfig.announcement?.enabled && (
+    <AnnouncementBanner
+      title={siteConfig.announcement.title}
+      body={siteConfig.announcement.body}
+      image={siteConfig.announcement.image}
+      dismissLabel={siteConfig.announcement.dismissLabel}
+      base={base}
+    />
+  )}
   <TypingIntro />
   <section class="hero">
     <div class="container hero-content page-enter">

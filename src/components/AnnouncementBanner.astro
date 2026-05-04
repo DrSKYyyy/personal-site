@@ -1,0 +1,261 @@
+---
+export interface Props {
+  title?: string;
+  body?: string;
+  image?: string;
+  dismissLabel?: string;
+  base?: string;
+}
+
+const { title = '', body = '', image = '', dismissLabel = '我知道啦', base = '' } = Astro.props;
+const hasImage = image && image.trim() !== '';
+---
+
+{
+  title || body ? (
+    <>
+      <div class="announcement-overlay" id="announcement-overlay">
+        <div class="announcement-modal" id="announcement-modal">
+          <div class="announcement-card">
+            <h3 class="announcement-title">{title}</h3>
+            <p class="announcement-body" set:html={body}></p>
+            {hasImage && (
+              <div class="announcement-image">
+                <img src={base + image} alt="公告图片" />
+              </div>
+            )}
+            <label class="announcement-checkbox">
+              <input type="checkbox" id="announcement-never" />
+              <span>下次不再显示</span>
+            </label>
+            <button class="announcement-dismiss" id="announcement-dismiss">{dismissLabel}</button>
+          </div>
+        </div>
+      </div>
+    </>
+  ) : null
+}
+
+<script is:inline>
+  (function() {
+    var overlay = document.getElementById('announcement-overlay');
+    if (!overlay) return;
+
+    var checkbox = document.getElementById('announcement-never');
+    var dismissBtn = document.getElementById('announcement-dismiss');
+
+    var NEVER_KEY = 'announcement_never';
+
+    function getNever() {
+      return localStorage.getItem(NEVER_KEY) === 'true';
+    }
+
+    function setNever(val) {
+      if (val) {
+        localStorage.setItem(NEVER_KEY, 'true');
+      } else {
+        localStorage.removeItem(NEVER_KEY);
+      }
+    }
+
+    function showModal() {
+      if (checkbox) {
+        checkbox.checked = getNever();
+      }
+      overlay.classList.remove('announcement-hidden');
+      overlay.classList.add('announcement-visible');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function hideModal() {
+      overlay.classList.remove('announcement-visible');
+      overlay.classList.add('announcement-hidden');
+      document.body.style.overflow = '';
+    }
+
+    // Expose show function for the Header trigger button
+    window.__showAnnouncementModal = showModal;
+
+    // Auto-show on page load if never set
+    if (!getNever()) {
+      requestAnimationFrame(function() {
+        showModal();
+      });
+    }
+
+    // Dismiss logic
+    if (dismissBtn) {
+      dismissBtn.addEventListener('click', function() {
+        if (checkbox) {
+          setNever(checkbox.checked);
+        }
+        hideModal();
+      });
+    }
+
+    // Click overlay to close (only when clicking the overlay itself, not the card)
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        if (checkbox) {
+          setNever(checkbox.checked);
+        }
+        hideModal();
+      }
+    });
+  })();
+</script>
+
+<style>
+  .announcement-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+  }
+
+  .announcement-overlay::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  .announcement-overlay.announcement-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .announcement-overlay.announcement-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .announcement-modal {
+    position: relative;
+    max-width: 420px;
+    width: 100%;
+    transform: scale(0.92) translateY(12px);
+    transition: transform 0.35s ease;
+  }
+
+  .announcement-visible .announcement-modal {
+    transform: scale(1) translateY(0);
+  }
+
+  .announcement-card {
+    background: linear-gradient(135deg, #fefcf8, #f5ede0);
+    border-radius: var(--radius-lg);
+    padding: 2rem 2rem 1.5rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  [data-theme="dark"] .announcement-card {
+    background: linear-gradient(135deg, #2a2a2d, #222225);
+    border-color: var(--color-border);
+  }
+
+  .announcement-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    color: var(--color-text);
+  }
+
+  .announcement-body {
+    font-size: 0.92rem;
+    color: var(--color-text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+  }
+
+  .announcement-image {
+    width: 110px;
+    height: 110px;
+    margin: 0 auto 1rem;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 2px solid var(--color-border);
+  }
+
+  .announcement-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .announcement-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 1rem;
+    user-select: none;
+  }
+
+  .announcement-checkbox input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+  }
+
+  .announcement-checkbox:hover {
+    color: var(--color-text);
+  }
+
+  .announcement-dismiss {
+    display: block;
+    margin: 0 auto;
+    padding: 0.55rem 2.5rem;
+    border: none;
+    border-radius: var(--radius-xl);
+    background: var(--color-gradient);
+    color: white;
+    font-family: var(--font-heading);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .announcement-dismiss:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(93, 173, 226, 0.4);
+  }
+
+  @media (max-width: 480px) {
+    .announcement-overlay {
+      padding: 1rem;
+    }
+
+    .announcement-card {
+      padding: 1.5rem 1.25rem 1.25rem;
+    }
+
+    .announcement-title {
+      font-size: 1.1rem;
+    }
+
+    .announcement-body {
+      font-size: 0.88rem;
+    }
+
+    .announcement-image {
+      width: 90px;
+      height: 90px;
+    }
+  }
+</style>

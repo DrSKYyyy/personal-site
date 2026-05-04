@@ -2,7 +2,7 @@
 import { siteConfig } from '../data/siteData';
 import ThemeToggle from './ThemeToggle.astro';
 import SearchDialog from './SearchDialog.astro';
-const { posts = [] } = Astro.props;
+const { posts = [], showAnnouncementBtn = false } = Astro.props;
 const base = siteConfig.base;
 ---
 
@@ -25,6 +25,11 @@ const base = siteConfig.base;
 
     <div class="header-actions">
       <SearchDialog posts={posts} />
+      {showAnnouncementBtn && siteConfig.announcement?.enabled && (
+        <button id="announcement-trigger" class="header-icon-btn" aria-label="公告">
+          <span>{siteConfig.announcement.triggerIcon || '🔔'}</span>
+        </button>
+      )}
       <ThemeToggle />
       <div class="hamburger-wrapper">
         <button class="hamburger" id="hamburger" aria-label="菜单">
@@ -102,6 +107,15 @@ const base = siteConfig.base;
       mobileCmsLink.style.display = '';
     }
   } catch(e) {}
+
+  var annTrigger = document.getElementById('announcement-trigger');
+  if (annTrigger) {
+    annTrigger.addEventListener('click', function() {
+      if (window.__showAnnouncementModal) {
+        window.__showAnnouncementModal();
+      }
+    });
+  }
 </script>
 
 <style>
