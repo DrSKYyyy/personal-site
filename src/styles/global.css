@@ -364,6 +364,18 @@ button:not(.theme-toggle):not(.header-icon-btn):not(.hamburger):not(.tb-btn):not
 }
 
 /* ============================================
+   Retro Grid — animated scrolling grid for globe background
+   ============================================ */
+@keyframes grid-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 60px; }
+}
+
+.animate-grid {
+  animation: grid-scroll 2s linear infinite;
+}
+
+/* ============================================
    Animated theme transition overlay
    ============================================ */
 .theme-transition-overlay {

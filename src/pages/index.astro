@@ -6,6 +6,8 @@ import TypingIntro from '../components/TypingIntro.astro';
 import GuestbookMarquee from '../components/GuestbookMarquee.astro';
 import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 import KineticText from '../components/KineticText.tsx';
+import { Globe } from '../components/Globe.tsx';
+import { RetroGrid } from '../components/RetroGrid.tsx';
 
 const allPosts = await getCollection('blog');
 const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
@@ -57,6 +59,13 @@ const base = siteConfig.base;
     <div class="scroll-indicator">
       <span>{siteConfig.hero.scrollHint}</span>
       <div class="scroll-arrow">↓</div>
+    </div>
+  </section>
+
+  <section class="globe-section page-enter">
+    <RetroGrid />
+    <div class="globe-container">
+      <Globe client:load />
     </div>
   </section>
 
@@ -456,6 +465,27 @@ const base = siteConfig.base;
 
   .home-comments {
     padding: 3rem 0 4rem;
+  }
+
+  .globe-section {
+    padding: 4rem 1.5rem 10rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 50vh;
+  }
+
+  .globe-container {
+    position: relative;
+    width: 100%;
+    max-width: 32rem;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
   }
 
   @media (max-width: 768px) {
