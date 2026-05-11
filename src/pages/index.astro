@@ -5,7 +5,8 @@ import { siteConfig } from '../data/siteData';
 import TypingIntro from '../components/TypingIntro.astro';
 import GuestbookMarquee from '../components/GuestbookMarquee.astro';
 import AnnouncementBanner from '../components/AnnouncementBanner.astro';
-import Globe from '../components/Globe.astro';
+import KineticText from '../components/KineticText.tsx';
+import Globe from '../components/Globe.tsx';
 
 const allPosts = await getCollection('blog');
 const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
@@ -13,7 +14,6 @@ const recentPosts = publicPosts
   .sort((a, b) => new Date(b.data.date) - new Date(a.data.date))
   .slice(0, 3);
 const base = siteConfig.base;
-const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
 ---
 
 <Layout title="首页" showAnnouncementBtn={true}>
@@ -46,9 +46,9 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
           </div>
           <div class="speech-bubble" id="speech-bubble" data-bubbles={JSON.stringify(siteConfig.hero.speechBubbles)}>{siteConfig.hero.speechBubbles[0]}</div>
         </div>
-        <h1 class="hero-title" id="kinetic-title" data-sloganzh={siteConfig.hero.sloganZh}>
-          <span class="hero-title-en font-english kinetic-text" id="kinetic-en"></span>
-          <span class="hero-title-zh gradient-text kinetic-text" id="kinetic-zh"></span>
+        <h1 class="hero-title" id="kinetic-title">
+          <KineticText text={"Hi, I'm"} as="span" className="hero-title-en font-english" client:load />
+          <KineticText text={siteConfig.hero.sloganZh} as="span" className="hero-title-zh gradient-text" client:load />
         </h1>
       </div>
       <p class="hero-subtitle">{siteConfig.hero.subSlogan}</p>
@@ -67,7 +67,7 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
       <div class="grid-surface"></div>
     </div>
     <div class="container globe-content page-enter">
-      <Globe />
+      <Globe client:load />
     </div>
   </section>
 
@@ -133,29 +133,6 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
         currentFrame = currentFrame >= totalFrames ? 1 : currentFrame + 1;
         avatarImg.src = basePath + currentFrame + '.png';
       }, frameInterval);
-    }
-  }
-
-  // Kinetic text: split into chars
-  var enEl = document.getElementById('kinetic-en');
-  var zhEl = document.getElementById('kinetic-zh');
-  var titleEl = document.getElementById('kinetic-title');
-  if (enEl) {
-    var enText = "Hi, I'm";
-    enEl.innerHTML = '';
-    for (var ci = 0; ci < enText.length; ci++) {
-      var s = document.createElement('span');
-      s.textContent = enText[ci] === ' ' ? '\u00A0' : enText[ci];
-      enEl.appendChild(s);
-    }
-  }
-  if (zhEl && titleEl) {
-    var zhText = titleEl.getAttribute('data-sloganzh') || '天天';
-    zhEl.innerHTML = '';
-    for (var cj = 0; cj < zhText.length; cj++) {
-      var t = document.createElement('span');
-      t.textContent = zhText[cj];
-      zhEl.appendChild(t);
     }
   }
 
@@ -349,10 +326,12 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
 
   .hero-title {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.25rem;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem;
     margin-bottom: 0.75rem;
+    flex-wrap: wrap;
   }
 
   .hero-title-en {

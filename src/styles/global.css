@@ -231,22 +231,26 @@ img {
 }
 
 /* ============================================
-   Kinetic Text — font-variation animation per char
+   Kinetic Text — per-character font weight animation
    ============================================ */
-.kinetic-text {
-  display: inline-flex;
-  flex-wrap: wrap;
-}
-
-.kinetic-text span {
+.kinetic-char {
   display: inline-block;
-  transition: font-variation-settings 0.15s ease, color 0.15s ease;
-  font-variation-settings: 'wght' 300;
+  transition: font-weight 0.12s ease, color 0.12s ease;
+  font-weight: 300;
   cursor: default;
+  font-variation-settings: "wght" 300;
 }
 
-.kinetic-text span:hover {
-  font-variation-settings: 'wght' 900;
+.kinetic-char:hover {
+  font-weight: 900;
+  font-variation-settings: "wght" 900;
+  color: var(--color-primary);
+}
+
+/* Also ensure nested spans in KineticReact animate correctly */
+.flex.flex-wrap > .kinetic-char:hover {
+  font-weight: 900;
+  font-variation-settings: "wght" 900;
   color: var(--color-primary);
 }
 
@@ -373,28 +377,57 @@ button:not(.theme-toggle):not(.header-icon-btn):not(.hamburger):not(.tb-btn):not
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 200%;
-  height: 200%;
+  width: 300%;
+  height: 300%;
   transform: translate(-50%, -50%) perspective(500px) rotateX(60deg);
-  transform-origin: center center;
   background-image:
-    linear-gradient(rgba(128, 128, 128, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(128, 128, 128, 0.15) 1px, transparent 1px);
-  background-size: 50px 50px;
-  background-position: center center;
-  will-change: transform;
-  animation: grid-scroll 3s linear infinite;
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 50px,
+      rgba(128, 128, 128, 0.12) 50px,
+      rgba(128, 128, 128, 0.12) 51px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 50px,
+      rgba(128, 128, 128, 0.12) 50px,
+      rgba(128, 128, 128, 0.12) 51px
+    );
+  animation: grid-scroll 8s linear infinite;
 }
 
 [data-theme="dark"] .retro-grid-bg .grid-surface {
   background-image:
-    linear-gradient(rgba(128, 128, 128, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(128, 128, 128, 0.08) 1px, transparent 1px);
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 50px,
+      rgba(128, 128, 128, 0.06) 50px,
+      rgba(128, 128, 128, 0.06) 51px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 50px,
+      rgba(128, 128, 128, 0.06) 50px,
+      rgba(128, 128, 128, 0.06) 51px
+    );
 }
 
 @keyframes grid-scroll {
-  0% { background-position: 0 0, 0 0; }
-  100% { background-position: 0 50px, 50px 0; }
+  0% { transform: translate(-50%, -50%) perspective(500px) rotateX(60deg) translateY(0); }
+  100% { transform: translate(-50%, -50%) perspective(500px) rotateX(60deg) translateY(50px); }
+}
+
+.globe-section .retro-grid-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 80%, transparent 30%, var(--color-bg) 70%);
+  z-index: 1;
+  pointer-events: none;
 }
 
 /* ============================================
