@@ -5,6 +5,7 @@ import { siteConfig } from '../data/siteData';
 import TypingIntro from '../components/TypingIntro.astro';
 import GuestbookMarquee from '../components/GuestbookMarquee.astro';
 import AnnouncementBanner from '../components/AnnouncementBanner.astro';
+import Globe from '../components/Globe.astro';
 
 const allPosts = await getCollection('blog');
 const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
@@ -12,6 +13,7 @@ const recentPosts = publicPosts
   .sort((a, b) => new Date(b.data.date) - new Date(a.data.date))
   .slice(0, 3);
 const base = siteConfig.base;
+const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
 ---
 
 <Layout title="首页" showAnnouncementBtn={true}>
@@ -24,30 +26,33 @@ const base = siteConfig.base;
       base={base}
     />
   )}
+
+  <!-- Meteors background (light mode only) -->
+  <div class="meteors-container" id="meteors-bg" data-meteors="30"></div>
+
+  <!-- Particles background (dark mode only) -->
+  <canvas class="particles-canvas" id="particles-canvas"></canvas>
+
   <TypingIntro />
   <section class="hero">
     <div class="container hero-content page-enter">
-      <div class="hero-text">
-        <h1 class="hero-title">
-          <span class="hero-title-en font-english">{siteConfig.hero.sloganEn}</span>
-          <span class="hero-title-zh gradient-text"> {siteConfig.hero.sloganZh}</span>
+      <div class="hero-top">
+        <div class="hero-avatar" id="avatar-area">
+          <div class="avatar-wrapper">
+            <img src={base + siteConfig.avatar} alt="头像" class="avatar-img" id="avatar-img"
+                 data-frames={siteConfig.avatarFrames || 0}
+                 data-interval={siteConfig.avatarFrameInterval || 380} />
+            <div class="avatar-glow"></div>
+          </div>
+          <div class="speech-bubble" id="speech-bubble" data-bubbles={JSON.stringify(siteConfig.hero.speechBubbles)}>{siteConfig.hero.speechBubbles[0]}</div>
+        </div>
+        <h1 class="hero-title kinetic-text" id="kinetic-title">
+          <span class="hero-title-en font-english kinetic-text" id="kinetic-en"></span>
+          <span class="hero-title-zh gradient-text kinetic-text" id="kinetic-zh"></span>
         </h1>
-        <p class="hero-subtitle">{siteConfig.hero.subSlogan}</p>
-        <p class="hero-desc" set:html={siteConfig.hero.description}></p>
-        <div class="hero-actions">
-          <a href={base + '/about'} class="btn btn-primary">{siteConfig.hero.learnMoreBtn}</a>
-          <a href={base + '/writing'} class="btn btn-outline">{siteConfig.hero.readArticlesBtn}</a>
-        </div>
       </div>
-      <div class="hero-avatar" id="avatar-area">
-        <div class="avatar-wrapper">
-          <img src={base + siteConfig.avatar} alt="头像" class="avatar-img" id="avatar-img"
-               data-frames={siteConfig.avatarFrames || 0}
-               data-interval={siteConfig.avatarFrameInterval || 380} />
-          <div class="avatar-glow"></div>
-        </div>
-        <div class="speech-bubble" id="speech-bubble" data-bubbles={JSON.stringify(siteConfig.hero.speechBubbles)}>{siteConfig.hero.speechBubbles[0]}</div>
-      </div>
+      <p class="hero-subtitle">{siteConfig.hero.subSlogan}</p>
+      <p class="hero-desc" set:html={siteConfig.hero.description}></p>
     </div>
 
     <div class="scroll-indicator">
@@ -56,11 +61,22 @@ const base = siteConfig.base;
     </div>
   </section>
 
+  <!-- Globe section with retro grid -->
+  <section class="globe-section">
+    <div class="retro-grid-bg">
+      <div class="grid-surface"></div>
+    </div>
+    <div class="container globe-content page-enter">
+      <h2 class="section-title">🌍 世界那么大</h2>
+      <Globe />
+    </div>
+  </section>
+
   <section class="recent-posts container page-enter">
     <h2 class="section-title">{siteConfig.recentPosts.title}</h2>
     <div class="posts-grid">
       {recentPosts.map(post => (
-        <a href={base + '/writing/' + post.slug} class="post-card card">
+        <a href={base + '/writing/' + post.slug} class="post-card card shiny-btn">
           <div class="post-card-content">
             <div class="post-date">{post.data.date}</div>
             <h3 class="post-title">{post.data.title}</h3>
@@ -75,7 +91,7 @@ const base = siteConfig.base;
       ))}
     </div>
     <div class="view-all">
-      <a href={base + '/writing'} class="btn btn-outline">{siteConfig.recentPosts.viewAll}</a>
+      <a href={base + '/writing'} class="btn btn-outline shiny-btn">{siteConfig.recentPosts.viewAll}</a>
     </div>
   </section>
 
@@ -85,42 +101,165 @@ const base = siteConfig.base;
 </Layout>
 
 <script is:inline>
-  (function() {
-    var bubble = document.getElementById('speech-bubble');
-    if (bubble && bubble.dataset.bubbles) {
-      try {
-        var texts = JSON.parse(bubble.dataset.bubbles);
-        if (texts && texts.length > 1) {
-          setInterval(function() {
-            var idx = Math.floor(Math.random() * texts.length);
-            bubble.textContent = texts[idx];
-          }, 4000);
-        }
-      } catch(e) {}
-    }
-
-    var avatarImg = document.getElementById('avatar-img');
-    if (avatarImg) {
-      var totalFrames = parseInt(avatarImg.getAttribute('data-frames') || '0', 10);
-      var frameInterval = parseInt(avatarImg.getAttribute('data-interval') || '380', 10);
-      if (totalFrames > 1) {
-        var currentFrame = 1;
-        var basePath = '/images/形象/';
-        var loadedImages = [];
-        for (var fi = 1; fi <= totalFrames; fi++) {
-          (function(idx) {
-            var img = new Image();
-            img.src = basePath + idx + '.png';
-            loadedImages.push(img);
-          })(fi);
-        }
+(function() {
+  var bubble = document.getElementById('speech-bubble');
+  if (bubble && bubble.dataset.bubbles) {
+    try {
+      var texts = JSON.parse(bubble.dataset.bubbles);
+      if (texts && texts.length > 1) {
         setInterval(function() {
-          currentFrame = currentFrame >= totalFrames ? 1 : currentFrame + 1;
-          avatarImg.src = basePath + currentFrame + '.png';
-        }, frameInterval);
+          var idx = Math.floor(Math.random() * texts.length);
+          bubble.textContent = texts[idx];
+        }, 4000);
       }
+    } catch(e) {}
+  }
+
+  var avatarImg = document.getElementById('avatar-img');
+  if (avatarImg) {
+    var totalFrames = parseInt(avatarImg.getAttribute('data-frames') || '0', 10);
+    var frameInterval = parseInt(avatarImg.getAttribute('data-interval') || '380', 10);
+    if (totalFrames > 1) {
+      var currentFrame = 1;
+      var basePath = '/images/形象/';
+      var loadedImages = [];
+      for (var fi = 1; fi <= totalFrames; fi++) {
+        (function(idx) {
+          var img = new Image();
+          img.src = basePath + idx + '.png';
+          loadedImages.push(img);
+        })(fi);
+      }
+      setInterval(function() {
+        currentFrame = currentFrame >= totalFrames ? 1 : currentFrame + 1;
+        avatarImg.src = basePath + currentFrame + '.png';
+      }, frameInterval);
     }
-  })();
+  }
+
+  // Kinetic text: split into chars
+  var enEl = document.getElementById('kinetic-en');
+  var zhEl = document.getElementById('kinetic-zh');
+  if (enEl) {
+    var enText = "Hi, I'm";
+    enEl.innerHTML = '';
+    for (var ci = 0; ci < enText.length; ci++) {
+      var s = document.createElement('span');
+      s.textContent = enText[ci] === ' ' ? '\u00A0' : enText[ci];
+      enEl.appendChild(s);
+    }
+  }
+  if (zhEl) {
+    var zhText = siteConfig.hero.sloganZh || '天天';
+    zhEl.innerHTML = '';
+    for (var cj = 0; cj < zhText.length; cj++) {
+      var t = document.createElement('span');
+      t.textContent = zhText[cj];
+      zhEl.appendChild(t);
+    }
+  }
+
+  // Meteors generation
+  var meteorsContainer = document.getElementById('meteors-bg');
+  function generateMeteors() {
+    if (!meteorsContainer) return;
+    var count = parseInt(meteorsContainer.getAttribute('data-meteors') || '20', 10);
+    var isLight = document.documentElement.getAttribute('data-theme') !== 'dark';
+    meteorsContainer.innerHTML = '';
+    if (!isLight) return;
+    for (var mi = 0; mi < count; mi++) {
+      var meteor = document.createElement('div');
+      meteor.className = 'meteor';
+      meteor.style.left = Math.random() * window.innerWidth + 'px';
+      meteor.style.setProperty('--meteor-delay', (Math.random() * 1 + 0.2) + 's');
+      meteor.style.setProperty('--meteor-duration', (Math.floor(Math.random() * 8 + 2)) + 's');
+      meteor.style.setProperty('--meteor-angle', '215deg');
+      meteorsContainer.appendChild(meteor);
+    }
+  }
+
+  generateMeteors();
+  var meteorObserver = new MutationObserver(function() {
+    generateMeteors();
+  });
+  meteorObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  window.addEventListener('resize', generateMeteors);
+
+  // Particles (dark mode)
+  var particlesCanvas = document.getElementById('particles-canvas');
+  var particlesCtx, particlesAnimId;
+  var particleList = [];
+  var mouseX = -1000, mouseY = -1000;
+
+  function initParticles() {
+    if (!particlesCanvas) return;
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    particlesCanvas.style.display = isDark ? 'block' : 'none';
+    if (!isDark) {
+      if (particlesAnimId) { cancelAnimationFrame(particlesAnimId); particlesAnimId = null; }
+      return;
+    }
+    var rect = particlesCanvas.parentElement.getBoundingClientRect();
+    particlesCanvas.width = window.innerWidth;
+    particlesCanvas.height = window.innerHeight;
+    particlesCtx = particlesCanvas.getContext('2d');
+    var count = 80;
+    particleList = [];
+    for (var pi = 0; pi < count; pi++) {
+      particleList.push({
+        x: Math.random() * particlesCanvas.width,
+        y: Math.random() * particlesCanvas.height,
+        vx: (Math.random() - 0.5) * 0.5,
+        vy: (Math.random() - 0.5) * 0.5,
+        r: Math.random() * 1.5 + 0.5,
+      });
+    }
+    animateParticles();
+  }
+
+  function animateParticles() {
+    if (!particlesCtx || !particlesCanvas) return;
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (!isDark) { particlesAnimId = null; return; }
+    particlesCtx.clearRect(0, 0, particlesCanvas.width, particlesCanvas.height);
+    for (var pi = 0; pi < particleList.length; pi++) {
+      var p = particleList[pi];
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > particlesCanvas.width) p.vx *= -1;
+      if (p.y < 0 || p.y > particlesCanvas.height) p.vy *= -1;
+      var dx = mouseX - p.x;
+      var dy = mouseY - p.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        p.vx -= dx / dist * 0.02;
+        p.vy -= dy / dist * 0.02;
+      }
+      p.vx = Math.max(-2, Math.min(2, p.vx));
+      p.vy = Math.max(-2, Math.min(2, p.vy));
+      particlesCtx.beginPath();
+      particlesCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      particlesCtx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      particlesCtx.fill();
+    }
+    particlesAnimId = requestAnimationFrame(animateParticles);
+  }
+
+  initParticles();
+  var particleObserver = new MutationObserver(function() { initParticles(); });
+  particleObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  document.addEventListener('mousemove', function(e) {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+  });
+  window.addEventListener('resize', function() {
+    if (particlesCanvas) {
+      particlesCanvas.width = window.innerWidth;
+      particlesCanvas.height = window.innerHeight;
+    }
+  });
+})();
 </script>
 
 <style>
@@ -134,65 +273,28 @@ const base = siteConfig.base;
   }
 
   .hero-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 3rem;
-    padding-top: 0.5rem;
-    padding-bottom: 2rem;
+    text-align: center;
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
   }
 
-  .hero-text {
-    flex: 1;
-    max-width: 560px;
-  }
-
-  .hero-title {
-    font-size: 4.2rem;
-    margin-bottom: 1.25rem;
-    line-height: 1.15;
-  }
-
-  .hero-title-en {
-    color: var(--color-text);
-  }
-
-  .hero-title-zh {
-    font-size: inherit;
-  }
-
-  .hero-subtitle {
-    font-size: 1.3rem;
-    color: var(--color-primary);
-    font-family: var(--font-heading);
-    margin-bottom: 1rem;
-  }
-
-  .hero-desc {
-    font-size: 1.05rem;
-    color: var(--color-text-secondary);
-    line-height: 1.8;
+  .hero-top {
     margin-bottom: 1.5rem;
   }
 
-  .hero-actions {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
   .hero-avatar {
-    flex-shrink: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .avatar-wrapper {
     position: relative;
-    width: 200px;
-    height: 200px;
+    width: 180px;
+    height: 180px;
     animation: float 4s ease-in-out infinite;
   }
 
@@ -245,6 +347,39 @@ const base = siteConfig.base;
     opacity: 1;
   }
 
+  .hero-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-title-en {
+    font-size: 3.5rem;
+    line-height: 1.15;
+    color: var(--color-text);
+  }
+
+  .hero-title-zh {
+    font-size: 3.5rem;
+    line-height: 1.15;
+  }
+
+  .hero-subtitle {
+    font-size: 1.3rem;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    margin-bottom: 1rem;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  }
+
   .scroll-indicator {
     position: absolute;
     bottom: 2rem;
@@ -271,6 +406,18 @@ const base = siteConfig.base;
   @keyframes hintBounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(4px); }
+  }
+
+  .globe-section {
+    padding: 4rem 0 6rem;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+  }
+
+  .globe-content {
+    text-align: center;
+    width: 100%;
   }
 
   .recent-posts {
@@ -344,21 +491,12 @@ const base = siteConfig.base;
 
   @media (max-width: 768px) {
     .hero-content {
-      flex-direction: column-reverse;
-      text-align: center;
-      gap: 2rem;
+      padding: 1.5rem 1rem;
     }
 
-    .hero-text {
-      max-width: 100%;
-    }
-
-    .hero-title {
+    .hero-title-en,
+    .hero-title-zh {
       font-size: 2.5rem;
-    }
-
-    .hero-actions {
-      justify-content: center;
     }
 
     .avatar-wrapper {
@@ -372,6 +510,11 @@ const base = siteConfig.base;
 
     .scroll-indicator {
       display: none;
+    }
+
+    .globe-section {
+      padding: 2rem 0 4rem;
+      min-height: 400px;
     }
   }
 </style>

@@ -1,0 +1,94 @@
+---
+const { className = '' } = Astro.props;
+---
+
+<div class="globe-wrapper" id="globe-wrapper">
+  <canvas id="globe-canvas" class="globe-canvas"></canvas>
+</div>
+
+<script is:inline>
+(async function() {
+  try {
+    var cobe = await import('cobe');
+    var createGlobe = cobe.default || cobe.createGlobe;
+    var canvas = document.getElementById('globe-canvas');
+    if (!canvas) return;
+
+    var width = 0;
+    var phi = 0;
+
+    var globe = createGlobe(canvas, {
+      width: 800,
+      height: 800,
+      devicePixelRatio: 2,
+      phi: 0,
+      theta: 0.3,
+      dark: 0,
+      diffuse: 0.4,
+      mapSamples: 16000,
+      mapBrightness: 1.2,
+      baseColor: [1, 1, 1],
+      markerColor: [251 / 255, 100 / 255, 21 / 255],
+      glowColor: [1, 1, 1],
+      markers: [
+        { location: [39.9042, 116.4074], size: 0.08 },
+        { location: [40.7128, -74.006], size: 0.1 },
+        { location: [35.6762, 139.6503], size: 0.05 },
+        { location: [51.5074, -0.1278], size: 0.08 },
+        { location: [48.8566, 2.3522], size: 0.06 },
+        { location: [-33.8688, 151.2093], size: 0.06 },
+        { location: [55.7558, 37.6173], size: 0.06 },
+      ],
+      onRender: function(state) {
+        phi += 0.005;
+        state.phi = phi;
+        state.width = width * 2;
+        state.height = width * 2;
+      }
+    });
+
+    var resizeObserver = new ResizeObserver(function(entries) {
+      for (var entry of entries) {
+        width = entry.contentRect.width;
+        if (canvas) {
+          canvas.style.width = width + 'px';
+          canvas.style.height = width + 'px';
+        }
+      }
+    });
+
+    var wrapper = document.getElementById('globe-wrapper');
+    if (wrapper) resizeObserver.observe(wrapper);
+    setTimeout(function() { canvas.style.opacity = '1'; }, 100);
+
+    var themeObserver = new MutationObserver(function() {
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (globe && globe._state) {
+        globe._state.dark = isDark ? 1 : 0;
+      }
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  } catch(e) {
+    console.warn('Globe failed to load:', e);
+  }
+})();
+</script>
+
+<style is:global>
+  .globe-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    aspect-ratio: 1;
+  }
+
+  .globe-canvas {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    display: block;
+  }
+</style>

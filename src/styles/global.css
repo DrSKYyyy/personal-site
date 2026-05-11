@@ -134,6 +134,41 @@ img {
   text-decoration: none;
 }
 
+.btn,
+button:not(.theme-toggle):not(.header-icon-btn):not(.hamburger):not(.tb-btn):not(.msg-admin-del):not(.admin-tab) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.btn::before,
+button:not(.theme-toggle):not(.header-icon-btn):not(.hamburger):not(.tb-btn):not(.msg-admin-del):not(.admin-tab)::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.4) 30%,
+    transparent 40%
+  );
+  background-size: 300% 100%;
+  animation: shiny-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+[data-theme="dark"] .btn::before,
+[data-theme="dark"] button:not(.theme-toggle):not(.header-icon-btn):not(.hamburger):not(.tb-btn):not(.msg-admin-del):not(.admin-tab)::before {
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.15) 30%,
+    transparent 40%
+  );
+  background-size: 300% 100%;
+}
+
 .btn-primary {
   background: var(--color-gradient);
   color: white;
@@ -228,6 +263,184 @@ img {
     transform: translate(var(--fly-x), var(--fly-y)) rotate(var(--fly-rotate));
     opacity: 0;
   }
+}
+
+/* ============================================
+   Kinetic Text — font-weight animation per char
+   ============================================ */
+.kinetic-text {
+  display: inline-flex;
+  flex-wrap: wrap;
+}
+
+.kinetic-text span {
+  display: inline-block;
+  transition: font-weight 0.3s ease, color 0.3s ease;
+  font-weight: 300;
+  cursor: default;
+}
+
+.kinetic-text span:hover {
+  font-weight: 900;
+  color: var(--color-primary);
+}
+
+/* ============================================
+   Shiny Button — gradient sweep
+   ============================================ */
+.shiny-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.shiny-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.4) 30%,
+    transparent 40%
+  );
+  background-size: 300% 100%;
+  animation: shiny-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+[data-theme="dark"] .shiny-btn::before {
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.15) 30%,
+    transparent 40%
+  );
+  background-size: 300% 100%;
+}
+
+@keyframes shiny-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   Meteors — CSS meteor shower
+   ============================================ */
+.meteors-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.meteor {
+  position: absolute;
+  top: -5px;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  animation: meteor-fall var(--meteor-duration, 6s) linear infinite;
+  animation-delay: var(--meteor-delay, 0s);
+}
+
+.meteor::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 1px;
+  background: linear-gradient(to left, #94a3b8, transparent);
+}
+
+@keyframes meteor-fall {
+  0% {
+    transform: rotate(var(--meteor-angle, 215deg)) translateX(0);
+    opacity: 1;
+  }
+  70% { opacity: 1; }
+  100% {
+    transform: rotate(var(--meteor-angle, 215deg)) translateX(-500px);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   Particles — canvas-based
+   ============================================ */
+.particles-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   Retro Grid — animated scrolling grid
+   ============================================ */
+.retro-grid-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  perspective: 300px;
+  z-index: 0;
+}
+
+.retro-grid-bg .grid-surface {
+  position: absolute;
+  inset: -100%;
+  background-image:
+    linear-gradient(rgba(128, 128, 128, 0.2) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(128, 128, 128, 0.2) 1px, transparent 1px);
+  background-size: 60px 60px;
+  transform: rotateX(65deg);
+  transform-origin: center bottom;
+  animation: grid-scroll 4s linear infinite;
+}
+
+[data-theme="dark"] .retro-grid-bg .grid-surface {
+  background-image:
+    linear-gradient(rgba(128, 128, 128, 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(128, 128, 128, 0.15) 1px, transparent 1px);
+}
+
+@keyframes grid-scroll {
+  0% { transform: rotateX(65deg) translateY(0); }
+  100% { transform: rotateX(65deg) translateY(60px); }
+}
+
+/* ============================================
+   Animated theme transition overlay
+   ============================================ */
+.theme-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: var(--color-bg);
+}
+
+/* ============================================
+   Globe section background wrapper
+   ============================================ */
+.globe-section {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg);
+}
+
+[data-theme="dark"] .globe-section {
+  background: var(--color-bg);
+}
+
+.globe-section > *:not(.retro-grid-bg) {
+  position: relative;
+  z-index: 1;
 }
 
 ::-webkit-scrollbar {

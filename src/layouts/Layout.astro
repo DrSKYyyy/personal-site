@@ -33,6 +33,29 @@ const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
     {siteConfig.analytics.cloudflare && (
       <script src={siteConfig.analytics.cloudflare} defer></script>
     )}
+    <style>
+      ::view-transition-old(root),
+      ::view-transition-new(root) {
+        animation: none;
+        mix-blend-mode: normal;
+      }
+
+      ::view-transition-old(root) {
+        z-index: 1;
+      }
+
+      ::view-transition-new(root) {
+        z-index: 2147483647;
+      }
+
+      [data-theme="dark"]::view-transition-old(root) {
+        z-index: 2147483647;
+      }
+
+      [data-theme="dark"]::view-transition-new(root) {
+        z-index: 1;
+      }
+    </style>
   </head>
   <body>
     <Header posts={allPosts} showAnnouncementBtn={showAnnouncementBtn} />

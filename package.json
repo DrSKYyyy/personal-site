@@ -10,7 +10,8 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "astro": "^5.0.0"
+    "astro": "^5.0.0",
+    "cobe": "^2.0.1"
   },
   "devDependencies": {
     "wrangler": "^4.86.0"
