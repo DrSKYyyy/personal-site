@@ -324,14 +324,14 @@ const base = siteConfig.base;
   }
 
   .hero-title-en {
-    font-size: 14rem;
-    line-height: 1.1;
+    font-size: clamp(3.5rem, 18vw, 22rem);
+    line-height: 1.05;
     color: var(--color-text);
   }
 
   .hero-title-zh {
-    font-size: 14rem;
-    line-height: 1.1;
+    font-size: clamp(3.5rem, 18vw, 22rem);
+    line-height: 1.05;
   }
 
   .hero-subtitle {
@@ -452,7 +452,7 @@ const base = siteConfig.base;
 
     .hero-title-en,
     .hero-title-zh {
-      font-size: 5rem;
+      font-size: clamp(2.8rem, 10vw, 7rem);
     }
 
     .avatar-wrapper {
