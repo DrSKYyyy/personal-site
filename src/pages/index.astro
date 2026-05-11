@@ -6,7 +6,6 @@ import TypingIntro from '../components/TypingIntro.astro';
 import GuestbookMarquee from '../components/GuestbookMarquee.astro';
 import AnnouncementBanner from '../components/AnnouncementBanner.astro';
 import KineticText from '../components/KineticText.tsx';
-import Globe from '../components/Globe.tsx';
 
 const allPosts = await getCollection('blog');
 const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
@@ -58,16 +57,6 @@ const base = siteConfig.base;
     <div class="scroll-indicator">
       <span>{siteConfig.hero.scrollHint}</span>
       <div class="scroll-arrow">↓</div>
-    </div>
-  </section>
-
-  <!-- Globe section -->
-  <section class="globe-section">
-    <div class="container page-enter">
-      <div class="globe-container">
-        <Globe client:load />
-        <div class="globe-overlay"></div>
-      </div>
     </div>
   </section>
 
@@ -387,33 +376,6 @@ const base = siteConfig.base;
     50% { transform: translateY(4px); }
   }
 
-  .globe-section {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 4rem 0 6rem;
-    min-height: 500px;
-    overflow: hidden;
-    background: var(--color-bg);
-  }
-
-  .globe-container {
-    position: relative;
-    width: 100%;
-    max-width: 500px;
-    margin: 0 auto;
-    aspect-ratio: 1;
-  }
-
-  .globe-overlay {
-    pointer-events: none;
-    position: absolute;
-    inset: 0;
-    height: 100%;
-    background: radial-gradient(circle at 50% 80%, transparent 30%, var(--color-bg) 70%);
-  }
-
   .recent-posts {
     padding: 4rem 0;
   }
@@ -504,11 +466,6 @@ const base = siteConfig.base;
 
     .scroll-indicator {
       display: none;
-    }
-
-    .globe-section {
-      padding: 2rem 0 4rem;
-      min-height: 400px;
     }
   }
 </style>
