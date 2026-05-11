@@ -61,13 +61,13 @@ const base = siteConfig.base;
     </div>
   </section>
 
-  <!-- Globe section with retro grid -->
+  <!-- Globe section -->
   <section class="globe-section">
-    <div class="retro-grid-bg">
-      <div class="grid-surface"></div>
-    </div>
-    <div class="container globe-content page-enter">
-      <Globe client:load />
+    <div class="container page-enter">
+      <div class="globe-container">
+        <Globe client:load />
+        <div class="globe-overlay"></div>
+      </div>
     </div>
   </section>
 
@@ -329,24 +329,24 @@ const base = siteConfig.base;
     flex-direction: row;
     align-items: baseline;
     justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 0.75rem;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
     flex-wrap: wrap;
   }
 
   .hero-title-en {
-    font-size: 3.5rem;
-    line-height: 1.15;
+    font-size: 14rem;
+    line-height: 1.1;
     color: var(--color-text);
   }
 
   .hero-title-zh {
-    font-size: 3.5rem;
-    line-height: 1.15;
+    font-size: 14rem;
+    line-height: 1.1;
   }
 
   .hero-subtitle {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     color: var(--color-primary);
     font-family: var(--font-heading);
     margin-bottom: 1rem;
@@ -388,15 +388,30 @@ const base = siteConfig.base;
   }
 
   .globe-section {
-    padding: 4rem 0 6rem;
-    min-height: 500px;
+    position: relative;
     display: flex;
     align-items: center;
+    justify-content: center;
+    padding: 4rem 0 6rem;
+    min-height: 500px;
+    overflow: hidden;
+    background: var(--color-bg);
   }
 
-  .globe-content {
-    text-align: center;
+  .globe-container {
+    position: relative;
     width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    aspect-ratio: 1;
+  }
+
+  .globe-overlay {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    background: radial-gradient(circle at 50% 80%, transparent 30%, var(--color-bg) 70%);
   }
 
   .recent-posts {
@@ -475,7 +490,7 @@ const base = siteConfig.base;
 
     .hero-title-en,
     .hero-title-zh {
-      font-size: 2.5rem;
+      font-size: 5rem;
     }
 
     .avatar-wrapper {
