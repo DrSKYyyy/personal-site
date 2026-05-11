@@ -1,3 +1,5 @@
+const ADMIN_PASSWORD = 'SHTskycool200417';
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -83,6 +85,48 @@ export default {
       }
     }
 
+    if (request.method === 'DELETE' && url.pathname === '/api/messages') {
+      try {
+        const token = url.searchParams.get('token') || '';
+        if (token !== ADMIN_PASSWORD) {
+          return new Response(JSON.stringify({ ok: false, error: '未授权' }), {
+            status: 403,
+            headers: responseHeaders(),
+          });
+        }
+
+        const id = url.searchParams.get('id');
+        if (!id) {
+          return new Response(JSON.stringify({ ok: false, error: '缺少 id 参数' }), {
+            status: 400,
+            headers: responseHeaders(),
+          });
+        }
+
+        const data = await env.GUESTBOOK_MESSAGES.get('messages', 'json');
+        const messages = Array.isArray(data) ? data : [];
+        const filtered = messages.filter(function (m) { return m.id !== id; });
+
+        if (filtered.length === messages.length) {
+          return new Response(JSON.stringify({ ok: false, error: '未找到该留言' }), {
+            status: 404,
+            headers: responseHeaders(),
+          });
+        }
+
+        await env.GUESTBOOK_MESSAGES.put('messages', JSON.stringify(filtered));
+
+        return new Response(JSON.stringify({ ok: true, deleted: id }), {
+          headers: responseHeaders(),
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ ok: false, error: '删除失败' }), {
+          status: 500,
+          headers: responseHeaders(),
+        });
+      }
+    }
+
     return new Response(JSON.stringify({ ok: false, error: 'Not Found' }), {
       status: 404,
       headers: responseHeaders(),
@@ -112,7 +156,7 @@ async function sendEmailNotification(name, message, requestUrl) {
 function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'content-type',
     'Access-Control-Max-Age': '86400',
   };

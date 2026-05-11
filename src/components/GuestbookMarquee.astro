@@ -21,7 +21,7 @@ const { apiEndpoint = '' } = Astro.props;
     </div>
   </div>
 
-  <div class="guestbook-form" id="form-wrapper" data-api={apiEndpoint}>
+  <div class="form-card" id="form-wrapper" data-api={apiEndpoint}>
     <div class="name-row">
       <button class="name-toggle" id="nameToggle">✏️ 留下姓名</button>
       <div class="name-field hidden" id="nameField">
@@ -33,8 +33,10 @@ const { apiEndpoint = '' } = Astro.props;
     </div>
 
     <form id="msgForm">
-      <textarea id="msgInput" class="msg-input" placeholder="写下你想说的话..." maxlength="500" required></textarea>
-      <button type="submit" class="btn-send" id="btnSend">发送 💬</button>
+      <div class="input-wrap">
+        <textarea id="msgInput" class="msg-input" placeholder="写下你想说的话..." maxlength="500" required></textarea>
+        <button type="submit" class="btn-send" id="btnSend">发送</button>
+      </div>
     </form>
     <div class="form-status" id="formStatus"></div>
   </div>
@@ -83,12 +85,43 @@ const { apiEndpoint = '' } = Astro.props;
     return d.innerHTML;
   }
 
+  function fmtDate(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    var now = new Date();
+    var diff = now - d;
+    if (diff < 60000) return '刚刚';
+    if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    if (y === now.getFullYear()) return m + '-' + day;
+    return y + '-' + m + '-' + day;
+  }
+
   function buildCard(m) {
-    var initial = (m.name && m.name !== '匿名') ? m.name.charAt(0) : '?';
+    var isAnon = !m.name || m.name === '匿名';
+    var displayName = esc(isAnon ? '匿名' : m.name);
+    var dateStr = fmtDate(m.timestamp);
+
+    var avatarHtml;
+    if (isAnon) {
+      avatarHtml = '<div class="msg-avatar msg-avatar-anon">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>' +
+      '</div>';
+    } else {
+      var initial = m.name.charAt(0);
+      avatarHtml = '<div class="msg-avatar">' + esc(initial) + '</div>';
+    }
+
     return '<div class="msg-card">' +
-      '<div class="msg-avatar">' + esc(initial) + '</div>' +
+      avatarHtml +
       '<div class="msg-body">' +
-        '<div class="msg-name">' + esc(m.name || '匿名') + '</div>' +
+        '<div class="msg-top">' +
+          '<span class="msg-name">' + displayName + '</span>' +
+          '<span class="msg-date">' + dateStr + '</span>' +
+        '</div>' +
         '<div class="msg-text">' + esc(m.message) + '</div>' +
       '</div>' +
     '</div>';
@@ -114,8 +147,8 @@ const { apiEndpoint = '' } = Astro.props;
 
     var html1 = '', html2 = '';
     for (var r = 0; r < 4; r++) {
-      html1 += '<div class="msg-group">' + buildGroup(row1.length ? row1 : [{ name: '✨', message: '等你留言' }]) + '</div>';
-      html2 += '<div class="msg-group">' + buildGroup(row2.length ? row2 : [{ name: '✨', message: '等你留言' }]) + '</div>';
+      html1 += '<div class="msg-group">' + buildGroup(row1) + '</div>';
+      html2 += '<div class="msg-group">' + buildGroup(row2) + '</div>';
     }
     track1.innerHTML = html1;
     track2.innerHTML = html2;
@@ -136,6 +169,13 @@ const { apiEndpoint = '' } = Astro.props;
       }
     };
     xhr.send();
+  }
+
+  function resolveName() {
+    if (savedName) return savedName;
+    var val = nameInput.value.trim();
+    if (val) return val;
+    return '匿名';
   }
 
   nameToggle.addEventListener('click', function () {
@@ -187,16 +227,18 @@ const { apiEndpoint = '' } = Astro.props;
     var text = msgInput.value.trim();
     if (!text) { status('请写下你想说的话', true); return; }
 
-    btnSend.disabled = true;
-    btnSend.textContent = '⏳ 发送中...';
+    var finalName = resolveName();
 
-    var params = 'name=' + encodeURIComponent(savedName || '匿名') + '&message=' + encodeURIComponent(text);
+    btnSend.disabled = true;
+    btnSend.textContent = '发送中...';
+
+    var params = 'name=' + encodeURIComponent(finalName) + '&message=' + encodeURIComponent(text);
     var xhr = new XMLHttpRequest();
     xhr.open('POST', apiUrl + '/api/messages', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     xhr.onload = function () {
       btnSend.disabled = false;
-      btnSend.textContent = '发送 💬';
+      btnSend.textContent = '发送';
       if (xhr.status === 200) {
         try {
           var resp = JSON.parse(xhr.responseText);
@@ -217,7 +259,7 @@ const { apiEndpoint = '' } = Astro.props;
     };
     xhr.onerror = function () {
       btnSend.disabled = false;
-      btnSend.textContent = '发送 💬';
+      btnSend.textContent = '发送';
       status('❌ 网络错误，请检查连接', true);
     };
     xhr.send(params);
@@ -246,15 +288,15 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   /* ============================================
-     Marquee — extracted from Magic UI pattern
+     Marquee
      ============================================ */
   .marquee-wrapper {
     position: relative;
     width: 100%;
     overflow: hidden;
     --gap: 1rem;
-    --duration: 40s;
-    min-height: 130px;
+    --duration: 50s;
+    min-height: 220px;
   }
 
   .marquee-fade {
@@ -284,13 +326,13 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   .marquee-track + .marquee-track {
-    margin-top: 0.5rem;
+    margin-top: 0.75rem;
   }
 
   .msg-group {
     flex-shrink: 0;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     gap: var(--gap);
     animation: marquee-scroll var(--duration) linear infinite;
   }
@@ -309,34 +351,35 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   /* ============================================
-     Message Card — inspired by Magic UI demo
+     Message Card — taller, with date
      ============================================ */
   .msg-card {
     width: 16rem;
     flex-shrink: 0;
     border-radius: 12px;
     border: 1px solid var(--color-border);
-    padding: 0.85rem 1rem;
+    padding: 1rem 1.1rem;
     background: var(--color-surface);
-    box-shadow: var(--shadow-sm);
-    transition: box-shadow var(--transition-fast);
+    box-shadow: 0 1px 3px var(--color-card-shadow);
+    transition: box-shadow var(--transition-fast), transform var(--transition-fast);
     display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
+    gap: 0.75rem;
     cursor: default;
+    min-height: 100px;
   }
 
   .msg-card:hover {
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
   .msg-avatar {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     background: var(--color-gradient);
     color: white;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 600;
     font-family: var(--font-heading);
     display: flex;
@@ -345,29 +388,54 @@ const { apiEndpoint = '' } = Astro.props;
     flex-shrink: 0;
   }
 
+  .msg-avatar-anon {
+    background: #3a3a3e;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .msg-avatar-anon svg {
+    width: 20px;
+    height: 20px;
+  }
+
   .msg-body {
     flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
+    gap: 0.3rem;
+  }
+
+  .msg-top {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: wrap;
   }
 
   .msg-name {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
     font-family: var(--font-heading);
     color: var(--color-primary);
     line-height: 1.3;
   }
 
+  .msg-date {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    opacity: 0.7;
+  }
+
   .msg-text {
     font-size: 0.85rem;
     color: var(--color-text);
-    line-height: 1.4;
+    line-height: 1.5;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
   }
 
   /* ============================================
@@ -396,15 +464,18 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   /* ============================================
-     Form
+     Form Card — refined
      ============================================ */
-  .guestbook-form {
-    margin-top: 1rem;
-    padding: 1.5rem;
+  .form-card {
+    margin-top: 1.5rem;
+    padding: 1.5rem 1.8rem;
     background: var(--color-surface);
-    border-radius: var(--radius-lg);
+    border-radius: 16px;
     border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2px 12px var(--color-card-shadow);
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .name-row {
@@ -417,15 +488,16 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   .name-toggle {
-    padding: 0.4rem 1rem;
+    padding: 0.35rem 1rem;
     border-radius: var(--radius-xl);
     border: 2px dashed var(--color-border);
     background: transparent;
     color: var(--color-text-secondary);
     font-family: var(--font-heading);
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     cursor: pointer;
     transition: all var(--transition-fast);
+    line-height: 1.4;
   }
 
   .name-toggle:hover {
@@ -441,7 +513,7 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   .name-field input {
-    padding: 0.4rem 0.7rem;
+    padding: 0.35rem 0.7rem;
     border-radius: var(--radius-sm);
     border: 2px solid var(--color-border);
     font-family: var(--font-body);
@@ -458,7 +530,7 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   .name-confirm {
-    padding: 0.4rem 0.8rem;
+    padding: 0.35rem 0.8rem;
     border-radius: var(--radius-sm);
     border: none;
     background: var(--color-gradient);
@@ -467,6 +539,7 @@ const { apiEndpoint = '' } = Astro.props;
     font-size: 0.8rem;
     cursor: pointer;
     transition: opacity var(--transition-fast);
+    line-height: 1.4;
   }
 
   .name-confirm:hover {
@@ -474,10 +547,10 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   .name-badge {
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     color: var(--color-primary);
     font-family: var(--font-heading);
-    padding: 0.3rem 0.8rem;
+    padding: 0.25rem 0.8rem;
     background: rgba(93, 173, 226, 0.08);
     border-radius: var(--radius-xl);
     cursor: pointer;
@@ -489,12 +562,12 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   .name-hint {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: var(--color-text-secondary);
     font-family: var(--font-body);
   }
 
-  #msgForm {
+  .input-wrap {
     display: flex;
     gap: 0.6rem;
     align-items: stretch;
@@ -502,8 +575,8 @@ const { apiEndpoint = '' } = Astro.props;
 
   .msg-input {
     flex: 1;
-    padding: 0.6rem 0.9rem;
-    border-radius: var(--radius-sm);
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
     border: 2px solid var(--color-border);
     font-family: var(--font-body);
     font-size: 0.88rem;
@@ -511,27 +584,33 @@ const { apiEndpoint = '' } = Astro.props;
     background: var(--color-bg);
     outline: none;
     resize: none;
-    min-height: 44px;
+    min-height: 48px;
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
   .msg-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.12);
+    box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.1);
+  }
+
+  .msg-input::placeholder {
+    color: var(--color-text-secondary);
+    opacity: 0.6;
   }
 
   .btn-send {
-    padding: 0.6rem 1.2rem;
-    border-radius: var(--radius-xl);
+    padding: 0.6rem 1.4rem;
+    border-radius: 10px;
     border: none;
     background: var(--color-gradient);
     color: white;
     font-family: var(--font-heading);
-    font-size: 0.88rem;
+    font-size: 0.9rem;
     cursor: pointer;
     white-space: nowrap;
     transition: all var(--transition-fast);
     align-self: stretch;
+    letter-spacing: 0.03em;
   }
 
   .btn-send:hover {
@@ -547,10 +626,11 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   .form-status {
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     margin-top: 0.6rem;
     min-height: 1.2em;
     transition: opacity var(--transition-fast);
+    text-align: center;
   }
 
   .form-status.ok {
@@ -562,12 +642,8 @@ const { apiEndpoint = '' } = Astro.props;
   }
 
   @media (max-width: 768px) {
-    #msgForm {
-      flex-direction: column;
-    }
-
-    .btn-send {
-      align-self: flex-end;
+    .marquee-wrapper {
+      min-height: 180px;
     }
 
     .marquee-fade {
@@ -575,7 +651,35 @@ const { apiEndpoint = '' } = Astro.props;
     }
 
     .msg-card {
-      width: 12rem;
+      width: 14rem;
+      padding: 0.85rem 0.9rem;
+      min-height: 85px;
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      font-size: 0.8rem;
+    }
+
+    .msg-avatar-anon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .form-card {
+      padding: 1.2rem 1rem;
+      border-radius: 12px;
+      max-width: 100%;
+    }
+
+    .input-wrap {
+      flex-direction: column;
+    }
+
+    .btn-send {
+      align-self: flex-end;
+      padding: 0.55rem 1.2rem;
     }
   }
 </style>
