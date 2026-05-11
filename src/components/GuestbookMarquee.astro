@@ -1,5 +1,5 @@
 ---
-const { apiEndpoint = '' } = Astro.props;
+const { apiEndpoint = '', scope = 'home', showSyncToggle = false } = Astro.props;
 ---
 
 <section class="guestbook" id="guestbook">
@@ -20,7 +20,7 @@ const { apiEndpoint = '' } = Astro.props;
     </div>
   </div>
 
-  <div class="form-card" id="form-wrapper" data-api={apiEndpoint}>
+  <div class="form-card" id="form-wrapper" data-api={apiEndpoint} data-scope={scope} data-show-sync={showSyncToggle ? 'true' : 'false'}>
     <div class="name-row">
       <button class="name-toggle" id="nameToggle">✏️ 留下姓名</button>
       <div class="name-field hidden" id="nameField">
@@ -37,13 +37,20 @@ const { apiEndpoint = '' } = Astro.props;
         <button type="submit" class="btn-send" id="btnSend">发送</button>
       </div>
     </form>
+    <label class="sync-label hidden" id="syncLabel">
+      <input type="checkbox" id="syncCheck" checked />
+      <span>同时发表到首页</span>
+    </label>
     <div class="form-status" id="formStatus"></div>
   </div>
 </section>
 
 <script is:inline>
 (function () {
-  var apiUrl = (document.getElementById('form-wrapper') || {}).getAttribute('data-api') || '';
+  var wrapper = document.getElementById('form-wrapper');
+  var apiUrl = (wrapper || {}).getAttribute('data-api') || '';
+  var scope = (wrapper || {}).getAttribute('data-scope') || 'home';
+  var showSync = (wrapper || {}).getAttribute('data-show-sync') === 'true';
   var userName = '';
   var messages = [];
 
@@ -60,6 +67,8 @@ const { apiEndpoint = '' } = Astro.props;
   var msgInput = document.getElementById('msgInput');
   var btnSend = document.getElementById('btnSend');
   var formStatus = document.getElementById('formStatus');
+  var syncLabel = document.getElementById('syncLabel');
+  var syncCheck = document.getElementById('syncCheck');
 
   var savedName = '';
   try { savedName = localStorage.getItem('guestbook_name') || ''; } catch (e) {}
@@ -71,6 +80,8 @@ const { apiEndpoint = '' } = Astro.props;
     nameHint.textContent = '已署名';
     nameHint.style.color = 'var(--color-primary)';
   }
+
+  if (showSync) syncLabel.classList.remove('hidden');
 
   function status(msg, err) {
     formStatus.textContent = msg;
@@ -169,7 +180,7 @@ const { apiEndpoint = '' } = Astro.props;
 
   function fetchMessages() {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', apiUrl + '/api/messages', true);
+    xhr.open('GET', apiUrl + '/api/messages?scope=' + encodeURIComponent(scope), true);
     xhr.onload = function () {
       if (xhr.status === 200) {
         try {
@@ -245,7 +256,8 @@ const { apiEndpoint = '' } = Astro.props;
     btnSend.disabled = true;
     btnSend.textContent = '发送中...';
 
-    var params = 'name=' + encodeURIComponent(finalName) + '&message=' + encodeURIComponent(text);
+    var params = 'name=' + encodeURIComponent(finalName) + '&message=' + encodeURIComponent(text) + '&scope=' + encodeURIComponent(scope);
+    if (showSync && syncCheck && syncCheck.checked) params += '&syncToHome=true';
     var xhr = new XMLHttpRequest();
     xhr.open('POST', apiUrl + '/api/messages', true);
     xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -669,6 +681,26 @@ const { apiEndpoint = '' } = Astro.props;
 
   .form-status.error {
     color: #e74c3c;
+  }
+
+  .sync-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.6rem;
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+    cursor: pointer;
+    user-select: none;
+    justify-content: center;
+  }
+
+  .sync-label input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--color-primary);
+    cursor: pointer;
   }
 
   @media (max-width: 768px) {

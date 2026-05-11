@@ -1,5 +1,9 @@
 const ADMIN_PASSWORD = 'SHTskycool200417';
 
+function kvKey(scope) {
+  return 'messages:' + (scope || 'home');
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -10,9 +14,11 @@ export default {
 
     if (request.method === 'GET' && url.pathname === '/api/messages') {
       try {
-        const data = await env.GUESTBOOK_MESSAGES.get('messages', 'json');
+        const scope = url.searchParams.get('scope') || 'home';
+        const key = kvKey(scope);
+        const data = await env.GUESTBOOK_MESSAGES.get(key, 'json');
         const messages = Array.isArray(data) ? data : [];
-        return new Response(JSON.stringify({ ok: true, messages }), {
+        return new Response(JSON.stringify({ ok: true, scope, messages }), {
           headers: responseHeaders(),
         });
       } catch (err) {
@@ -32,20 +38,25 @@ export default {
     if (request.method === 'POST' && url.pathname === '/api/messages') {
       try {
         const contentType = request.headers.get('content-type') || '';
-        let name, message;
+        let name, message, scope, syncToHome;
 
         if (contentType.includes('application/json')) {
           const body = await request.json();
           name = body.name;
           message = body.message;
+          scope = body.scope || 'home';
+          syncToHome = body.syncToHome;
         } else {
           const formData = await request.formData();
           name = formData.get('name');
           message = formData.get('message');
+          scope = formData.get('scope') || 'home';
+          syncToHome = formData.get('syncToHome');
         }
 
         name = (name || '匿名').toString().trim().slice(0, 20);
         message = (message || '').toString().trim().slice(0, 500);
+        scope = scope.toString().trim();
 
         if (!message) {
           return new Response(JSON.stringify({ ok: false, error: '留言内容不能为空' }), {
@@ -55,7 +66,7 @@ export default {
         }
 
         const now = new Date();
-        const newMessage = {
+        const baseMessage = {
           id: Date.now().toString(),
           name: name || '匿名',
           message,
@@ -63,18 +74,30 @@ export default {
           timestamp: now.getTime(),
         };
 
-        const data = await env.GUESTBOOK_MESSAGES.get('messages', 'json');
-        const messages = Array.isArray(data) ? data : [];
-        messages.unshift(newMessage);
         const maxMessages = 200;
-        if (messages.length > maxMessages) {
-          messages.length = maxMessages;
+        const targetKey = kvKey(scope);
+
+        // Save to scope
+        const existing = await env.GUESTBOOK_MESSAGES.get(targetKey, 'json');
+        const scopedMessages = Array.isArray(existing) ? existing : [];
+        scopedMessages.unshift({ ...baseMessage, scope });
+        if (scopedMessages.length > maxMessages) scopedMessages.length = maxMessages;
+        await env.GUESTBOOK_MESSAGES.put(targetKey, JSON.stringify(scopedMessages));
+
+        // If syncing to home from an article
+        const shouldSync = syncToHome === true || syncToHome === 'true';
+        if (shouldSync && scope.startsWith('article:')) {
+          const homeKey = kvKey('home');
+          const homeData = await env.GUESTBOOK_MESSAGES.get(homeKey, 'json');
+          const homeMessages = Array.isArray(homeData) ? homeData : [];
+          homeMessages.unshift({ ...baseMessage, scope: 'home', source: scope });
+          if (homeMessages.length > maxMessages) homeMessages.length = maxMessages;
+          await env.GUESTBOOK_MESSAGES.put(homeKey, JSON.stringify(homeMessages));
         }
-        await env.GUESTBOOK_MESSAGES.put('messages', JSON.stringify(messages));
 
-        ctx.waitUntil(sendEmailNotification(newMessage.name, newMessage.message, request.url));
+        ctx.waitUntil(sendEmailNotification(baseMessage.name, baseMessage.message, request.url));
 
-        return new Response(JSON.stringify({ ok: true, message: newMessage }), {
+        return new Response(JSON.stringify({ ok: true, message: { ...baseMessage, scope } }), {
           headers: responseHeaders(),
         });
       } catch (err) {
@@ -96,6 +119,7 @@ export default {
         }
 
         const id = url.searchParams.get('id');
+        const scope = url.searchParams.get('scope') || 'home';
         if (!id) {
           return new Response(JSON.stringify({ ok: false, error: '缺少 id 参数' }), {
             status: 400,
@@ -103,7 +127,8 @@ export default {
           });
         }
 
-        const data = await env.GUESTBOOK_MESSAGES.get('messages', 'json');
+        const key = kvKey(scope);
+        const data = await env.GUESTBOOK_MESSAGES.get(key, 'json');
         const messages = Array.isArray(data) ? data : [];
         const filtered = messages.filter(function (m) { return m.id !== id; });
 
@@ -114,7 +139,7 @@ export default {
           });
         }
 
-        await env.GUESTBOOK_MESSAGES.put('messages', JSON.stringify(filtered));
+        await env.GUESTBOOK_MESSAGES.put(key, JSON.stringify(filtered));
 
         return new Response(JSON.stringify({ ok: true, deleted: id }), {
           headers: responseHeaders(),

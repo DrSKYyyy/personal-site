@@ -297,84 +297,146 @@
   }
 
   function renderMessagesTab(container) {
-    container.innerHTML = '<div class="admin-loading" id="msg-loading"><div class="spinner"></div><span>正在加载留言...</span></div>';
+    var loadingScope = 'home';
+    container.innerHTML =
+      '<div class="admin-header" style="margin-bottom:0.75rem;">' +
+        '<h2 style="font-size:1.15rem;">留言管理</h2>' +
+        '<div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">' +
+          '<select id="msg-scope-select" style="padding:0.35rem 0.6rem;border-radius:var(--radius-sm);border:2px solid var(--color-border);font-size:0.82rem;background:var(--color-bg);color:var(--color-text);outline:none;cursor:pointer;">' +
+            '<option value="home">🏠 首页</option>' +
+          '</select>' +
+          '<button class="admin-btn primary sm" id="msg-load-btn" style="padding:0.35rem 0.8rem;">加载</button>' +
+        '</div>' +
+      '</div>' +
+      '<div id="msg-scope-input" style="margin-bottom:0.75rem;display:flex;gap:0.4rem;align-items:center;">' +
+        '<input type="text" id="msg-article-input" placeholder="输入文章 slug 加载该文章留言" style="flex:1;padding:0.35rem 0.6rem;border-radius:var(--radius-sm);border:2px solid var(--color-border);font-size:0.82rem;background:var(--color-bg);color:var(--color-text);outline:none;" />' +
+        '<button class="admin-btn secondary sm" id="msg-load-article-btn" style="padding:0.35rem 0.8rem;">加载文章</button>' +
+      '</div>' +
+      '<div id="msg-content"><div class="admin-loading"><div class="spinner"></div><span>正在加载首页留言...</span></div></div>';
 
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', APP.formEndpoint + '/api/messages', true);
-    xhr.onload = function() {
-      if (xhr.status !== 200) {
-        container.innerHTML = '<div class="admin-error">加载失败 (HTTP ' + xhr.status + ')</div>';
-        return;
-      }
-      try {
-        var resp = JSON.parse(xhr.responseText);
-        if (!resp.ok || !Array.isArray(resp.messages)) {
-          container.innerHTML = '<div class="admin-error">数据格式错误</div>';
+    function loadScope(sc) {
+      var content = document.getElementById('msg-content');
+      if (!content) return;
+      loadingScope = sc;
+      content.innerHTML = '<div class="admin-loading"><div class="spinner"></div><span>正在加载...</span></div>';
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', APP.formEndpoint + '/api/messages?scope=' + encodeURIComponent(sc), true);
+      xhr.onload = function() {
+        if (xhr.status !== 200) {
+          content.innerHTML = '<div class="admin-error">加载失败 (HTTP ' + xhr.status + ')</div>';
           return;
         }
-        var msgs = resp.messages;
-        if (msgs.length === 0) {
-          container.innerHTML = '<div class="admin-card" style="text-align:center;color:var(--color-text-secondary);padding:2.5rem;"><p style="font-size:2rem;margin-bottom:0.5rem;">~</p><p>还没有留言</p></div>';
-          return;
-        }
-
-        var html = '<div class="admin-header" style="margin-bottom:0.75rem;"><h2 style="font-size:1.15rem;">共 ' + msgs.length + ' 条留言</h2></div>' +
-          '<div class="msg-list">';
-        for (var i = 0; i < msgs.length; i++) {
-          var m = msgs[i];
-          var dateStr = '';
-          if (m.timestamp) {
-            var d = new Date(m.timestamp);
-            dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
-          } else if (m.time) {
-            dateStr = m.time;
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (!resp.ok || !Array.isArray(resp.messages)) {
+            content.innerHTML = '<div class="admin-error">数据格式错误</div>';
+            return;
           }
-          var nameStr = esc(m.name || '匿名');
-          var msgStr = esc(m.message || '');
-          var anonClass = (!m.name || m.name === '匿名') ? 'msg-anon' : '';
-          html +=
-            '<div class="msg-admin-item" data-id="' + esc(m.id) + '">' +
-              '<div class="msg-admin-left">' +
-                '<div class="msg-admin-avatar ' + anonClass + '">' + (m.name && m.name !== '匿名' ? esc(m.name.charAt(0)) : '~') + '</div>' +
-              '</div>' +
-              '<div class="msg-admin-body">' +
-                '<div class="msg-admin-top">' +
-                  '<span class="msg-admin-name">' + nameStr + '</span>' +
-                  '<span class="msg-admin-date">' + esc(dateStr) + '</span>' +
-                '</div>' +
-                '<div class="msg-admin-text">' + msgStr + '</div>' +
-              '</div>' +
-              '<div class="msg-admin-actions">' +
-                '<button class="msg-admin-del" data-id="' + esc(m.id) + '" title="删除此留言">删除</button>' +
-              '</div>' +
-            '</div>';
-        }
-        html += '</div>' +
-          '<div style="margin-top:1rem;font-size:0.78rem;color:var(--color-text-secondary);text-align:center;">点击删除按钮可直接移除留言</div>';
-        container.innerHTML = html;
+          var msgs = resp.messages;
+          var label = sc === 'home' ? '🏠 首页' : '📄 ' + sc.replace('article:', '');
+          var headerEl = document.getElementById('msg-scope-select');
+          if (headerEl) {
+            var found = false;
+            for (var si = 0; si < headerEl.options.length; si++) {
+              if (headerEl.options[si].value === sc) { found = true; break; }
+            }
+            if (!found && sc !== 'home') {
+              var opt = document.createElement('option');
+              opt.value = sc;
+              opt.textContent = '📄 ' + sc.replace('article:', '');
+              headerEl.appendChild(opt);
+            }
+            headerEl.value = sc;
+          }
 
-        container.querySelectorAll('.msg-admin-del').forEach(function(btn) {
-          btn.addEventListener('click', function() {
-            var id = btn.dataset.id;
-            if (!id) return;
-            if (!confirm('确定要删除此留言吗？')) return;
-            deleteMessage(id, btn);
+          if (msgs.length === 0) {
+            content.innerHTML = '<div class="admin-card" style="text-align:center;color:var(--color-text-secondary);padding:2.5rem;"><p style="font-size:2rem;margin-bottom:0.5rem;">~</p><p>' + label + ' 还没有留言</p></div>';
+            return;
+          }
+
+          var html = '<div style="margin-bottom:0.5rem;font-size:0.85rem;color:var(--color-text-secondary);">' + label + ' — 共 ' + msgs.length + ' 条留言</div>' +
+            '<div class="msg-list">';
+          for (var i = 0; i < msgs.length; i++) {
+            var m = msgs[i];
+            var dateStr = '';
+            if (m.timestamp) {
+              var d = new Date(m.timestamp);
+              dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            } else if (m.time) {
+              dateStr = m.time;
+            }
+            var nameStr = esc(m.name || '匿名');
+            var msgStr = esc(m.message || '');
+            var anonClass = (!m.name || m.name === '匿名') ? 'msg-anon' : '';
+            html +=
+              '<div class="msg-admin-item" data-id="' + esc(m.id) + '" data-scope="' + esc(sc) + '">' +
+                '<div class="msg-admin-left">' +
+                  '<div class="msg-admin-avatar ' + anonClass + '">' + (m.name && m.name !== '匿名' ? esc(m.name.charAt(0)) : '~') + '</div>' +
+                '</div>' +
+                '<div class="msg-admin-body">' +
+                  '<div class="msg-admin-top">' +
+                    '<span class="msg-admin-name">' + nameStr + '</span>' +
+                    '<span class="msg-admin-date">' + esc(dateStr) + '</span>' +
+                  '</div>' +
+                  '<div class="msg-admin-text">' + msgStr + '</div>' +
+                '</div>' +
+                '<div class="msg-admin-actions">' +
+                  '<button class="msg-admin-del" data-id="' + esc(m.id) + '" data-scope="' + esc(sc) + '" title="删除此留言">删除</button>' +
+                '</div>' +
+              '</div>';
+          }
+          html += '</div>';
+          content.innerHTML = html;
+
+          content.querySelectorAll('.msg-admin-del').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var id = btn.dataset.id;
+              var sc = btn.dataset.scope || 'home';
+              if (!id) return;
+              if (!confirm('确定要删除此留言吗？')) return;
+              deleteMessage(id, sc, btn);
+            });
           });
-        });
-      } catch(e) {
-        container.innerHTML = '<div class="admin-error">解析失败: ' + esc(e.message) + '</div>';
+        } catch(e) {
+          content.innerHTML = '<div class="admin-error">解析失败: ' + esc(e.message) + '</div>';
+        }
+      };
+      xhr.onerror = function() {
+        content.innerHTML = '<div class="admin-error">网络错误，无法连接到留言服务器</div>';
+      };
+      xhr.send();
+    }
+
+    document.getElementById('msg-load-btn').addEventListener('click', function() {
+      var sel = document.getElementById('msg-scope-select');
+      loadScope(sel ? sel.value : 'home');
+    });
+    document.getElementById('msg-scope-select').addEventListener('change', function() {
+      loadScope(this.value);
+    });
+    document.getElementById('msg-load-article-btn').addEventListener('click', function() {
+      var input = document.getElementById('msg-article-input');
+      var slug = input ? input.value.trim() : '';
+      if (!slug) { alert('请输入文章 slug'); return; }
+      loadScope('article:' + slug);
+    });
+    document.getElementById('msg-article-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('msg-load-article-btn').click();
       }
-    };
-    xhr.onerror = function() {
-      container.innerHTML = '<div class="admin-error">网络错误，无法连接到留言服务器</div>';
-    };
-    xhr.send();
+    });
+
+    // Load default scope
+    loadScope('home');
   }
 
-  function deleteMessage(id, btn) {
+  function deleteMessage(id, sc, btn) {
+    var scope = sc || 'home';
     btn.disabled = true;
     btn.textContent = '删除中...';
-    var params = 'id=' + encodeURIComponent(id) + '&token=' + encodeURIComponent(APP.password);
+    var params = 'id=' + encodeURIComponent(id) + '&token=' + encodeURIComponent(APP.password) + '&scope=' + encodeURIComponent(scope);
     var xhr = new XMLHttpRequest();
     xhr.open('DELETE', APP.formEndpoint + '/api/messages?' + params, true);
     xhr.onload = function() {
