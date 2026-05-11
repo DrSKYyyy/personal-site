@@ -1,0 +1,1 @@
+import{j as e,c}from"./utils.CmecZbNW.js";function r({text:t,className:a,as:i="h1"}){return e.jsx(i,{className:c("flex flex-wrap font-light",a),children:t.split("").map((s,n)=>e.jsx("span",{className:"kinetic-char",children:s===" "?" ":s},n))})}export{r as default};
