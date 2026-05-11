@@ -1,240 +1,243 @@
 ---
 const { apiEndpoint = '' } = Astro.props;
-const base = Astro.url.pathname.replace(/\/$/, '') || '';
 ---
 
-<section class="guestbook-section" id="guestbook">
+<section class="guestbook" id="guestbook">
   <div class="guestbook-header">
-    <h2 class="guestbook-title">📝 留个脚印</h2>
-    <p class="guestbook-subtitle">匿名留言，发送后立刻在滚动栏中展示</p>
+    <h2 class="section-title" style="margin-bottom:0.5rem">📝 留个脚印</h2>
+    <p class="guestbook-subtitle">匿名留言，即刻在滚动栏中展示</p>
   </div>
 
   <div class="marquee-wrapper">
-    <div class="marquee-fade marquee-fade-left"></div>
-    <div class="marquee-fade marquee-fade-right"></div>
+    <div class="marquee-fade left"></div>
+    <div class="marquee-fade right"></div>
 
-    <div class="marquee-track" id="marquee-track-1"></div>
-    <div class="marquee-track marquee-track-reverse" id="marquee-track-2"></div>
+    <div class="marquee-track" id="track1"></div>
+    <div class="marquee-track marquee-reverse" id="track2"></div>
 
-    <div class="marquee-empty" id="marquee-empty">
-      <span class="marquee-empty-icon">💬</span>
-      <span>还没有留言，快来留下第一句话吧~</span>
+    <div class="marquee-empty" id="empty-state">
+      <span class="empty-icon">💬</span>
+      <span class="empty-text">还没有留言，快来写下第一句话吧~</span>
     </div>
   </div>
 
-  <div class="guestbook-form-wrapper" id="guestbook-form-wrapper" data-api-endpoint={apiEndpoint}>
-    <div class="name-section">
-      <button class="name-toggle-btn" id="name-toggle-btn">✏️ 留下姓名</button>
-      <div class="name-input-area hidden" id="name-input-area">
-        <input type="text" id="guest-name-input" class="name-input" placeholder="输入你的名字..." maxlength="20" />
-        <button class="name-confirm-btn" id="name-confirm-btn">确定</button>
+  <div class="guestbook-form" id="form-wrapper" data-api={apiEndpoint}>
+    <div class="name-row">
+      <button class="name-toggle" id="nameToggle">✏️ 留下姓名</button>
+      <div class="name-field hidden" id="nameField">
+        <input type="text" id="nameInput" placeholder="输入你的名字..." maxlength="20" />
+        <button class="name-confirm" id="nameConfirm">确定</button>
       </div>
-      <span class="display-name hidden" id="display-name"></span>
+      <span class="name-badge hidden" id="nameBadge"></span>
+      <span class="name-hint" id="nameHint">匿名</span>
     </div>
 
-    <form class="message-form" id="message-form">
-      <textarea id="message-input" class="message-input" placeholder="写下你想说的话..." maxlength="500" required></textarea>
-      <button type="submit" class="submit-btn" id="submit-btn">发送 💬</button>
+    <form id="msgForm">
+      <textarea id="msgInput" class="msg-input" placeholder="写下你想说的话..." maxlength="500" required></textarea>
+      <button type="submit" class="btn-send" id="btnSend">发送 💬</button>
     </form>
-    <div class="form-status" id="form-status"></div>
+    <div class="form-status" id="formStatus"></div>
   </div>
 </section>
 
 <script is:inline>
-  (function() {
-    var wrapper = document.getElementById('guestbook-form-wrapper');
-    var apiUrl = wrapper ? wrapper.getAttribute('data-api-endpoint') : '';
-    var name = '';
-    var messages = [];
+(function () {
+  var apiUrl = (document.getElementById('form-wrapper') || {}).getAttribute('data-api') || '';
+  var userName = '';
+  var messages = [];
 
-    var track1 = document.getElementById('marquee-track-1');
-    var track2 = document.getElementById('marquee-track-2');
-    var emptyEl = document.getElementById('marquee-empty');
-    var nameToggleBtn = document.getElementById('name-toggle-btn');
-    var nameInputArea = document.getElementById('name-input-area');
-    var nameInput = document.getElementById('guest-name-input');
-    var nameConfirmBtn = document.getElementById('name-confirm-btn');
-    var displayName = document.getElementById('display-name');
-    var messageForm = document.getElementById('message-form');
-    var messageInput = document.getElementById('message-input');
-    var submitBtn = document.getElementById('submit-btn');
-    var formStatus = document.getElementById('form-status');
+  var track1 = document.getElementById('track1');
+  var track2 = document.getElementById('track2');
+  var emptyEl = document.getElementById('empty-state');
+  var nameToggle = document.getElementById('nameToggle');
+  var nameField = document.getElementById('nameField');
+  var nameInput = document.getElementById('nameInput');
+  var nameConfirm = document.getElementById('nameConfirm');
+  var nameBadge = document.getElementById('nameBadge');
+  var nameHint = document.getElementById('nameHint');
+  var msgForm = document.getElementById('msgForm');
+  var msgInput = document.getElementById('msgInput');
+  var btnSend = document.getElementById('btnSend');
+  var formStatus = document.getElementById('formStatus');
 
-    var savedName = '';
-    try { savedName = localStorage.getItem('guestbook_name') || ''; } catch(e) {}
-    if (savedName) {
-      name = savedName;
-      nameToggleBtn.classList.add('hidden');
-      displayName.textContent = '👤 ' + name;
-      displayName.classList.remove('hidden');
+  var savedName = '';
+  try { savedName = localStorage.getItem('guestbook_name') || ''; } catch (e) {}
+  if (savedName) {
+    userName = savedName;
+    nameToggle.textContent = '✏️ 换名字';
+    nameBadge.textContent = '👤 ' + savedName;
+    nameBadge.classList.remove('hidden');
+    nameHint.textContent = '已署名';
+    nameHint.style.color = 'var(--color-primary)';
+  }
+
+  function status(msg, err) {
+    formStatus.textContent = msg;
+    formStatus.className = 'form-status' + (err ? ' error' : ' ok');
+    if (!err) setTimeout(function () { formStatus.className = 'form-status'; }, 3000);
+  }
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function buildCard(m) {
+    var initial = (m.name && m.name !== '匿名') ? m.name.charAt(0) : '?';
+    return '<div class="msg-card">' +
+      '<div class="msg-avatar">' + esc(initial) + '</div>' +
+      '<div class="msg-body">' +
+        '<div class="msg-name">' + esc(m.name || '匿名') + '</div>' +
+        '<div class="msg-text">' + esc(m.message) + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function buildGroup(list) {
+    return list.map(buildCard).join('');
+  }
+
+  function render(msgs) {
+    if (!msgs || msgs.length === 0) {
+      track1.innerHTML = '';
+      track2.innerHTML = '';
+      emptyEl.classList.remove('hidden');
+      return;
     }
+    emptyEl.classList.add('hidden');
 
-    function setStatus(msg, isError) {
-      formStatus.textContent = msg;
-      formStatus.className = 'form-status' + (isError ? ' form-status-error' : ' form-status-success');
-      if (!isError) {
-        setTimeout(function() { formStatus.className = 'form-status'; }, 3000);
-      }
-    }
-
-    function renderMessages(msgList) {
-      if (!msgList || msgList.length === 0) {
-        track1.innerHTML = '';
-        track2.innerHTML = '';
-        emptyEl.classList.remove('hidden');
-        return;
-      }
-      emptyEl.classList.add('hidden');
-
-      var row1 = [];
-      var row2 = [];
-      msgList.forEach(function(m, i) {
-        if (i % 2 === 0) row1.push(m);
-        else row2.push(m);
-      });
-
-      track1.innerHTML = buildMarqueeContent(row1);
-      track2.innerHTML = buildMarqueeContent(row2);
-    }
-
-    function buildMarqueeContent(list) {
-      if (list.length === 0) {
-        return '<div class="marquee-group"><div class="marquee-placeholder">✨ 等待你的留言</div></div>';
-      }
-      var single = list.map(function(m) {
-        var initial = (m.name && m.name !== '匿名') ? m.name.charAt(0) : '?';
-        return '<div class="message-card">' +
-          '<div class="message-card-avatar">' + escapeHtml(initial) + '</div>' +
-          '<div class="message-card-body">' +
-            '<div class="message-card-name">' + escapeHtml(m.name || '匿名') + '</div>' +
-            '<div class="message-card-text">' + escapeHtml(m.message) + '</div>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-      return '<div class="marquee-group">' + single + '</div><div class="marquee-group">' + single + '</div>';
-    }
-
-    function escapeHtml(text) {
-      var d = document.createElement('div');
-      d.textContent = text;
-      return d.innerHTML;
-    }
-
-    function fetchMessages() {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', apiUrl + '/api/messages', true);
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          try {
-            var resp = JSON.parse(xhr.responseText);
-            if (resp.ok && Array.isArray(resp.messages)) {
-              messages = resp.messages;
-              renderMessages(messages);
-            }
-          } catch(e) {}
-        }
-      };
-      xhr.send();
-    }
-
-    // Name toggle
-    nameToggleBtn.addEventListener('click', function() {
-      nameToggleBtn.classList.add('hidden');
-      nameInputArea.classList.remove('hidden');
-      nameInput.focus();
+    var row1 = [], row2 = [];
+    msgs.forEach(function (m, i) {
+      if (i % 2 === 0) row1.push(m); else row2.push(m);
     });
 
-    nameConfirmBtn.addEventListener('click', function() {
-      var val = nameInput.value.trim();
-      if (val) {
-        name = val;
-        savedName = val;
-        try { localStorage.setItem('guestbook_name', val); } catch(e) {}
-        nameInputArea.classList.add('hidden');
-        displayName.textContent = '👤 ' + name;
-        displayName.classList.remove('hidden');
-      } else {
-        nameInput.focus();
-      }
-    });
+    var html1 = '', html2 = '';
+    for (var r = 0; r < 4; r++) {
+      html1 += '<div class="msg-group">' + buildGroup(row1.length ? row1 : [{ name: '✨', message: '等你留言' }]) + '</div>';
+      html2 += '<div class="msg-group">' + buildGroup(row2.length ? row2 : [{ name: '✨', message: '等你留言' }]) + '</div>';
+    }
+    track1.innerHTML = html1;
+    track2.innerHTML = html2;
+  }
 
-    nameInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') { e.preventDefault(); nameConfirmBtn.click(); }
-    });
-
-    // Form submit
-    messageForm.addEventListener('submit', function(e) {
-      e.preventDefault();
-      var text = messageInput.value.trim();
-      if (!text) {
-        setStatus('请写下你想说的话', true);
-        return;
-      }
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ 发送中...';
-
-      var params = 'name=' + encodeURIComponent(savedName || '匿名') + '&message=' + encodeURIComponent(text);
-
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', apiUrl + '/api/messages', true);
-      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-      xhr.onload = function() {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '发送 💬';
-        if (xhr.status === 200) {
-          try {
-            var resp = JSON.parse(xhr.responseText);
-            if (resp.ok && resp.message) {
-              messages.unshift(resp.message);
-              renderMessages(messages);
-              messageInput.value = '';
-              setStatus('✅ 留言已发送！', false);
-            } else {
-              setStatus('❌ 发送失败，请重试', true);
-            }
-          } catch(e) {
-            setStatus('❌ 发送失败，请重试', true);
+  function fetchMessages() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', apiUrl + '/api/messages', true);
+    xhr.onload = function () {
+      if (xhr.status === 200) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp.ok && Array.isArray(resp.messages)) {
+            messages = resp.messages;
+            render(messages);
           }
-        } else {
-          setStatus('❌ 服务器错误，请稍后重试', true);
-        }
-      };
-      xhr.onerror = function() {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '发送 💬';
-        setStatus('❌ 网络错误，请检查连接', true);
-      };
-      xhr.send(params);
-    });
-
-    // Keyboard shortcut for message
-    messageInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        messageForm.dispatchEvent(new Event('submit'));
+        } catch (e) {}
       }
-    });
+    };
+    xhr.send();
+  }
 
-    // Initial fetch
-    fetchMessages();
-  })();
+  nameToggle.addEventListener('click', function () {
+    if (nameField.classList.contains('hidden')) {
+      nameToggle.textContent = '❌ 匿名发送';
+      nameField.classList.remove('hidden');
+      nameInput.focus();
+    } else {
+      nameToggle.textContent = '✏️ 留下姓名';
+      nameField.classList.add('hidden');
+      nameInput.value = '';
+      userName = '';
+      savedName = '';
+      try { localStorage.removeItem('guestbook_name'); } catch (e) {}
+      nameBadge.classList.add('hidden');
+      nameHint.textContent = '匿名';
+      nameHint.style.color = '';
+    }
+  });
+
+  nameConfirm.addEventListener('click', function () {
+    var val = nameInput.value.trim();
+    if (!val) { nameInput.focus(); return; }
+    userName = val;
+    savedName = val;
+    try { localStorage.setItem('guestbook_name', val); } catch (e) {}
+    nameField.classList.add('hidden');
+    nameToggle.textContent = '✏️ 换名字';
+    nameBadge.textContent = '👤 ' + val;
+    nameBadge.classList.remove('hidden');
+    nameHint.textContent = '已署名';
+    nameHint.style.color = 'var(--color-primary)';
+  });
+
+  nameInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); nameConfirm.click(); }
+  });
+
+  nameBadge.addEventListener('click', function () {
+    nameToggle.textContent = '❌ 匿名发送';
+    nameField.classList.remove('hidden');
+    nameInput.value = userName;
+    nameInput.focus();
+    nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
+  });
+
+  msgForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var text = msgInput.value.trim();
+    if (!text) { status('请写下你想说的话', true); return; }
+
+    btnSend.disabled = true;
+    btnSend.textContent = '⏳ 发送中...';
+
+    var params = 'name=' + encodeURIComponent(savedName || '匿名') + '&message=' + encodeURIComponent(text);
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', apiUrl + '/api/messages', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.onload = function () {
+      btnSend.disabled = false;
+      btnSend.textContent = '发送 💬';
+      if (xhr.status === 200) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp.ok && resp.message) {
+            messages.unshift(resp.message);
+            render(messages);
+            msgInput.value = '';
+            status('✅ 留言已发送！', false);
+          } else {
+            status('❌ 发送失败，请重试', true);
+          }
+        } catch (e) {
+          status('❌ 发送失败，请重试', true);
+        }
+      } else {
+        status('❌ 服务器错误，请稍后重试', true);
+      }
+    };
+    xhr.onerror = function () {
+      btnSend.disabled = false;
+      btnSend.textContent = '发送 💬';
+      status('❌ 网络错误，请检查连接', true);
+    };
+    xhr.send(params);
+  });
+
+  msgInput.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      msgForm.dispatchEvent(new Event('submit'));
+    }
+  });
+
+  fetchMessages();
+})();
 </script>
 
 <style>
-  .guestbook-section {
-    margin-top: 3rem;
-    padding: 0;
-  }
-
   .guestbook-header {
     text-align: center;
     margin-bottom: 2rem;
-  }
-
-  .guestbook-title {
-    font-size: 1.6rem;
-    margin-bottom: 0.4rem;
   }
 
   .guestbook-subtitle {
@@ -242,30 +245,33 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     color: var(--color-text-secondary);
   }
 
-  /* ===== Marquee ===== */
+  /* ============================================
+     Marquee — extracted from Magic UI pattern
+     ============================================ */
   .marquee-wrapper {
     position: relative;
     width: 100%;
     overflow: hidden;
-    padding: 1rem 0;
-    min-height: 120px;
+    --gap: 1rem;
+    --duration: 40s;
+    min-height: 130px;
   }
 
   .marquee-fade {
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 60px;
+    width: 80px;
     z-index: 2;
     pointer-events: none;
   }
 
-  .marquee-fade-left {
+  .marquee-fade.left {
     left: 0;
     background: linear-gradient(to right, var(--color-bg) 0%, transparent 100%);
   }
 
-  .marquee-fade-right {
+  .marquee-fade.right {
     right: 0;
     background: linear-gradient(to left, var(--color-bg) 0%, transparent 100%);
   }
@@ -273,93 +279,100 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
   .marquee-track {
     display: flex;
     overflow: hidden;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    gap: var(--gap);
   }
 
-  .marquee-track:last-child {
-    margin-bottom: 0;
+  .marquee-track + .marquee-track {
+    margin-top: 0.5rem;
   }
 
-  .marquee-group {
-    display: flex;
+  .msg-group {
     flex-shrink: 0;
-    gap: 1rem;
-    animation: marquee-scroll 40s linear infinite;
-    min-width: fit-content;
+    display: flex;
+    align-items: center;
+    gap: var(--gap);
+    animation: marquee-scroll var(--duration) linear infinite;
   }
 
-  .marquee-track-reverse .marquee-group {
+  .marquee-reverse .msg-group {
     animation-direction: reverse;
   }
 
-  .marquee-track:hover .marquee-group {
+  .marquee-track:hover .msg-group {
     animation-play-state: paused;
   }
 
   @keyframes marquee-scroll {
     from { transform: translateX(0); }
-    to { transform: translateX(calc(-100% - 1rem)); }
+    to { transform: translateX(calc(-100% - var(--gap))); }
   }
 
-  /* ===== Message Card ===== */
-  .message-card {
+  /* ============================================
+     Message Card — inspired by Magic UI demo
+     ============================================ */
+  .msg-card {
+    width: 16rem;
+    flex-shrink: 0;
+    border-radius: 12px;
+    border: 1px solid var(--color-border);
+    padding: 0.85rem 1rem;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition-fast);
     display: flex;
     align-items: flex-start;
     gap: 0.6rem;
-    padding: 0.65rem 0.9rem;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-sm);
-    white-space: nowrap;
-    transition: box-shadow var(--transition-fast);
-    flex-shrink: 0;
+    cursor: default;
   }
 
-  .message-card:hover {
+  .msg-card:hover {
     box-shadow: var(--shadow-md);
   }
 
-  .message-card-avatar {
-    width: 28px;
-    height: 28px;
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: var(--color-gradient);
     color: white;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
     font-family: var(--font-heading);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-weight: 600;
   }
 
-  .message-card-body {
+  .msg-body {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
+    gap: 0.15rem;
   }
 
-  .message-card-name {
-    font-size: 0.78rem;
-    color: var(--color-primary);
-    font-family: var(--font-heading);
+  .msg-name {
+    font-size: 0.8rem;
     font-weight: 600;
-    line-height: 1.2;
+    font-family: var(--font-heading);
+    color: var(--color-primary);
+    line-height: 1.3;
   }
 
-  .message-card-text {
-    font-size: 0.82rem;
+  .msg-text {
+    font-size: 0.85rem;
     color: var(--color-text);
-    line-height: 1.3;
-    max-width: 220px;
+    line-height: 1.4;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  /* ===== Empty State ===== */
+  /* ============================================
+     Empty state
+     ============================================ */
   .marquee-empty {
     position: absolute;
     inset: 0;
@@ -374,7 +387,7 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     pointer-events: none;
   }
 
-  .marquee-empty-icon {
+  .empty-icon {
     font-size: 1.8rem;
   }
 
@@ -382,9 +395,11 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     display: none !important;
   }
 
-  /* ===== Form ===== */
-  .guestbook-form-wrapper {
-    margin-top: 0.5rem;
+  /* ============================================
+     Form
+     ============================================ */
+  .guestbook-form {
+    margin-top: 1rem;
     padding: 1.5rem;
     background: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -392,15 +407,16 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     box-shadow: var(--shadow-sm);
   }
 
-  .name-section {
+  .name-row {
     display: flex;
     align-items: center;
     gap: 0.6rem;
     margin-bottom: 0.85rem;
     min-height: 36px;
+    flex-wrap: wrap;
   }
 
-  .name-toggle-btn {
+  .name-toggle {
     padding: 0.4rem 1rem;
     border-radius: var(--radius-xl);
     border: 2px dashed var(--color-border);
@@ -412,19 +428,19 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     transition: all var(--transition-fast);
   }
 
-  .name-toggle-btn:hover {
+  .name-toggle:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
     background: rgba(93, 173, 226, 0.06);
   }
 
-  .name-input-area {
+  .name-field {
     display: flex;
     gap: 0.4rem;
     align-items: center;
   }
 
-  .name-input {
+  .name-field input {
     padding: 0.4rem 0.7rem;
     border-radius: var(--radius-sm);
     border: 2px solid var(--color-border);
@@ -437,11 +453,11 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     transition: border-color var(--transition-fast);
   }
 
-  .name-input:focus {
+  .name-field input:focus {
     border-color: var(--color-primary);
   }
 
-  .name-confirm-btn {
+  .name-confirm {
     padding: 0.4rem 0.8rem;
     border-radius: var(--radius-sm);
     border: none;
@@ -453,26 +469,38 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     transition: opacity var(--transition-fast);
   }
 
-  .name-confirm-btn:hover {
+  .name-confirm:hover {
     opacity: 0.85;
   }
 
-  .display-name {
+  .name-badge {
     font-size: 0.88rem;
     color: var(--color-primary);
     font-family: var(--font-heading);
     padding: 0.3rem 0.8rem;
     background: rgba(93, 173, 226, 0.08);
     border-radius: var(--radius-xl);
+    cursor: pointer;
+    transition: background var(--transition-fast);
   }
 
-  .message-form {
+  .name-badge:hover {
+    background: rgba(93, 173, 226, 0.15);
+  }
+
+  .name-hint {
+    font-size: 0.78rem;
+    color: var(--color-text-secondary);
+    font-family: var(--font-body);
+  }
+
+  #msgForm {
     display: flex;
     gap: 0.6rem;
     align-items: stretch;
   }
 
-  .message-input {
+  .msg-input {
     flex: 1;
     padding: 0.6rem 0.9rem;
     border-radius: var(--radius-sm);
@@ -487,12 +515,12 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
   }
 
-  .message-input:focus {
+  .msg-input:focus {
     border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.12);
   }
 
-  .submit-btn {
+  .btn-send {
     padding: 0.6rem 1.2rem;
     border-radius: var(--radius-xl);
     border: none;
@@ -506,12 +534,12 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     align-self: stretch;
   }
 
-  .submit-btn:hover {
+  .btn-send:hover {
     transform: scale(1.03);
     box-shadow: 0 3px 12px rgba(93, 173, 226, 0.3);
   }
 
-  .submit-btn:disabled {
+  .btn-send:disabled {
     opacity: 0.6;
     cursor: not-allowed;
     transform: none;
@@ -525,20 +553,20 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
     transition: opacity var(--transition-fast);
   }
 
-  .form-status-success {
+  .form-status.ok {
     color: #27ae60;
   }
 
-  .form-status-error {
+  .form-status.error {
     color: #e74c3c;
   }
 
   @media (max-width: 768px) {
-    .message-form {
+    #msgForm {
       flex-direction: column;
     }
 
-    .submit-btn {
+    .btn-send {
       align-self: flex-end;
     }
 
@@ -546,8 +574,8 @@ const base = Astro.url.pathname.replace(/\/$/, '') || '';
       width: 30px;
     }
 
-    .message-card-text {
-      max-width: 140px;
+    .msg-card {
+      width: 12rem;
     }
   }
 </style>
