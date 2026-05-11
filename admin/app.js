@@ -9,6 +9,7 @@
   var APP = {
     password: adminConfig.password || '',
     siteUrl: adminConfig.siteUrl || '',
+    formEndpoint: adminConfig.formEndpoint || 'https://website-message.121622090.workers.dev',
     state: 'login',
     token: '',
     repoOwner: '',
@@ -107,6 +108,7 @@
       '<div class="admin-tabs">' +
         '<button class="admin-tab active" data-tab="blog">文章</button>' +
         '<button class="admin-tab" data-tab="projects">项目</button>' +
+        '<button class="admin-tab" data-tab="messages">留言</button>' +
         '<button class="admin-tab" data-tab="upload">上传</button>' +
         '<button class="admin-tab pull-right" data-tab="new">新建</button></div>' +
       '<div id="dashboard-content"><div class="admin-loading"><div class="spinner"></div><span>正在加载...</span></div></div>';
@@ -128,6 +130,7 @@
     if (!content) return;
     if (APP.currentTab === 'upload') { renderUploadTab(content); return; }
     if (APP.currentTab === 'new') { renderNewTab(content); return; }
+    if (APP.currentTab === 'messages') { renderMessagesTab(content); return; }
     var label = APP.currentTab === 'blog' ? '文章' : '项目';
     content.innerHTML = '<div class="admin-loading"><div class="spinner"></div><span>正在加载 ' + label + '...</span></div>';
     try {
@@ -291,6 +294,115 @@
       showUploadStatus('保存失败: ' + esc(e.message), 'error');
       btn.disabled = false; btn.textContent = '保存';
     }
+  }
+
+  function renderMessagesTab(container) {
+    container.innerHTML = '<div class="admin-loading" id="msg-loading"><div class="spinner"></div><span>正在加载留言...</span></div>';
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', APP.formEndpoint + '/api/messages', true);
+    xhr.onload = function() {
+      if (xhr.status !== 200) {
+        container.innerHTML = '<div class="admin-error">加载失败 (HTTP ' + xhr.status + ')</div>';
+        return;
+      }
+      try {
+        var resp = JSON.parse(xhr.responseText);
+        if (!resp.ok || !Array.isArray(resp.messages)) {
+          container.innerHTML = '<div class="admin-error">数据格式错误</div>';
+          return;
+        }
+        var msgs = resp.messages;
+        if (msgs.length === 0) {
+          container.innerHTML = '<div class="admin-card" style="text-align:center;color:var(--color-text-secondary);padding:2.5rem;"><p style="font-size:2rem;margin-bottom:0.5rem;">~</p><p>还没有留言</p></div>';
+          return;
+        }
+
+        var html = '<div class="admin-header" style="margin-bottom:0.75rem;"><h2 style="font-size:1.15rem;">共 ' + msgs.length + ' 条留言</h2></div>' +
+          '<div class="msg-list">';
+        for (var i = 0; i < msgs.length; i++) {
+          var m = msgs[i];
+          var dateStr = '';
+          if (m.timestamp) {
+            var d = new Date(m.timestamp);
+            dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+          } else if (m.time) {
+            dateStr = m.time;
+          }
+          var nameStr = esc(m.name || '匿名');
+          var msgStr = esc(m.message || '');
+          var anonClass = (!m.name || m.name === '匿名') ? 'msg-anon' : '';
+          html +=
+            '<div class="msg-admin-item" data-id="' + esc(m.id) + '">' +
+              '<div class="msg-admin-left">' +
+                '<div class="msg-admin-avatar ' + anonClass + '">' + (m.name && m.name !== '匿名' ? esc(m.name.charAt(0)) : '~') + '</div>' +
+              '</div>' +
+              '<div class="msg-admin-body">' +
+                '<div class="msg-admin-top">' +
+                  '<span class="msg-admin-name">' + nameStr + '</span>' +
+                  '<span class="msg-admin-date">' + esc(dateStr) + '</span>' +
+                '</div>' +
+                '<div class="msg-admin-text">' + msgStr + '</div>' +
+              '</div>' +
+              '<div class="msg-admin-actions">' +
+                '<button class="msg-admin-del" data-id="' + esc(m.id) + '" title="删除此留言">删除</button>' +
+              '</div>' +
+            '</div>';
+        }
+        html += '</div>' +
+          '<div style="margin-top:1rem;font-size:0.78rem;color:var(--color-text-secondary);text-align:center;">点击删除按钮可直接移除留言</div>';
+        container.innerHTML = html;
+
+        container.querySelectorAll('.msg-admin-del').forEach(function(btn) {
+          btn.addEventListener('click', function() {
+            var id = btn.dataset.id;
+            if (!id) return;
+            if (!confirm('确定要删除此留言吗？')) return;
+            deleteMessage(id, btn);
+          });
+        });
+      } catch(e) {
+        container.innerHTML = '<div class="admin-error">解析失败: ' + esc(e.message) + '</div>';
+      }
+    };
+    xhr.onerror = function() {
+      container.innerHTML = '<div class="admin-error">网络错误，无法连接到留言服务器</div>';
+    };
+    xhr.send();
+  }
+
+  function deleteMessage(id, btn) {
+    btn.disabled = true;
+    btn.textContent = '删除中...';
+    var params = 'id=' + encodeURIComponent(id) + '&token=' + encodeURIComponent(APP.password);
+    var xhr = new XMLHttpRequest();
+    xhr.open('DELETE', APP.formEndpoint + '/api/messages?' + params, true);
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        try {
+          var resp = JSON.parse(xhr.responseText);
+          if (resp.ok) {
+            var item = btn.closest('.msg-admin-item');
+            if (item) {
+              item.style.transition = 'all 0.3s ease';
+              item.style.opacity = '0';
+              item.style.transform = 'translateX(50px)';
+              setTimeout(function() { if (item && item.parentNode) item.parentNode.removeChild(item); }, 300);
+            }
+            return;
+          }
+        } catch(e) {}
+      }
+      btn.disabled = false;
+      btn.textContent = '删除';
+      alert('删除失败，请重试');
+    };
+    xhr.onerror = function() {
+      btn.disabled = false;
+      btn.textContent = '删除';
+      alert('网络错误，删除失败');
+    };
+    xhr.send();
   }
 
   function renderNewTab(container) {
