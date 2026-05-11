@@ -79,8 +79,7 @@ const base = siteConfig.base;
     </div>
   </section>
 
-  <section class="home-comments container page-enter">
-    <h2 class="section-title">💬 留言互动</h2>
+  <section class="home-comments page-enter">
     <GuestbookMarquee apiEndpoint={siteConfig.formEndpoint} />
   </section>
 </Layout>
@@ -341,7 +340,6 @@ const base = siteConfig.base;
 
   .home-comments {
     padding: 3rem 0 4rem;
-    max-width: 700px;
   }
 
   @media (max-width: 768px) {
