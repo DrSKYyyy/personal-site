@@ -1,0 +1,55 @@
+---
+import { getCollection } from 'astro:content';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import EasterEgg from '../components/EasterEgg.astro';
+import CloudBackground from '../components/CloudBackground.astro';
+import { siteConfig } from '../data/siteData';
+
+export interface Props {
+  title?: string;
+  description?: string;
+  posts?: any[];
+  showAnnouncementBtn?: boolean;
+}
+
+const { title, description, posts: propPosts = [], showAnnouncementBtn = false } = Astro.props;
+const blogPosts = await getCollection('blog');
+const allPosts = propPosts.length > 0 ? propPosts : blogPosts;
+---
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content={description || siteConfig.description} />
+    <title>{title ? `${title} | ${siteConfig.title}` : siteConfig.title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Inter:wght@400;500;600;700&family=Gaegu&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href={siteConfig.base + '/favicon.svg'} />
+    {siteConfig.analytics.cloudflare && (
+      <script src={siteConfig.analytics.cloudflare} defer></script>
+    )}
+  </head>
+  <body>
+    <Header posts={allPosts} showAnnouncementBtn={showAnnouncementBtn} />
+    <CloudBackground />
+    <main class="main-content">
+      <slot />
+    </main>
+    <Footer />
+    <EasterEgg />
+  </body>
+</html>
+
+<style>
+  .main-content {
+    min-height: calc(100vh - var(--nav-height));
+    padding-top: calc(var(--nav-height) + env(safe-area-inset-top, 0px));
+    position: relative;
+    z-index: 1;
+  }
+</style>

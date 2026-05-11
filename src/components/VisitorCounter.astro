@@ -1,0 +1,57 @@
+---
+---
+
+<span class="visitor-counter" id="visitor-counter">
+  <span class="counter-dot"></span>
+  👥 <span id="visitor-count">--</span> 次访问
+</span>
+
+<script is:inline>
+  (function() {
+    var countEl = document.getElementById('visitor-count');
+    if (!countEl) return;
+
+    var key = 'visit_count_' + window.location.hostname.replace(/[^a-zA-Z0-9]/g, '_');
+    var counted = sessionStorage.getItem(key + '_session');
+
+    if (!counted) {
+      fetch('https://api.countapi.xyz/hit/drskyyyy-website/visitors')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.value) {
+            countEl.textContent = Number(data.value).toLocaleString();
+            localStorage.setItem(key, data.value);
+          }
+        })
+        .catch(function() {
+          var local = parseInt(localStorage.getItem(key) || '0') + 1;
+          countEl.textContent = local.toLocaleString();
+          localStorage.setItem(key, local);
+        });
+      sessionStorage.setItem(key + '_session', '1');
+    } else {
+      var cached = localStorage.getItem(key);
+      countEl.textContent = cached ? Number(cached).toLocaleString() : '--';
+    }
+  })();
+</script>
+
+<style>
+  .visitor-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-top: 0.5rem;
+  }
+
+  .counter-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    opacity: 0.6;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+</style>

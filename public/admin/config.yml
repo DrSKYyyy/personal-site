@@ -1,0 +1,34 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "public/images"
+public_folder: "/images"
+
+collections:
+  - name: "blog"
+    label: "文章"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{year}}-{{month}}-{{day}}-{{slug}}"
+    fields:
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "发布日期", name: "date", widget: "datetime", format: "YYYY-MM-DD" }
+      - { label: "描述", name: "description", widget: "string", required: false }
+      - { label: "标签", name: "tags", widget: "list", required: false }
+      - { label: "封面图", name: "coverImage", widget: "image", required: false }
+      - { label: "内容", name: "body", widget: "markdown" }
+      - { label: "可见性", name: "visibility", widget: "select", options: ["公开", "私密", "草稿"], default: "公开" }
+
+  - name: "projects"
+    label: "项目"
+    folder: "src/content/projects"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "标题", name: "title", widget: "string" }
+      - { label: "分类", name: "category", widget: "select", options: ["代码", "写作", "策划"] }
+      - { label: "描述", name: "description", widget: "text" }
+      - { label: "链接", name: "link", widget: "string" }
+      - { label: "时间", name: "date", widget: "string", required: false }
+      - { label: "标签", name: "tags", widget: "list", required: false }

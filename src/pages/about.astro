@@ -1,0 +1,641 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { siteConfig } from '../data/siteData';
+const base = siteConfig.base;
+const about = siteConfig.about;
+const galleryItems = about.gallery.items;
+const previewCount = about.gallery.maxPreview || 4;
+const hasMore = galleryItems.length > previewCount;
+---
+
+<Layout title="关于">
+  <section class="about-page container page-enter">
+    <div class="about-header">
+      <div class="about-avatar">
+        <img src={base + siteConfig.avatar} alt="头像"
+             data-frames={siteConfig.avatarFrames || 0}
+             data-interval={siteConfig.avatarFrameInterval || 380} />
+      </div>
+      <h1 class="section-title">{about.pageTitle}</h1>
+    </div>
+
+    <div class="about-content">
+      <div class="about-intro card">
+        <h2 class="gradient-text">{about.intro.greeting}</h2>
+        {about.intro.paragraphs.map(p => <p>{p}</p>)}
+
+        <div class="collapsible-section">
+          <button class="collapsible-toggle" id="about-toggle">
+            <span>{about.intro.toggleLabel}</span>
+            <span class="toggle-icon">▼</span>
+          </button>
+          <div class="collapsible-content" id="about-detail">
+            <div class="about-detail-inner">
+              {about.detail.sections.map(section => (
+                <>{section.title && <h3>{section.title}</h3>}
+                {section.paragraphs.map(p => <p>{p}</p>)}</>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="about-gallery card" id="about-gallery">
+        <h3>{about.gallery.title}</h3>
+        <p class="gallery-desc">{about.gallery.desc}</p>
+
+        <div class="gallery-grid" id="gallery-preview">
+          {galleryItems.slice(0, previewCount).map((item, i) => (
+            <div class="gallery-item">
+              {item.image ? (
+                <img src={item.image} alt="" loading="lazy" data-full={item.imageFull || item.image} />
+              ) : (
+                <div class="gallery-placeholder" style={'background: ' + item.gradient}>
+                  <span>{item.emoji}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {hasMore && (
+          <div class="gallery-actions">
+            <button id="gallery-toggle-btn" class="gallery-toggle-btn">
+              <span class="gallery-toggle-text">📷 查看全部照片</span>
+              <span class="gallery-toggle-icon">▼</span>
+            </button>
+          </div>
+        )}
+
+        {hasMore && (
+          <div class="gallery-expandable" id="gallery-expandable">
+            <div class="gallery-scroll-container">
+              <div class="gallery-grid gallery-grid-full">
+                {galleryItems.slice(previewCount).map((item, i) => (
+                  <div class="gallery-item">
+                    {item.image ? (
+                      <img src={item.image} alt="" loading="lazy" data-full={item.imageFull || item.image} />
+                    ) : (
+                      <div class="gallery-placeholder" style={'background: ' + item.gradient}>
+                        <span>{item.emoji}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div class="about-details">
+        <div class="detail-card card">
+          <h3>{about.details.current.title}</h3>
+          <ul>
+            {about.details.current.items.map(item => <li>{item}</li>)}
+          </ul>
+        </div>
+
+        <div class="detail-card card">
+          <h3>{about.details.techStack.title}</h3>
+          <div class="skills">
+            {about.details.techStack.skills.map(skill => <span class="tag">{skill}</span>)}
+          </div>
+        </div>
+
+        <div class="detail-card card">
+          <h3>{about.details.hobbies.title}</h3>
+          <div class="hobbies">
+            {about.details.hobbies.items.map(item => <span class="hobby-tag">{item}</span>)}
+          </div>
+        </div>
+
+        <div class="detail-card card status-card">
+          <h3>{about.details.status.title}</h3>
+          <div class="status-content">
+            {about.details.status.items.map(item => (
+              <div class="status-item">
+                <span class="status-dot"></span>
+                <span><strong>{item.label}</strong>：{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script is:inline>
+  (function() {
+    var toggle = document.getElementById('about-toggle');
+    var content = document.getElementById('about-detail');
+    if (toggle && content) {
+      toggle.addEventListener('click', function() {
+        var isOpen = content.classList.toggle('open');
+        toggle.querySelector('.toggle-icon').textContent = isOpen ? '▲' : '▼';
+        toggle.querySelector('span:first-child').textContent = isOpen ? '📕 收起完整介绍' : '📖 查看完整介绍';
+      });
+    }
+
+    var galleryBtn = document.getElementById('gallery-toggle-btn');
+    var expandable = document.getElementById('gallery-expandable');
+    if (galleryBtn && expandable) {
+      galleryBtn.addEventListener('click', function() {
+        var isOpen = expandable.classList.toggle('open');
+        galleryBtn.querySelector('.gallery-toggle-text').textContent = isOpen ? '📷 收起照片' : '📷 查看全部照片';
+        galleryBtn.querySelector('.gallery-toggle-icon').textContent = isOpen ? '▲' : '▼';
+      });
+    }
+
+    var allImages = [];
+    document.querySelectorAll('.gallery-item').forEach(function(item) {
+      var img = item.querySelector('img');
+      if (img && img.getAttribute('data-full')) {
+        allImages.push(img.getAttribute('data-full'));
+      }
+    });
+
+    var currentIndex = -1;
+
+    var lbOverlay = document.createElement('div');
+    lbOverlay.className = 'lightbox-overlay';
+    lbOverlay.innerHTML = '<button class="lightbox-close" aria-label="关闭">&#10005;</button><button class="lightbox-prev" aria-label="上一张">&#10094;</button><img class="lightbox-image" alt="" /><button class="lightbox-next" aria-label="下一张">&#10095;</button>';
+    document.body.appendChild(lbOverlay);
+
+    var lbImg = lbOverlay.querySelector('.lightbox-image');
+    var lbClose = lbOverlay.querySelector('.lightbox-close');
+    var lbPrev = lbOverlay.querySelector('.lightbox-prev');
+    var lbNext = lbOverlay.querySelector('.lightbox-next');
+
+    document.querySelectorAll('.gallery-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var img = item.querySelector('img');
+        if (!img) return;
+        var src = img.getAttribute('data-full');
+        if (!src) return;
+        currentIndex = allImages.indexOf(src);
+        lbImg.src = src;
+        lbOverlay.classList.add('open');
+        document.body.style.overflow = 'hidden';
+      });
+    });
+
+    function hideLightbox() {
+      lbOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+      lbImg.src = '';
+      currentIndex = -1;
+    }
+
+    function showPrev() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        lbImg.src = allImages[currentIndex];
+      }
+    }
+
+    function showNext() {
+      if (currentIndex < allImages.length - 1) {
+        currentIndex++;
+        lbImg.src = allImages[currentIndex];
+      }
+    }
+
+    lbClose.addEventListener('click', hideLightbox);
+    lbOverlay.addEventListener('click', function(e) {
+      if (e.target === lbOverlay) hideLightbox();
+    });
+    lbPrev.addEventListener('click', function(e) { e.stopPropagation(); showPrev(); });
+    lbNext.addEventListener('click', function(e) { e.stopPropagation(); showNext(); });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') hideLightbox();
+      if (e.key === 'ArrowLeft') showPrev();
+      if (e.key === 'ArrowRight') showNext();
+    });
+
+    var avatarImg = document.querySelector('.about-avatar img');
+    if (avatarImg) {
+      var totalFrames = parseInt(avatarImg.getAttribute('data-frames') || '0', 10);
+      var frameInterval = parseInt(avatarImg.getAttribute('data-interval') || '380', 10);
+      if (totalFrames > 1) {
+        var currentFrame = 1;
+        var basePath = '/images/形象/';
+        var loadedImages = [];
+        for (var fi = 1; fi <= totalFrames; fi++) {
+          (function(idx) {
+            var img = new Image();
+            img.src = basePath + idx + '.png';
+            loadedImages.push(img);
+          })(fi);
+        }
+        setInterval(function() {
+          currentFrame = currentFrame >= totalFrames ? 1 : currentFrame + 1;
+          avatarImg.src = basePath + currentFrame + '.png';
+        }, frameInterval);
+      }
+    }
+  })();
+</script>
+
+<style>
+  .about-page {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+    max-width: 900px;
+  }
+
+  .about-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .about-avatar {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1.5rem;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .about-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(93, 173, 226, 0.2));
+  }
+
+  .about-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .about-intro h2 {
+    margin-bottom: 1rem;
+    font-size: 1.6rem;
+  }
+
+  .about-intro p {
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    margin-bottom: 0.75rem;
+  }
+
+  .collapsible-section {
+    margin-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+    padding-top: 1rem;
+  }
+
+  .collapsible-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    color: var(--color-text);
+    transition: all var(--transition-fast);
+  }
+
+  .collapsible-toggle:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+
+  .toggle-icon {
+    transition: transform var(--transition-normal);
+  }
+
+  .collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease, opacity 0.3s ease;
+    opacity: 0;
+  }
+
+  .collapsible-content.open {
+    max-height: 1000px;
+    opacity: 1;
+  }
+
+  .about-detail-inner {
+    padding: 1.5rem 1rem 0.5rem;
+  }
+
+  .about-detail-inner h3 {
+    font-size: 1.15rem;
+    margin: 1.5rem 0 0.75rem;
+    color: var(--color-primary);
+  }
+
+  .about-detail-inner h3:first-child {
+    margin-top: 0;
+  }
+
+  .about-detail-inner p {
+    margin-bottom: 0.75rem;
+  }
+
+  /* ===== 照片墙 ===== */
+  .about-gallery h3 {
+    margin-bottom: 0.5rem;
+  }
+
+  .gallery-desc {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+
+  .gallery-item {
+    cursor: pointer;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: transform var(--transition-fast);
+    position: relative;
+  }
+
+  .gallery-item:hover {
+    transform: scale(1.04);
+  }
+
+  .gallery-item img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-fast);
+  }
+
+  .gallery-placeholder {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    border-radius: var(--radius-md);
+  }
+
+  /* 查看全部按钮 */
+  .gallery-actions {
+    text-align: center;
+    margin-top: 0.75rem;
+  }
+
+  .gallery-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.2rem;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    color: var(--color-text-secondary);
+    transition: all var(--transition-fast);
+  }
+
+  .gallery-toggle-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 10px rgba(93, 173, 226, 0.12);
+  }
+
+  .gallery-toggle-icon {
+    font-size: 0.75rem;
+    transition: transform var(--transition-fast);
+  }
+
+  /* 展开的完整照片墙 */
+  .gallery-expandable {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+  }
+
+  .gallery-expandable.open {
+    max-height: 1000px;
+  }
+
+  .gallery-scroll-container {
+    max-height: 420px;
+    overflow-y: auto;
+    padding: 1rem 0 0.5rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary) var(--color-border);
+  }
+
+  .gallery-scroll-container::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .gallery-scroll-container::-webkit-scrollbar-track {
+    background: var(--color-border);
+    border-radius: 3px;
+  }
+
+  .gallery-scroll-container::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 3px;
+  }
+
+  .gallery-grid-full {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  /* ===== 详细信息卡片 ===== */
+  .about-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .detail-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+  }
+
+  .detail-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .detail-card li {
+    padding: 0.4rem 0;
+    color: var(--color-text-secondary);
+    position: relative;
+    padding-left: 1.2rem;
+  }
+
+  .detail-card li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--color-primary);
+  }
+
+  .hobbies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .hobby-tag {
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--radius-xl);
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    font-size: 0.85rem;
+    transition: all var(--transition-fast);
+  }
+
+  .hobby-tag:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-2px);
+  }
+
+  .status-card .status-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--color-text-secondary);
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-primary);
+    animation: twinkle 2s ease-in-out infinite;
+  }
+
+  .status-content strong {
+    color: var(--color-text);
+  }
+
+  @media (max-width: 768px) {
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gallery-grid-full {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .gallery-scroll-container {
+      max-height: 320px;
+    }
+  }
+</style>
+
+<style is:global>
+  .lightbox-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 99999;
+    background: rgba(0, 0, 0, 0.88);
+    cursor: zoom-out;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  .lightbox-overlay.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .lightbox-image {
+    display: block;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+    cursor: default;
+    object-fit: contain;
+  }
+  .lightbox-close {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 1.3rem;
+    cursor: pointer;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background 0.2s;
+  }
+  .lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .lightbox-prev,
+  .lightbox-next {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 80px;
+    border: none;
+    background: rgba(0, 0, 0, 0.35);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.8rem;
+    cursor: pointer;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+    user-select: none;
+  }
+  .lightbox-prev:hover,
+  .lightbox-next:hover {
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+  }
+  .lightbox-prev { left: 0; border-radius: 0 8px 8px 0; }
+  .lightbox-next { right: 0; border-radius: 8px 0 0 8px; }
+  @media (max-width: 768px) {
+    .lightbox-image {
+      max-width: 95vw;
+      max-height: 85vh;
+    }
+  }
+</style>

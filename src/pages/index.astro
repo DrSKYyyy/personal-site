@@ -1,0 +1,379 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import { siteConfig } from '../data/siteData';
+import TypingIntro from '../components/TypingIntro.astro';
+import GuestbookMarquee from '../components/GuestbookMarquee.astro';
+import AnnouncementBanner from '../components/AnnouncementBanner.astro';
+
+const allPosts = await getCollection('blog');
+const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
+const recentPosts = publicPosts
+  .sort((a, b) => new Date(b.data.date) - new Date(a.data.date))
+  .slice(0, 3);
+const base = siteConfig.base;
+---
+
+<Layout title="首页" showAnnouncementBtn={true}>
+  {siteConfig.announcement?.enabled && (
+    <AnnouncementBanner
+      title={siteConfig.announcement.title}
+      body={siteConfig.announcement.body}
+      image={siteConfig.announcement.image}
+      dismissLabel={siteConfig.announcement.dismissLabel}
+      base={base}
+    />
+  )}
+  <TypingIntro />
+  <section class="hero">
+    <div class="container hero-content page-enter">
+      <div class="hero-text">
+        <h1 class="hero-title">
+          <span class="hero-title-en font-english">{siteConfig.hero.sloganEn}</span>
+          <span class="hero-title-zh gradient-text"> {siteConfig.hero.sloganZh}</span>
+        </h1>
+        <p class="hero-subtitle">{siteConfig.hero.subSlogan}</p>
+        <p class="hero-desc" set:html={siteConfig.hero.description}></p>
+        <div class="hero-actions">
+          <a href={base + '/about'} class="btn btn-primary">{siteConfig.hero.learnMoreBtn}</a>
+          <a href={base + '/writing'} class="btn btn-outline">{siteConfig.hero.readArticlesBtn}</a>
+        </div>
+      </div>
+      <div class="hero-avatar" id="avatar-area">
+        <div class="avatar-wrapper">
+          <img src={base + siteConfig.avatar} alt="头像" class="avatar-img" id="avatar-img"
+               data-frames={siteConfig.avatarFrames || 0}
+               data-interval={siteConfig.avatarFrameInterval || 380} />
+          <div class="avatar-glow"></div>
+        </div>
+        <div class="speech-bubble" id="speech-bubble" data-bubbles={JSON.stringify(siteConfig.hero.speechBubbles)}>{siteConfig.hero.speechBubbles[0]}</div>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <span>{siteConfig.hero.scrollHint}</span>
+      <div class="scroll-arrow">↓</div>
+    </div>
+  </section>
+
+  <section class="recent-posts container page-enter">
+    <h2 class="section-title">{siteConfig.recentPosts.title}</h2>
+    <div class="posts-grid">
+      {recentPosts.map(post => (
+        <a href={base + '/writing/' + post.slug} class="post-card card">
+          <div class="post-card-content">
+            <div class="post-date">{post.data.date}</div>
+            <h3 class="post-title">{post.data.title}</h3>
+            <p class="post-excerpt">{post.data.description || post.data.title}</p>
+            {post.data.tags && (
+              <div class="post-tags">
+                {post.data.tags.slice(0, 3).map(tag => <span class="tag">{tag}</span>)}
+              </div>
+            )}
+          </div>
+        </a>
+      ))}
+    </div>
+    <div class="view-all">
+      <a href={base + '/writing'} class="btn btn-outline">{siteConfig.recentPosts.viewAll}</a>
+    </div>
+  </section>
+
+  <section class="home-comments container page-enter">
+    <h2 class="section-title">💬 留言互动</h2>
+    <GuestbookMarquee apiEndpoint={siteConfig.formEndpoint} />
+  </section>
+</Layout>
+
+<script is:inline>
+  (function() {
+    var bubble = document.getElementById('speech-bubble');
+    if (bubble && bubble.dataset.bubbles) {
+      try {
+        var texts = JSON.parse(bubble.dataset.bubbles);
+        if (texts && texts.length > 1) {
+          setInterval(function() {
+            var idx = Math.floor(Math.random() * texts.length);
+            bubble.textContent = texts[idx];
+          }, 4000);
+        }
+      } catch(e) {}
+    }
+
+    var avatarImg = document.getElementById('avatar-img');
+    if (avatarImg) {
+      var totalFrames = parseInt(avatarImg.getAttribute('data-frames') || '0', 10);
+      var frameInterval = parseInt(avatarImg.getAttribute('data-interval') || '380', 10);
+      if (totalFrames > 1) {
+        var currentFrame = 1;
+        var basePath = '/images/形象/';
+        var loadedImages = [];
+        for (var fi = 1; fi <= totalFrames; fi++) {
+          (function(idx) {
+            var img = new Image();
+            img.src = basePath + idx + '.png';
+            loadedImages.push(img);
+          })(fi);
+        }
+        setInterval(function() {
+          currentFrame = currentFrame >= totalFrames ? 1 : currentFrame + 1;
+          avatarImg.src = basePath + currentFrame + '.png';
+        }, frameInterval);
+      }
+    }
+  })();
+</script>
+
+<style>
+  .hero {
+    min-height: calc(100vh - var(--nav-height));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 3rem;
+    padding-top: 0.5rem;
+    padding-bottom: 2rem;
+  }
+
+  .hero-text {
+    flex: 1;
+    max-width: 560px;
+  }
+
+  .hero-title {
+    font-size: 4.2rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.15;
+  }
+
+  .hero-title-en {
+    color: var(--color-text);
+  }
+
+  .hero-title-zh {
+    font-size: inherit;
+  }
+
+  .hero-subtitle {
+    font-size: 1.3rem;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    margin-bottom: 1rem;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    color: var(--color-text-secondary);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-avatar {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .avatar-wrapper {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 24px rgba(93, 173, 226, 0.25));
+    border-radius: 50%;
+  }
+
+  .avatar-glow {
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: var(--color-gradient);
+    opacity: 0.15;
+    filter: blur(16px);
+    z-index: -1;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  .speech-bubble {
+    background: var(--color-surface);
+    color: var(--color-text);
+    padding: 0.5rem 1.2rem;
+    border-radius: var(--radius-xl);
+    font-size: 0.9rem;
+    font-family: var(--font-heading);
+    box-shadow: var(--shadow-md);
+    position: relative;
+    border: 1px solid var(--color-border);
+    white-space: nowrap;
+    transition: opacity var(--transition-normal);
+    opacity: 0;
+  }
+
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid var(--color-surface);
+  }
+
+  .hero-avatar:hover .speech-bubble {
+    opacity: 1;
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    animation: float 2s ease-in-out infinite;
+    color: var(--color-text-secondary);
+  }
+
+  .scroll-indicator span {
+    font-size: 0.8rem;
+    font-family: var(--font-heading);
+  }
+
+  .scroll-arrow {
+    font-size: 1.2rem;
+    animation: hintBounce 1.5s ease-in-out infinite;
+  }
+
+  @keyframes hintBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  .recent-posts {
+    padding: 4rem 0;
+  }
+
+  .posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .post-card {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+
+  .post-card:hover {
+    text-decoration: none;
+  }
+
+  .post-card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .post-date {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  .post-title {
+    font-size: 1.2rem;
+    margin-bottom: 0.75rem;
+    transition: color var(--transition-fast);
+    color: var(--color-text);
+  }
+
+  .post-card:hover .post-title {
+    color: var(--color-primary);
+  }
+
+  .post-excerpt {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    flex: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  .post-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: auto;
+  }
+
+  .view-all {
+    text-align: center;
+  }
+
+  .home-comments {
+    padding: 3rem 0 4rem;
+    max-width: 700px;
+  }
+
+  @media (max-width: 768px) {
+    .hero-content {
+      flex-direction: column-reverse;
+      text-align: center;
+      gap: 2rem;
+    }
+
+    .hero-text {
+      max-width: 100%;
+    }
+
+    .hero-title {
+      font-size: 2.5rem;
+    }
+
+    .hero-actions {
+      justify-content: center;
+    }
+
+    .avatar-wrapper {
+      width: 150px;
+      height: 150px;
+    }
+
+    .posts-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .scroll-indicator {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,411 @@
+---
+import { siteConfig } from '../data/siteData';
+
+export interface SearchResult {
+  title: string;
+  url: string;
+  description: string;
+  date: string;
+  tags: string[];
+  body: string;
+}
+
+const { posts = [] } = Astro.props as { posts?: any[] };
+
+const base = siteConfig.base;
+
+const searchData: SearchResult[] = posts.map((post: any) => ({
+  title: post.data?.title || post.title || '',
+  url: (post.slug ? base + '/writing/' + post.slug : ''),
+  description: post.data?.description || post.description || '',
+  date: post.data?.date || post.date || '',
+  tags: post.data?.tags || post.tags || [],
+  body: post.body || '',
+})).filter(p => p.title && p.url);
+---
+
+<div class="search-bar-container" id="search-bar-container">
+  <div class="search-bar-inner" id="search-bar-inner">
+    <svg class="search-bar-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input type="text" id="search-input" class="search-input" placeholder="搜索文章..." autocomplete="off" />
+    <button class="search-close-btn" id="search-close-btn" aria-label="关闭搜索">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+  <div id="search-dropdown" class="search-dropdown"></div>
+  <div id="search-data" style="display:none">{JSON.stringify(searchData)}</div>
+</div>
+
+<script is:inline>
+  (function() {
+    var container = document.getElementById('search-bar-container');
+    var inner = document.getElementById('search-bar-inner');
+    var input = document.getElementById('search-input');
+    var dropdown = document.getElementById('search-dropdown');
+    var closeBtn = document.getElementById('search-close-btn');
+
+    var postsData = [];
+    try {
+      var searchDataEl = document.getElementById('search-data');
+      if (searchDataEl && searchDataEl.textContent && searchDataEl.textContent !== '[]') {
+        postsData = JSON.parse(searchDataEl.textContent);
+      }
+    } catch(e) { postsData = []; }
+
+    var isOpen = false;
+
+    function openSearch() {
+      if (isOpen) return;
+      isOpen = true;
+      container.classList.add('active');
+      inner.classList.add('active');
+      dropdown.innerHTML = '';
+      setTimeout(function() { if (input) { input.value = ''; input.focus(); } }, 200);
+    }
+
+    function closeSearch() {
+      if (!isOpen) return;
+      isOpen = false;
+      container.classList.remove('active');
+      inner.classList.remove('active');
+      dropdown.innerHTML = '';
+      if (input) input.value = '';
+    }
+
+    inner.addEventListener('click', function(e) {
+      if (!isOpen) openSearch();
+    });
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closeSearch();
+      });
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (isOpen) closeSearch();
+        else openSearch();
+      }
+      if (e.key === 'Escape' && isOpen) {
+        closeSearch();
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (isOpen && container && !container.contains(e.target)) {
+        closeSearch();
+      }
+    });
+
+    if (input) {
+      input.addEventListener('input', function() {
+        var q = input.value.trim().toLowerCase();
+        if (!q) {
+          dropdown.innerHTML = '';
+          return;
+        }
+
+        var filtered = postsData.filter(function(p) {
+          return (p.title && p.title.toLowerCase().includes(q)) ||
+                 (p.description && p.description.toLowerCase().includes(q)) ||
+                 (p.tags && p.tags.some(function(t) { return t.toLowerCase().includes(q); })) ||
+                 (p.body && p.body.toLowerCase().includes(q));
+        });
+
+        if (filtered.length === 0) {
+          dropdown.innerHTML = '<div class="sd-empty">未找到与 "<strong>' + input.value + '"</strong> 相关的内容</div>';
+          return;
+        }
+
+        dropdown.innerHTML = filtered.map(function(p) {
+          var snippet = extractSnippet(p.body, q);
+          var snippetHtml = snippet
+            ? '<p class="post-item-desc">' + highlightMatch(snippet, q) + '</p>'
+            : (p.description
+              ? '<p class="post-item-desc">' + highlightMatch(p.description, q) + '</p>'
+              : '');
+          return '<a href="' + p.url + '" class="sd-item">' +
+            '<div class="post-item-content">' +
+              '<div class="post-item-meta">' +
+                '<span class="post-item-date">' + p.date + '</span>' +
+              '</div>' +
+              '<h3 class="post-item-title">' + highlightMatch(p.title, q) + '</h3>' +
+              snippetHtml +
+            '</div>' +
+            '</a>';
+        }).join('');
+      });
+    }
+
+    function extractSnippet(body, query) {
+      if (!body || !query) return '';
+      var plainText = body
+        .replace(/<[^>]*>/g, '')
+        .replace(/```[\s\S]*?```/g, '')
+        .replace(/!\[([^\]]*)\]\([^)]*\)/g, '')
+        .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+        .replace(/[#*`~>_|-]{2,}/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/\s+/g, ' ')
+        .trim();
+      var idx = plainText.toLowerCase().indexOf(query);
+      if (idx === -1) return '';
+
+      var punct = /[。！？；]/;
+      var backwardMax = 6;
+      var lookBackChars = plainText.substring(Math.max(0, idx - backwardMax), idx);
+      var punctIndex = -1;
+      for (var k = lookBackChars.length - 1; k >= 0; k--) {
+        if (punct.test(lookBackChars[k])) {
+          punctIndex = k;
+          break;
+        }
+      }
+
+      var start;
+      if (punctIndex !== -1) {
+        start = idx - backwardMax + punctIndex + 1;
+      } else {
+        start = idx - backwardMax;
+        if (start < 0) start = 0;
+      }
+
+      var takeLen = 15;
+      var end = start + takeLen;
+      var hasPunct = false;
+      for (var k2 = start; k2 < end && k2 < plainText.length; k2++) {
+        if (punct.test(plainText[k2])) {
+          end = k2;
+          hasPunct = true;
+          break;
+        }
+      }
+      if (end > plainText.length) end = plainText.length;
+
+      var snippet = plainText.substring(start, end).trim();
+      if (!hasPunct && end === start + takeLen && end < plainText.length) {
+        snippet += '...';
+      }
+      return snippet;
+    }
+
+    function highlightMatch(text, query) {
+      if (!query) return text;
+      var regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return text.replace(regex, '<strong>$1</strong>');
+    }
+  })();
+</script>
+
+<style is:global>
+  .search-bar-container {
+    position: relative;
+  }
+
+  .search-bar-inner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--color-surface);
+    border: 2px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0 0.5rem;
+    height: 36px;
+    width: 36px;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    box-sizing: border-box;
+  }
+
+  .search-bar-inner.active {
+    width: 260px;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(93,173,226,0.12), var(--shadow-sm);
+    cursor: text;
+  }
+
+  .search-bar-icon {
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    min-width: 16px;
+  }
+
+  .search-bar-inner.active .search-bar-icon {
+    color: var(--color-primary);
+  }
+
+  .search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.88rem;
+    font-family: var(--font-body);
+    color: var(--color-text);
+    width: 0;
+    opacity: 0;
+    transition: all 0.25s ease 0.1s;
+    padding: 0;
+    flex: 1;
+  }
+
+  .search-bar-inner.active .search-input {
+    width: auto;
+    opacity: 1;
+  }
+
+  .search-input::placeholder {
+    color: var(--color-text-secondary);
+  }
+
+  .search-close-btn {
+    display: none;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    padding: 0.2rem;
+    border-radius: 50%;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .search-close-btn:hover {
+    color: var(--color-text);
+    background: var(--color-bg);
+  }
+
+  .search-bar-inner.active .search-close-btn {
+    display: flex;
+  }
+
+  .search-dropdown {
+    position: absolute;
+    top: calc(100% + 16px);
+    right: 0;
+    width: 420px;
+    max-height: 520px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 200;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+    transition: all 0.2s ease;
+    pointer-events: none;
+    transform-origin: top right;
+  }
+
+  .search-bar-container.active .search-dropdown {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+
+  .sd-empty {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-border);
+  }
+
+  .sd-item {
+    display: block;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  }
+
+  .sd-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .sd-item:hover .post-item-title {
+    color: var(--color-primary);
+  }
+
+  .sd-item .post-item-content {
+    width: 100%;
+  }
+
+  .sd-item .post-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .sd-item .post-item-date {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+  }
+
+  .sd-item .post-item-title {
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    transition: color var(--transition-fast);
+  }
+
+  .sd-item .post-item-title strong {
+    color: var(--color-primary);
+  }
+
+  .sd-item .post-item-desc {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sd-item .post-item-desc strong {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  @media (max-width: 768px) {
+    .search-dropdown {
+      position: fixed;
+      top: calc(var(--nav-height) + env(safe-area-inset-top, 0px) + 16px);
+      left: 0.75rem;
+      right: 0.75rem;
+      width: auto;
+      max-height: 50vh;
+      gap: 8px;
+    }
+
+    .sd-item {
+      padding: 1rem;
+    }
+
+    .sd-item .post-item-title {
+      font-size: 1rem;
+    }
+  }
+</style>

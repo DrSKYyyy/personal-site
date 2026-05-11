@@ -1,0 +1,60 @@
+---
+---
+
+<div class="cloud-bg" aria-hidden="true">
+  <div class="cloud cloud-1">
+    <svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 70 Q20 70 20 55 Q20 40 35 40 Q35 25 50 25 Q50 10 70 10 Q90 10 95 25 Q110 20 120 30 Q130 25 140 30 Q150 25 160 35 Q170 45 165 55 Q165 70 145 70Z" fill="currentColor" opacity="0.15"/>
+    </svg>
+  </div>
+  <div class="cloud cloud-2">
+    <svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 70 Q20 70 20 55 Q20 40 35 40 Q35 25 50 25 Q50 10 70 10 Q90 10 95 25 Q110 20 120 30 Q130 25 140 30 Q150 25 160 35 Q170 45 165 55 Q165 70 145 70Z" fill="currentColor" opacity="0.1"/>
+    </svg>
+  </div>
+  <div class="cloud cloud-3">
+    <svg viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+      <path d="M40 70 Q20 70 20 55 Q20 40 35 40 Q35 25 50 25 Q50 10 70 10 Q90 10 95 25 Q110 20 120 30 Q130 25 140 30 Q150 25 160 35 Q170 45 165 55 Q165 70 145 70Z" fill="currentColor" opacity="0.08"/>
+    </svg>
+  </div>
+</div>
+
+<style>
+  .cloud-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+
+  .cloud {
+    position: absolute;
+    color: var(--color-primary);
+    width: 300px;
+  }
+
+  .cloud-1 {
+    top: 15%;
+    animation: cloudFloat 25s linear infinite;
+  }
+
+  .cloud-2 {
+    top: 35%;
+    animation: cloudFloat 30s linear infinite;
+    animation-delay: -10s;
+    width: 250px;
+  }
+
+  .cloud-3 {
+    top: 55%;
+    animation: cloudFloat 35s linear infinite;
+    animation-delay: -20s;
+    width: 200px;
+  }
+
+  @keyframes cloudFloat {
+    from { transform: translateX(-350px); }
+    to { transform: translateX(calc(100vw + 100px)); }
+  }
+</style>

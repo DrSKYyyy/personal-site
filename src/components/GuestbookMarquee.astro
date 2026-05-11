@@ -1,0 +1,553 @@
+---
+const { apiEndpoint = '' } = Astro.props;
+const base = Astro.url.pathname.replace(/\/$/, '') || '';
+---
+
+<section class="guestbook-section" id="guestbook">
+  <div class="guestbook-header">
+    <h2 class="guestbook-title">📝 留个脚印</h2>
+    <p class="guestbook-subtitle">匿名留言，发送后立刻在滚动栏中展示</p>
+  </div>
+
+  <div class="marquee-wrapper">
+    <div class="marquee-fade marquee-fade-left"></div>
+    <div class="marquee-fade marquee-fade-right"></div>
+
+    <div class="marquee-track" id="marquee-track-1"></div>
+    <div class="marquee-track marquee-track-reverse" id="marquee-track-2"></div>
+
+    <div class="marquee-empty" id="marquee-empty">
+      <span class="marquee-empty-icon">💬</span>
+      <span>还没有留言，快来留下第一句话吧~</span>
+    </div>
+  </div>
+
+  <div class="guestbook-form-wrapper" id="guestbook-form-wrapper" data-api-endpoint={apiEndpoint}>
+    <div class="name-section">
+      <button class="name-toggle-btn" id="name-toggle-btn">✏️ 留下姓名</button>
+      <div class="name-input-area hidden" id="name-input-area">
+        <input type="text" id="guest-name-input" class="name-input" placeholder="输入你的名字..." maxlength="20" />
+        <button class="name-confirm-btn" id="name-confirm-btn">确定</button>
+      </div>
+      <span class="display-name hidden" id="display-name"></span>
+    </div>
+
+    <form class="message-form" id="message-form">
+      <textarea id="message-input" class="message-input" placeholder="写下你想说的话..." maxlength="500" required></textarea>
+      <button type="submit" class="submit-btn" id="submit-btn">发送 💬</button>
+    </form>
+    <div class="form-status" id="form-status"></div>
+  </div>
+</section>
+
+<script is:inline>
+  (function() {
+    var wrapper = document.getElementById('guestbook-form-wrapper');
+    var apiUrl = wrapper ? wrapper.getAttribute('data-api-endpoint') : '';
+    var name = '';
+    var messages = [];
+
+    var track1 = document.getElementById('marquee-track-1');
+    var track2 = document.getElementById('marquee-track-2');
+    var emptyEl = document.getElementById('marquee-empty');
+    var nameToggleBtn = document.getElementById('name-toggle-btn');
+    var nameInputArea = document.getElementById('name-input-area');
+    var nameInput = document.getElementById('guest-name-input');
+    var nameConfirmBtn = document.getElementById('name-confirm-btn');
+    var displayName = document.getElementById('display-name');
+    var messageForm = document.getElementById('message-form');
+    var messageInput = document.getElementById('message-input');
+    var submitBtn = document.getElementById('submit-btn');
+    var formStatus = document.getElementById('form-status');
+
+    var savedName = '';
+    try { savedName = localStorage.getItem('guestbook_name') || ''; } catch(e) {}
+    if (savedName) {
+      name = savedName;
+      nameToggleBtn.classList.add('hidden');
+      displayName.textContent = '👤 ' + name;
+      displayName.classList.remove('hidden');
+    }
+
+    function setStatus(msg, isError) {
+      formStatus.textContent = msg;
+      formStatus.className = 'form-status' + (isError ? ' form-status-error' : ' form-status-success');
+      if (!isError) {
+        setTimeout(function() { formStatus.className = 'form-status'; }, 3000);
+      }
+    }
+
+    function renderMessages(msgList) {
+      if (!msgList || msgList.length === 0) {
+        track1.innerHTML = '';
+        track2.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      var row1 = [];
+      var row2 = [];
+      msgList.forEach(function(m, i) {
+        if (i % 2 === 0) row1.push(m);
+        else row2.push(m);
+      });
+
+      track1.innerHTML = buildMarqueeContent(row1);
+      track2.innerHTML = buildMarqueeContent(row2);
+    }
+
+    function buildMarqueeContent(list) {
+      if (list.length === 0) {
+        return '<div class="marquee-group"><div class="marquee-placeholder">✨ 等待你的留言</div></div>';
+      }
+      var single = list.map(function(m) {
+        var initial = (m.name && m.name !== '匿名') ? m.name.charAt(0) : '?';
+        return '<div class="message-card">' +
+          '<div class="message-card-avatar">' + escapeHtml(initial) + '</div>' +
+          '<div class="message-card-body">' +
+            '<div class="message-card-name">' + escapeHtml(m.name || '匿名') + '</div>' +
+            '<div class="message-card-text">' + escapeHtml(m.message) + '</div>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+      return '<div class="marquee-group">' + single + '</div><div class="marquee-group">' + single + '</div>';
+    }
+
+    function escapeHtml(text) {
+      var d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    function fetchMessages() {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', apiUrl + '/api/messages', true);
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            if (resp.ok && Array.isArray(resp.messages)) {
+              messages = resp.messages;
+              renderMessages(messages);
+            }
+          } catch(e) {}
+        }
+      };
+      xhr.send();
+    }
+
+    // Name toggle
+    nameToggleBtn.addEventListener('click', function() {
+      nameToggleBtn.classList.add('hidden');
+      nameInputArea.classList.remove('hidden');
+      nameInput.focus();
+    });
+
+    nameConfirmBtn.addEventListener('click', function() {
+      var val = nameInput.value.trim();
+      if (val) {
+        name = val;
+        savedName = val;
+        try { localStorage.setItem('guestbook_name', val); } catch(e) {}
+        nameInputArea.classList.add('hidden');
+        displayName.textContent = '👤 ' + name;
+        displayName.classList.remove('hidden');
+      } else {
+        nameInput.focus();
+      }
+    });
+
+    nameInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); nameConfirmBtn.click(); }
+    });
+
+    // Form submit
+    messageForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var text = messageInput.value.trim();
+      if (!text) {
+        setStatus('请写下你想说的话', true);
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ 发送中...';
+
+      var params = 'name=' + encodeURIComponent(savedName || '匿名') + '&message=' + encodeURIComponent(text);
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', apiUrl + '/api/messages', true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.onload = function() {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '发送 💬';
+        if (xhr.status === 200) {
+          try {
+            var resp = JSON.parse(xhr.responseText);
+            if (resp.ok && resp.message) {
+              messages.unshift(resp.message);
+              renderMessages(messages);
+              messageInput.value = '';
+              setStatus('✅ 留言已发送！', false);
+            } else {
+              setStatus('❌ 发送失败，请重试', true);
+            }
+          } catch(e) {
+            setStatus('❌ 发送失败，请重试', true);
+          }
+        } else {
+          setStatus('❌ 服务器错误，请稍后重试', true);
+        }
+      };
+      xhr.onerror = function() {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '发送 💬';
+        setStatus('❌ 网络错误，请检查连接', true);
+      };
+      xhr.send(params);
+    });
+
+    // Keyboard shortcut for message
+    messageInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        messageForm.dispatchEvent(new Event('submit'));
+      }
+    });
+
+    // Initial fetch
+    fetchMessages();
+  })();
+</script>
+
+<style>
+  .guestbook-section {
+    margin-top: 3rem;
+    padding: 0;
+  }
+
+  .guestbook-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .guestbook-title {
+    font-size: 1.6rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .guestbook-subtitle {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+  }
+
+  /* ===== Marquee ===== */
+  .marquee-wrapper {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    padding: 1rem 0;
+    min-height: 120px;
+  }
+
+  .marquee-fade {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 60px;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .marquee-fade-left {
+    left: 0;
+    background: linear-gradient(to right, var(--color-bg) 0%, transparent 100%);
+  }
+
+  .marquee-fade-right {
+    right: 0;
+    background: linear-gradient(to left, var(--color-bg) 0%, transparent 100%);
+  }
+
+  .marquee-track {
+    display: flex;
+    overflow: hidden;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .marquee-track:last-child {
+    margin-bottom: 0;
+  }
+
+  .marquee-group {
+    display: flex;
+    flex-shrink: 0;
+    gap: 1rem;
+    animation: marquee-scroll 40s linear infinite;
+    min-width: fit-content;
+  }
+
+  .marquee-track-reverse .marquee-group {
+    animation-direction: reverse;
+  }
+
+  .marquee-track:hover .marquee-group {
+    animation-play-state: paused;
+  }
+
+  @keyframes marquee-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-100% - 1rem)); }
+  }
+
+  /* ===== Message Card ===== */
+  .message-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.65rem 0.9rem;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    white-space: nowrap;
+    transition: box-shadow var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .message-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+
+  .message-card-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--color-gradient);
+    color: white;
+    font-size: 0.75rem;
+    font-family: var(--font-heading);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+
+  .message-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .message-card-name {
+    font-size: 0.78rem;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .message-card-text {
+    font-size: 0.82rem;
+    color: var(--color-text);
+    line-height: 1.3;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ===== Empty State ===== */
+  .marquee-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    font-family: var(--font-heading);
+    pointer-events: none;
+  }
+
+  .marquee-empty-icon {
+    font-size: 1.8rem;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  /* ===== Form ===== */
+  .guestbook-form-wrapper {
+    margin-top: 0.5rem;
+    padding: 1.5rem;
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .name-section {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.85rem;
+    min-height: 36px;
+  }
+
+  .name-toggle-btn {
+    padding: 0.4rem 1rem;
+    border-radius: var(--radius-xl);
+    border: 2px dashed var(--color-border);
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+  }
+
+  .name-toggle-btn:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background: rgba(93, 173, 226, 0.06);
+  }
+
+  .name-input-area {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .name-input {
+    padding: 0.4rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--color-border);
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    outline: none;
+    width: 140px;
+    transition: border-color var(--transition-fast);
+  }
+
+  .name-input:focus {
+    border-color: var(--color-primary);
+  }
+
+  .name-confirm-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--color-gradient);
+    color: white;
+    font-family: var(--font-heading);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: opacity var(--transition-fast);
+  }
+
+  .name-confirm-btn:hover {
+    opacity: 0.85;
+  }
+
+  .display-name {
+    font-size: 0.88rem;
+    color: var(--color-primary);
+    font-family: var(--font-heading);
+    padding: 0.3rem 0.8rem;
+    background: rgba(93, 173, 226, 0.08);
+    border-radius: var(--radius-xl);
+  }
+
+  .message-form {
+    display: flex;
+    gap: 0.6rem;
+    align-items: stretch;
+  }
+
+  .message-input {
+    flex: 1;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--radius-sm);
+    border: 2px solid var(--color-border);
+    font-family: var(--font-body);
+    font-size: 0.88rem;
+    color: var(--color-text);
+    background: var(--color-bg);
+    outline: none;
+    resize: none;
+    min-height: 44px;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  }
+
+  .message-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(93, 173, 226, 0.12);
+  }
+
+  .submit-btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-xl);
+    border: none;
+    background: var(--color-gradient);
+    color: white;
+    font-family: var(--font-heading);
+    font-size: 0.88rem;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all var(--transition-fast);
+    align-self: stretch;
+  }
+
+  .submit-btn:hover {
+    transform: scale(1.03);
+    box-shadow: 0 3px 12px rgba(93, 173, 226, 0.3);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .form-status {
+    font-size: 0.82rem;
+    margin-top: 0.6rem;
+    min-height: 1.2em;
+    transition: opacity var(--transition-fast);
+  }
+
+  .form-status-success {
+    color: #27ae60;
+  }
+
+  .form-status-error {
+    color: #e74c3c;
+  }
+
+  @media (max-width: 768px) {
+    .message-form {
+      flex-direction: column;
+    }
+
+    .submit-btn {
+      align-self: flex-end;
+    }
+
+    .marquee-fade {
+      width: 30px;
+    }
+
+    .message-card-text {
+      max-width: 140px;
+    }
+  }
+</style>

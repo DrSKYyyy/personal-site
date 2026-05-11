@@ -1,0 +1,14 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { siteConfig } from '../../data/siteData';
+const adminConfigStr = JSON.stringify({ password: siteConfig.admin.password, siteUrl: siteConfig.admin.siteUrl });
+---
+
+<Layout title="后台管理">
+  <section class="admin-page container page-enter" id="admin-app">
+    <div id="admin-content"></div>
+    <div id="admin-config" style="display:none">{adminConfigStr}</div>
+  </section>
+  <script is:inline src="/admin/app.js"></script>
+  <link rel="stylesheet" href="/admin/styles.css" />
+</Layout>

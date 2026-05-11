@@ -1,0 +1,215 @@
+---
+import { siteConfig } from '../data/siteData';
+---
+
+<div id="typing-intro" class="typing-intro">
+  <div class="typing-bg"></div>
+  <div class="typing-content">
+    <h1 id="typewriter-text"></h1>
+    <p class="typing-subtitle" id="typing-subtitle">我追风，也等你</p>
+    <div class="typing-hint" id="typing-hint">点击任意位置跳过</div>
+  </div>
+  <div id="typing-data" style="display:none">{JSON.stringify(siteConfig.intro.lines)}</div>
+</div>
+
+<script is:inline>
+  (function() {
+    var intro = document.getElementById('typing-intro');
+    var textEl = document.getElementById('typewriter-text');
+    var subtitleEl = document.getElementById('typing-subtitle');
+    var hint = document.getElementById('typing-hint');
+    var siteHeader = document.getElementById('header');
+
+    if (!intro) return;
+
+    var skip = false;
+
+    var texts = [];
+    try {
+      var dataEl = document.getElementById('typing-data');
+      if (dataEl && dataEl.textContent) texts = JSON.parse(dataEl.textContent);
+    } catch(e) {}
+    if (!texts || texts.length === 0) { texts = ["你好，我是 天天", '欢迎来到我的世界']; }
+
+    function dismiss() {
+      if (!intro) return;
+      intro.classList.add('fade-out');
+      setTimeout(function() {
+        intro.style.display = 'none';
+        document.body.style.overflow = '';
+        if (siteHeader) siteHeader.style.display = '';
+      }, 600);
+    }
+
+    function startTyping() {
+      var currentTextIndex = 0;
+      var currentCharIndex = 0;
+      var isDeleting = false;
+
+      function type() {
+        if (skip) { dismiss(); return; }
+
+        var currentText = texts[currentTextIndex];
+
+        if (isDeleting) {
+          textEl.textContent = currentText.substring(0, currentCharIndex - 1);
+          currentCharIndex--;
+        } else {
+          textEl.textContent = currentText.substring(0, currentCharIndex + 1);
+          currentCharIndex++;
+        }
+
+        if (!isDeleting && currentCharIndex === currentText.length) {
+          textEl.classList.add('done');
+          setTimeout(function() {
+            textEl.classList.remove('done');
+            isDeleting = true;
+            setTimeout(type, 0);
+          }, 1000);
+          return;
+        } else if (isDeleting && currentCharIndex === 0) {
+          isDeleting = false;
+          currentTextIndex++;
+          if (currentTextIndex >= texts.length) {
+            setTimeout(dismiss, 500);
+            return;
+          }
+          setTimeout(type, 200);
+          return;
+        }
+
+        var typingSpeed = isDeleting ? 100 : 150;
+        setTimeout(type, typingSpeed);
+      }
+
+      setTimeout(type, 300);
+    }
+
+    intro.addEventListener('click', function() {
+      skip = true;
+      dismiss();
+    });
+
+    var navEntries = performance.getEntriesByType('navigation');
+    if (navEntries.length > 0 && navEntries[0].type === 'reload') {
+      sessionStorage.removeItem('intro_shown');
+    }
+
+    var shown = sessionStorage.getItem('intro_shown');
+    if (!shown) {
+      sessionStorage.setItem('intro_shown', '1');
+      intro.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+      if (siteHeader) siteHeader.style.display = 'none';
+      setTimeout(function() {
+        if (subtitleEl) subtitleEl.classList.add('visible');
+        startTyping();
+      }, 200);
+
+      setTimeout(function() {
+        if (hint) hint.style.opacity = '1';
+      }, 3000);
+    } else {
+      intro.style.display = 'none';
+    }
+  })();
+</script>
+
+<style>
+  .typing-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    animation: introFadeIn 0.8s ease forwards;
+  }
+
+  .typing-intro.fade-out {
+    animation: introFadeOut 0.6s ease forwards;
+  }
+
+  @keyframes introFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes introFadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
+  .typing-bg {
+    position: absolute;
+    inset: 0;
+    background: #FFFFFF;
+  }
+
+  .typing-content {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 2rem;
+    max-width: 800px;
+  }
+
+  #typewriter-text {
+    font-size: 2.5rem;
+    font-weight: bold;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    color: #2C3E50;
+    margin-bottom: 1rem;
+    min-height: 1.4em;
+    line-height: 1.4;
+  }
+
+  #typewriter-text::after {
+    content: '|';
+    animation: blink 1s infinite;
+    color: #2C3E50;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  .typing-subtitle {
+    margin-top: 1.5rem;
+    font-family: var(--font-heading);
+    font-size: 1.1rem;
+    color: #999;
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  .typing-subtitle.visible {
+    opacity: 1;
+  }
+
+  .typing-hint {
+    margin-top: 3rem;
+    font-size: 0.85rem;
+    color: #ccc;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    animation: hintBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes hintBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
+  }
+
+  @media (max-width: 768px) {
+    #typewriter-text {
+      font-size: 1.8rem;
+    }
+
+    .typing-subtitle {
+      font-size: 0.95rem;
+    }
+  }
+</style>

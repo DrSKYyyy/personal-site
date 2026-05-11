@@ -1,0 +1,296 @@
+/**
+ * ==========================================
+ *  🌐 网站全局配置文件
+ *  📍 位置: src/data/siteData.js
+ *  💡 修改此文件中的内容即可更新全站对应文字
+ *  ⚠️ 修改后需要重新构建部署才能生效，本地开发会自动热更新
+ *  ==========================================
+ *  目录：
+ *  1. 站点基本信息     — 标题、作者、头像等
+ *  2. 首页打字机动画   — 打字机逐行文字
+ *  3. 首页英雄区       — slogan、描述、按钮文字
+ *  4. 首页最新文章     — 区域标题
+ *  5. 导航栏           — 菜单项
+ *  6. 关于页面         — 全部文字内容
+ *  7. Special页面      — 读书/健身/旅行数据
+ *  8. 页脚             — 版权文案
+ *  9. 社交链接        — GitHub/Twitter/Email
+ *  10. 彩蛋配置        — 触发词
+ *  11. 网站统计        — Cloudflare
+ *  12. 管理员后台       — 密码/站点URL
+ *  13. 留言接口        — Worker API 地址
+ * ==========================================
+ */
+
+export const siteConfig = {
+  // ====================================================================
+  //  1. 站点基本信息
+  // ====================================================================
+  base: '',                              // 部署子路径，空=根路径。如果部署在子目录如 /blog 则填 '/blog'
+  title: '追风少年',                      // 网站名称（导航栏logo、页脚、浏览器标签标题）
+  description: '一个有趣、真诚的年轻人的数字花园',  // 网站描述（SEO 和页脚副标题）
+  author: '天天',                     // 作者名
+  avatar: '/images/形象/1.png',          // 头像图片路径（图片放在 public/images/ 下）
+  avatarFrames: 17,                      // 头像动画帧数（从1.png到N.png，循环播放，0=单张静态）
+  avatarFrameInterval: 1000,              // 头像动画每帧间隔(ms)，数字越大越慢。380≈抽帧效果，100=流畅
+
+  // ====================================================================
+  //  1b. 首页公告横幅
+  // ====================================================================
+  announcement: {
+    enabled: true,                       // 是否显示公告（false 则不显示）
+    title: '🎉 欢迎来到我的数字花园！',
+    body: '这是一个全新的开始，我会在这里记录成长、分享思考，或许你也能收获一些启发。<br/>欢迎你常来逛逛，和我一起见证时间的力量。<br/>记得去看我的贴子哟',
+    image: '/images/小猫可爱脸.jpg',       // 图片路径（留空则不显示图片区域）
+    dismissLabel: '我知道啦',             // 按钮文字
+    triggerIcon: '🔔',                    // 导航栏触发按钮图标
+  },
+
+  // ====================================================================
+  //  2. 首页打字机动画（src/components/TypingIntro.astro）
+  // ====================================================================
+  intro: {
+    lines: [                             // 逐行打出的文字，按顺序循环
+      "你好，我是 天天",
+      '欢迎来到我的世界',
+    ],
+    subtitle: '我追风，也等你',           // 打字机下方的装饰文字
+    typingSpeed: 80,                     // 打字速度（毫秒/字，数值越小越快）
+    eraseSpeed: 40,                      // 删除速度（毫秒/字）
+    pauseAfterType: 1500,                // 打完一行后的停顿（毫秒）
+    pauseBeforeNext: 500,                // 切换到下一行前的停顿（毫秒）
+  },
+
+  // ====================================================================
+  //  3. 首页英雄区（src/pages/index.astro）
+  // ====================================================================
+  hero: {
+    sloganEn: "Hi, I'm",                 // 顶部大标题英文部分（使用 Gaegu 手写字体）
+    sloganZh: '天天',                 // 顶部大标题中文部分（沿用 ZCOOL KuaiLe 字体）
+    subSlogan: '赤诚、爽朗、不畏风',       // 副标题
+    description: '这是一个有趣的、真诚的少年的数字花园。<br/>在这里，我用文字记录成长，用代码表达想法，用生活感受世界。',
+    speechBubbles: [                     // 悬停头像时随机显示的气泡文字
+      '今天很开心！🎉',
+      '欢迎来到我的世界 🌍',
+      '比昨天的自己更强！',
+    ],
+    learnMoreBtn: '了解更多 →',
+    readArticlesBtn: '阅读文章',
+    scrollHint: '向下滚动',
+  },
+
+  // ====================================================================
+  //  4. 首页"最新文章"区域
+  // ====================================================================
+  recentPosts: {
+    title: '最新文章',
+    viewAll: '查看全部文章 →',
+    maxCount: 3,                         // 首页显示的最新文章数量
+  },
+
+  // ====================================================================
+  //  5. 导航栏
+  // ====================================================================
+  navLinks: [
+    { name: 'Home', href: '/', icon: '😊' },
+    { name: 'About', href: '/about', icon: '☁️' },
+    { name: 'Projects', href: '/projects', icon: '🧰' },
+    { name: 'Writing', href: '/writing', icon: '✍️' },
+    { name: 'Special', href: '/special', icon: '⭐' },
+  ],
+  // CMS 管理后台的导航项（管理员登录后自动显示在导航栏）
+  navCMS: {
+    label: 'CMS',
+    icon: '⚙️',
+    href: '/admin',
+  },
+
+  // ====================================================================
+  //  6. 关于页面（src/pages/about.astro）
+  // ====================================================================
+  about: {
+    pageTitle: '关于我',
+    // 顶部简介区
+    intro: {
+      greeting: '👋 你好呀！',
+      paragraphs: [
+        '我是一个热爱生活、热爱技术的少年。',
+        '我相信技术是为了让生活更美好，文字是为了让思想更清晰。这个网站是我的数字花园，记录着我的思考、项目和生活中的小确幸。',
+      ],
+      toggleLabel: '📖 查看完整介绍',
+      toggleLabelCollapsed: '📕 收起完整介绍',
+    },
+    // 可折叠的详细介绍（点击"查看完整介绍"展开）
+    detail: {
+      sections: [
+        {
+          title: '关于"追风少年"',
+          paragraphs: [
+            '"追风少年"不仅仅是一个名字，更是一种生活态度。它代表着赤诚、爽朗、不畏风的精神内核。',
+            '从小我就对世界充满好奇，喜欢拆解各种东西看看里面是什么样子。这种好奇心引导我走进了编程的世界——一个可以无限创造、无限探索的数字宇宙。',
+            '编程对我来说不仅仅是一份技能，更是表达自我的方式。就像作家用文字、画家用色彩，我用代码构建想法，用技术解决问题。',
+          ],
+        },
+        {
+          title: '我的数字花园哲学',
+          paragraphs: [
+            '这个网站不是传统的博客——流水账式的日记本。它是一个数字花园，每一篇文章都是一株精心栽培的植物。',
+            '有些内容会成熟结果（完整的教程、项目总结），有些还在生长中（正在进行的学习笔记），有些可能会被修剪整理（过时的观点更新）。',
+            '我邀请你在这里漫步，感受思维生长的过程。',
+          ],
+        },
+        {
+          title: '关于长期主义',
+          paragraphs: [
+            '我信奉长期主义。在这个网站上，我不追求爆款文章或短期流量，而是持续地、稳定地记录和输出。',
+            '我相信 5 年、10 年后回看这些记录，会发现时间的力量。这也正是我选择 Markdown 文件作为内容存储的原因——无论技术如何变迁，文字永远是我的。',
+          ],
+        },
+      ],
+    },
+    // 生活剪影（照片墙）
+    //   展示在 about 页面，照片存放在 public/images/ 目录下
+    //   image:      缩略图路径（填写 /images/xxx.jpg）
+    //   imageFull:  高清大图路径（留空则点击不放大）
+    //   emoji:      当 image 为空时显示的占位符图标
+    //   gradient:   当 image 为空时显示的占位符渐变背景
+    gallery: {
+      title: '📸 生活剪影',
+      desc: '感觉自己今天超帅😉',
+      maxPreview: 4,                       // 默认展示的照片数，其余点"查看全部"后显示
+      items: [
+        { image: '/images/婚礼自拍.jpg', imageFull: '', emoji: '☀️', gradient: 'linear-gradient(135deg, #5DADE2, #48C9B0)' },
+        { image: '/images/生日.jpg', imageFull: '', emoji: '🌊', gradient: 'linear-gradient(135deg, #F4D03F, #F5B041)' },
+        { image: '/images/秀肌肉.jpg', imageFull: '', emoji: '📚', gradient: 'linear-gradient(135deg, #58D68D, #2ECC71)' },
+        { image: '/images/潇洒黄毛.jpg', imageFull: '', emoji: '🎵', gradient: 'linear-gradient(135deg, #AF7AC5, #8E44AD)' },
+        { image: '/images/坤坤雪人.jpg', imageFull: '', emoji: '🌈', gradient: 'linear-gradient(135deg, #E74C8B, #8E44AD)' },
+        { image: '/images/长头发和我姐.jpg', imageFull: '', emoji: '🌙', gradient: 'linear-gradient(135deg, #2C3E50, #3498DB)' },
+        { image: '/images/白头发小辫子.jpg', imageFull: '', emoji: '🌸', gradient: 'linear-gradient(135deg, #F8BBD0, #F06292)' },
+        { image: '/images/黄毛坐电瓶车.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/小时候超人飞拳.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/小时候蛋糕抹脸.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/白毛外套.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/想象中的相机.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+        { image: '/images/挡在你面前的只有你自己.jpg', imageFull: '', emoji: '🍃', gradient: 'linear-gradient(135deg, #81C784, #388E3C)' },
+      ],
+    },
+    // 详细信息卡片
+    details: {
+      current: {
+        title: '🎯 现在在做',
+        items: [
+          '探索 AI 与各种技术的结合',
+          '保持每日健身打卡',
+          '维护这个数字花园',
+        ],
+      },
+      techStack: {
+        title: '💻 技术栈',
+        skills: ['啥也不会，努力学习用AI中'],
+      },
+      hobbies: {
+        title: '🎨 兴趣爱好',
+        items: ['📖 阅读', '✍️ 写作', '🎮 游戏', '🎵 音乐'],
+      },
+      status: {
+        title: '✨ 此刻状态',
+        items: [
+          { label: '心情', value: '阳光明媚 ☀️' },
+          { label: '在听', value: '很多音乐' },
+          { label: '在读', value: '很多书' },
+        ],
+      },
+    },
+  },
+
+  // ====================================================================
+  //  7. Special 页面（src/pages/special/index.astro）
+  // ====================================================================
+  special: {
+    pageTitle: '🌟 特别角落',
+    // 读书角落
+    books: {
+      title: '📚 读书角落',
+      desc: '正在读、读过、想读的好书',
+      maxPreview: 6,
+      list: [
+        { title: '高效能人士的七个习惯', author: '[美]史蒂芬·柯维', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '我该如何变强' },
+        { title: '拖延心理学', author: '[美]简·博克 莱诺拉·袁', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '向与生俱来的行为顽疾宣战' },
+        { title: '掌控习惯', author: '[美]詹姆斯·克利尔', status: '已读', rating: '⭐⭐⭐⭐⭐', note: '如何养成好习惯并戒除坏习惯' },
+        { title: '最重要的事，只有一件', author: '[美]加里·凯勒 杰伊·帕帕森', status: '在读', rating: '⭐⭐⭐⭐⭐', note: 'What\'s your one thing?' },
+        { title: '沉思录', author: '[古罗马]玛克斯·奥勒留', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '贯穿千年的人生智慧' },
+        { title: '游戏设计艺术', author: '[美]Jesse Schell', status: '在读', rating: '⭐⭐⭐⭐⭐', note: '“你好呀！来来来，快请进！真是稀客！我都不知道你今天要来……”' },
+        { title: '体验引擎', author: '[美]Tynan Sylvester', status: '未读', rating: '???', note: 'A Guide to Engineering Experiences' },
+        { title: '当下的力量', author: '[美]埃克哈特·托利', status: '在读', rating: '???', note: '找到内心真正的力量' },
+        { title: '我胆小如鼠', author: '余华', status: '在读', rating: '???', note: '再看看' },
+        { title: '法制的细节', author: '罗翔', status: '已读', rating: '⭐⭐⭐⭐', note: '作为法学殿堂的门童，我邀请大家与人类伟大的先贤对话，感受人类群星的璀璨，超越我们日常生活的庸碌，思考法治真正的要义' },
+        { title: '仿生人会梦见电子羊吗？', author: '[美]菲利普·迪克', status: '已读', rating: '⭐⭐⭐⭐', note: 'AI永远 不会超越人类，因为它们不会流泪' },
+        { title: '瓦尔登湖', author: '[美]亨利·戴维·梭罗', status: '在读', rating: '???', note: '再看看' },
+        
+
+      ],
+    },
+    // 健身日志
+    fitness: {
+      title: '💪 健身日志',
+      desc: '持续进步，成为更好的自己',
+      items: [
+        { label: '卧推', current: 50, target: 100, unit: 'kg' },
+        { label: '引体向上', current: 10, target: 20, unit: '个' },
+      ],
+    },
+    // 彩蛋入口
+    easterEgg: {
+      title: '🎮 彩蛋入口',
+      desc: '在任意页面输入 <strong>"少年"</strong>，看看会发生什么 ✈️',
+      hint: '提示：试试在键盘上输入 <code>少年</code> 或 <code>sn</code>',
+    },
+  },
+
+  // ====================================================================
+  //  8. 页脚（src/components/Footer.astro）
+  // ====================================================================
+  footer: {
+    copyright: '用 ❤️ 和 ☀️ 建造',      // 版权文字（年份自动填充）
+  },
+
+  // ====================================================================
+  //  9. 社交链接
+  // ====================================================================
+  social: {
+    github: 'https://github.com/DrSKYyyy',   // GitHub 个人主页
+    csdn: 'https://blog.csdn.net/SKY_PPCH',  // CSDN 博客主页
+    twitter: 'https://twitter.com',           // 暂未使用（保留备用）
+    email: 'sunhaotian_game@163.com',    // 163 邮箱地址（页脚图标点击跳转 163 邮箱网页版）
+  },
+
+  // ====================================================================
+  //  10. 彩蛋配置（src/components/EasterEgg.astro）
+  // ====================================================================
+  easterEggs: {
+    trigger: '少年',                       // 触发彩蛋的关键词
+    paperCount: 30,                       // 纸飞机数量
+  },
+
+  // ====================================================================
+  //  11. 网站统计（Cloudflare Web Analytics）
+  // ====================================================================
+  analytics: {
+    cloudflare: '',                        // Cloudflare 分析 Token（留空则不启用）
+  },
+
+  // ====================================================================
+  //  12. 管理员后台
+  // ====================================================================
+  admin: {
+    password: 'SHTskycool200417',          // CMS 登录密码
+    siteUrl: 'https://xxs.beauty',         // 站点 URL（用于 API 回调等）
+  },
+
+  // ====================================================================
+  //  13. 留言 API 接口
+  //    指向 Cloudflare Worker，用于处理留言表单提交
+  //    对应 Worker 文件: workers/message-worker.js
+  // ====================================================================
+  formEndpoint: 'https://website-message.121622090.workers.dev',
+};
