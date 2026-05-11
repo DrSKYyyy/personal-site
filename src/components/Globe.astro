@@ -1,19 +1,15 @@
 ---
-const { className = '' } = Astro.props;
 ---
 
 <div class="globe-wrapper" id="globe-wrapper">
   <canvas id="globe-canvas" class="globe-canvas"></canvas>
 </div>
 
-<script is:inline>
-(async function() {
-  try {
-    var cobe = await import('cobe');
-    var createGlobe = cobe.default || cobe.createGlobe;
-    var canvas = document.getElementById('globe-canvas');
-    if (!canvas) return;
+<script>
+  import createGlobe from 'cobe';
 
+  var canvas = document.getElementById('globe-canvas');
+  if (canvas) {
     var width = 0;
     var phi = 0;
 
@@ -23,7 +19,7 @@ const { className = '' } = Astro.props;
       devicePixelRatio: 2,
       phi: 0,
       theta: 0.3,
-      dark: 0,
+      dark: document.documentElement.getAttribute('data-theme') === 'dark' ? 1 : 0,
       diffuse: 0.4,
       mapSamples: 16000,
       mapBrightness: 1.2,
@@ -47,31 +43,22 @@ const { className = '' } = Astro.props;
       }
     });
 
-    var resizeObserver = new ResizeObserver(function(entries) {
-      for (var entry of entries) {
-        width = entry.contentRect.width;
+    function updateSize() {
+      var wrapper = document.getElementById('globe-wrapper');
+      if (wrapper) {
+        width = wrapper.offsetWidth;
         if (canvas) {
           canvas.style.width = width + 'px';
           canvas.style.height = width + 'px';
         }
       }
-    });
+    }
 
-    var wrapper = document.getElementById('globe-wrapper');
-    if (wrapper) resizeObserver.observe(wrapper);
+    var ro = new ResizeObserver(function() { updateSize(); });
+    ro.observe(document.getElementById('globe-wrapper'));
+    updateSize();
     setTimeout(function() { canvas.style.opacity = '1'; }, 100);
-
-    var themeObserver = new MutationObserver(function() {
-      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      if (globe && globe._state) {
-        globe._state.dark = isDark ? 1 : 0;
-      }
-    });
-    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  } catch(e) {
-    console.warn('Globe failed to load:', e);
   }
-})();
 </script>
 
 <style is:global>

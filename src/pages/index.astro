@@ -46,7 +46,7 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
           </div>
           <div class="speech-bubble" id="speech-bubble" data-bubbles={JSON.stringify(siteConfig.hero.speechBubbles)}>{siteConfig.hero.speechBubbles[0]}</div>
         </div>
-        <h1 class="hero-title kinetic-text" id="kinetic-title">
+        <h1 class="hero-title" id="kinetic-title" data-sloganzh={siteConfig.hero.sloganZh}>
           <span class="hero-title-en font-english kinetic-text" id="kinetic-en"></span>
           <span class="hero-title-zh gradient-text kinetic-text" id="kinetic-zh"></span>
         </h1>
@@ -67,7 +67,6 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
       <div class="grid-surface"></div>
     </div>
     <div class="container globe-content page-enter">
-      <h2 class="section-title">🌍 世界那么大</h2>
       <Globe />
     </div>
   </section>
@@ -140,6 +139,7 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
   // Kinetic text: split into chars
   var enEl = document.getElementById('kinetic-en');
   var zhEl = document.getElementById('kinetic-zh');
+  var titleEl = document.getElementById('kinetic-title');
   if (enEl) {
     var enText = "Hi, I'm";
     enEl.innerHTML = '';
@@ -149,8 +149,8 @@ const headline = siteConfig.hero.sloganEn + ' ' + siteConfig.hero.sloganZh;
       enEl.appendChild(s);
     }
   }
-  if (zhEl) {
-    var zhText = siteConfig.hero.sloganZh || '天天';
+  if (zhEl && titleEl) {
+    var zhText = titleEl.getAttribute('data-sloganzh') || '天天';
     zhEl.innerHTML = '';
     for (var cj = 0; cj < zhText.length; cj++) {
       var t = document.createElement('span');
