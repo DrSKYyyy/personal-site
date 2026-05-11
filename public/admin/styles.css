@@ -553,6 +553,131 @@
 .mt-05 { margin-top: 0.5rem; }
 .mt-1 { margin-top: 1rem; }
 
+/* ============================================
+   Message Management
+   ============================================ */
+.msg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.msg-admin-item {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 1rem 1.1rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-fast);
+}
+
+.msg-admin-item:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.msg-admin-left {
+  flex-shrink: 0;
+}
+
+.msg-admin-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-gradient);
+  color: white;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-admin-avatar.msg-anon {
+  background: #3a3a3e;
+  color: rgba(255,255,255,0.5);
+}
+
+.msg-admin-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.msg-admin-top {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.msg-admin-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: var(--font-heading);
+  color: var(--color-primary);
+}
+
+.msg-admin-date {
+  font-size: 0.72rem;
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  opacity: 0.7;
+}
+
+.msg-admin-text {
+  font-size: 0.88rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.msg-admin-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.msg-admin-del {
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #f5c6cb;
+  background: transparent;
+  color: #e74c3c;
+  font-family: var(--font-heading);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.msg-admin-del:hover {
+  background: #fde8e8;
+  border-color: #e74c3c;
+  transform: translateY(-1px);
+}
+
+.msg-admin-del:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+@media (max-width: 768px) {
+  .msg-admin-item {
+    flex-wrap: wrap;
+  }
+
+  .msg-admin-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: 0.25rem;
+  }
+}
+
 @media (max-width: 768px) {
   .editor-body { grid-template-columns: 1fr; }
   .editor-body .edit-pane {

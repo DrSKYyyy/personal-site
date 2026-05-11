@@ -1,7 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { siteConfig } from '../../data/siteData';
-const adminConfigStr = JSON.stringify({ password: siteConfig.admin.password, siteUrl: siteConfig.admin.siteUrl });
+const adminConfigStr = JSON.stringify({ password: siteConfig.admin.password, siteUrl: siteConfig.admin.siteUrl, formEndpoint: siteConfig.formEndpoint });
 ---
 
 <Layout title="后台管理">
