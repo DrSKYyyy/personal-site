@@ -314,7 +314,8 @@
       '</div>' +
       '<div id="msg-content"><div class="admin-loading"><div class="spinner"></div><span>正在加载首页留言...</span></div></div>';
 
-    function loadScope(sc) {
+    function loadScope(sc, retries) {
+      if (retries === undefined) retries = 3;
       var content = document.getElementById('msg-content');
       if (!content) return;
       loadingScope = sc;
@@ -324,7 +325,12 @@
       xhr.open('GET', APP.formEndpoint + '/api/messages?scope=' + encodeURIComponent(sc), true);
       xhr.onload = function() {
         if (xhr.status !== 200) {
-          content.innerHTML = '<div class="admin-error">加载失败 (HTTP ' + xhr.status + ')</div>';
+          if (retries > 0) {
+            content.innerHTML = '<div class="admin-loading"><div class="spinner"></div><span>加载失败，' + retries + '秒后重试...</span></div>';
+            setTimeout(function() { loadScope(sc, retries - 1); }, 3000);
+          } else {
+            content.innerHTML = '<div class="admin-error">加载失败 (HTTP ' + xhr.status + ')，请稍后重试</div>';
+          }
           return;
         }
         try {
@@ -403,7 +409,12 @@
         }
       };
       xhr.onerror = function() {
-        content.innerHTML = '<div class="admin-error">网络错误，无法连接到留言服务器</div>';
+        if (retries > 0) {
+          content.innerHTML = '<div class="admin-loading"><div class="spinner"></div><span>网络错误，' + retries + '秒后重试...</span></div>';
+          setTimeout(function() { loadScope(sc, retries - 1); }, 3000);
+        } else {
+          content.innerHTML = '<div class="admin-error">网络错误，无法连接到留言服务器，请稍后重试</div>';
+        }
       };
       xhr.send();
     }
