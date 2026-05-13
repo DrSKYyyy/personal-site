@@ -89,33 +89,35 @@ website-v5/
 
 ## 如何修改网站内容
 
-### 1. 全局配置（`src/data/siteData.js`）
+### 1. 全局配置
 
-> ⭐ **这是你修改网站内容最常用的文件。**
+> ⭐ **这是你修改网站内容最常用的文件。** → 快捷跳转：[src/data/siteData.js](src/data/siteData.js)
 
 所有可修改的内容都集中在此，并附有中文注释。修改后保存，本地开发服务器会自动热更新。
 
 **包含的内容：**
 
-| 配置项                  | 说明                 | 默认值示例                            |
-| -------------------- | ------------------ | -------------------------------- |
-| `title`              | 网站名称（导航栏、页脚、浏览器标签） | 追风少年                             |
-| `description`        | 网站描述（SEO）          | 一个有趣、真诚的年轻人的数字花园                 |
-| `avatar`             | 头像图片路径             | /images/avatar.svg               |
-| `hero.sloganEn`      | 首页大标题英文部分          | Hi, I'm                          |
-| `hero.sloganZh`      | 首页大标题中文部分          | 追风少年                             |
-| `hero.description`   | 首页描述文字             | 这是一个有趣的...                       |
-| `hero.speechBubbles` | 头像气泡文字列表           | \['今天很开心！🎉', ...]               |
-| `intro.lines`        | 打字机逐行文字            | \['你好，我是 天天', ...]               |
-| `intro.typingSpeed`  | 打字速度（毫秒/字）         | 80                               |
-| `navLinks`           | 导航栏菜单项             | \[...]                           |
-| `about.*`            | 关于页面全部文字           | 见文件内注释                           |
-| `special.*`          | Special页面全部数据      | 见文件内注释                           |
-| `giscus.*`           | Giscus 评论系统配置      | 见下方说明                            |
-| `admin.password`     | CMS 登录密码           | SHTskycool200417                 |
-| `social.*`           | 社交链接               | GitHub、Twitter、Email             |
-| `formEndpoint`       | 匿名留言接口地址           | <https://xxs.beauty/api/message> |
-| `footer.copyright`   | 页脚版权文字             | 用 ❤️ 和 ☀️ 建造                     |
+| 配置项                    | 说明                 | 默认值示例                             |
+| ---------------------- | ------------------ | --------------------------------- |
+| `title`                | 网站名称（导航栏、页脚、浏览器标签） | 追风少年                              |
+| `description`          | 网站描述（SEO）          | 一个有趣、真诚的年轻人的数字花园                  |
+| `avatar`               | 头像图片路径             | /images/avatar.svg                |
+| `hero.sloganEn`        | 首页大标题英文部分          | Hi, I'm                           |
+| `hero.sloganZh`        | 首页大标题中文部分          | 追风少年                              |
+| `hero.description`     | 首页描述文字             | 这是一个有趣的...                        |
+| `hero.speechBubbles`   | 头像气泡文字列表           | \['今天很开心！🎉', ...]                |
+| `intro.lines`          | 打字机逐行文字            | \['你好，我是 天天', ...]                |
+| `intro.typingSpeed`    | 打字速度（毫秒/字）         | 80                                |
+| `navLinks`             | 导航栏菜单项             | \[...]                            |
+| `about.*`              | 关于页面全部文字           | 见文件内注释                            |
+| `special.*`            | Special页面全部数据      | 见文件内注释                            |
+| `giscus.*`             | Giscus 评论系统配置      | 见下方说明                             |
+| `admin.password`       | CMS 登录密码           | SHTskycool200417                  |
+| `social.*`             | 社交链接               | GitHub、Twitter、Email              |
+| `formEndpoint`         | 匿名留言接口地址           | <https://xxs.beauty/api/message>  |
+| `footer.copyright`     | 页脚版权文字             | 用 ❤️ 和 ☀️ 建造                      |
+| `globe.markerLocation` | 地球仪标记点经纬度          | `{ lat: 31.8206, lng: 117.2272 }` |
+| `globe.markerLabel`    | 地球仪悬停弹窗文字          | 我在这里呀！                            |
 
 **示例：修改首页大标题**
 

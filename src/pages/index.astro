@@ -65,7 +65,7 @@ const base = siteConfig.base;
   <section class="globe-section page-enter">
     <RetroGrid />
     <div class="globe-container">
-      <Globe client:load />
+      <Globe client:load location={siteConfig.globe.markerLocation} />
     </div>
   </section>
 
@@ -278,8 +278,8 @@ const base = siteConfig.base;
 
   .avatar-wrapper {
     position: relative;
-    width: 120px;
-    height: 120px;
+    width: 240px;
+    height: 240px;
     animation: float 4s ease-in-out infinite;
   }
 
@@ -503,8 +503,8 @@ const base = siteConfig.base;
     }
 
     .avatar-wrapper {
-      width: 100px;
-      height: 100px;
+      width: 200px;
+      height: 200px;
     }
 
     .posts-grid {

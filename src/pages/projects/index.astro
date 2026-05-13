@@ -1,8 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import { siteConfig } from '../../data/siteData';
 
 const projects = await getCollection('projects');
+const base = siteConfig.base;
 const sortedProjects = projects
   .sort((a, b) => {
     const dateA = a.data.date || '';
@@ -26,11 +28,14 @@ const categories = ['全部', ...new Set(sortedProjects.map(p => p.data.category
     </div>
 
     <div class="projects-grid" id="projects-grid">
-      {sortedProjects.map(project => (
+      {sortedProjects.map(project => {
+        const pdfUrl = project.data.pdf ? base + '/projects/' + project.data.pdf : null;
+        const href = pdfUrl || project.data.link;
+        return (
         <a
-          href={project.data.link}
-          target={project.data.link.startsWith('http') ? '_blank' : undefined}
-          rel={project.data.link.startsWith('http') ? 'noopener noreferrer' : undefined}
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
           class="project-card card"
           data-category={project.data.category}
         >
@@ -48,7 +53,8 @@ const categories = ['全部', ...new Set(sortedProjects.map(p => p.data.category
             </div>
           )}
         </a>
-      ))}
+        );
+      })}
     </div>
   </section>
 </Layout>

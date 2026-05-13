@@ -21,6 +21,7 @@ const projectsCollection = defineCollection({
     category: z.enum(['代码', '写作', '策划']),
     description: z.string(),
     link: z.string(),
+    pdf: z.string().optional(),
     tags: z.array(z.string()).optional(),
     date: z.string().optional(),
   }),

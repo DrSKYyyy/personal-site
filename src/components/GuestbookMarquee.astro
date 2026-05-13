@@ -178,7 +178,20 @@ const { apiEndpoint = '', scope = 'home', showSyncToggle = false } = Astro.props
     track2.innerHTML = html2;
   }
 
-  function fetchMessages() {
+  function fetchMessages(retries) {
+    if (retries === undefined) retries = 3;
+    // Try to load cached messages immediately for instant display
+    try {
+      var cached = localStorage.getItem('guestbook_msgs_' + scope);
+      if (cached) {
+        var parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          messages = parsed;
+          render(messages);
+        }
+      }
+    } catch (e) {}
+
     var xhr = new XMLHttpRequest();
     xhr.open('GET', apiUrl + '/api/messages?scope=' + encodeURIComponent(scope), true);
     xhr.onload = function () {
@@ -188,9 +201,17 @@ const { apiEndpoint = '', scope = 'home', showSyncToggle = false } = Astro.props
           if (resp.ok && Array.isArray(resp.messages)) {
             messages = resp.messages;
             render(messages);
+            // Cache fresh data
+            try { localStorage.setItem('guestbook_msgs_' + scope, JSON.stringify(resp.messages)); } catch (e) {}
           }
         } catch (e) {}
       }
+    };
+    xhr.onerror = function () {
+      if (retries > 0) {
+        setTimeout(function () { fetchMessages(retries - 1); }, 3000);
+      }
+      // If no retries left, cached data (if any) is already shown
     };
     xhr.send();
   }
