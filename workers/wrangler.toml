@@ -1,7 +1,12 @@
 name = "website-message"
 main = "message-worker.js"
 compatibility_date = "2025-04-01"
+workers_dev = false
 
 kv_namespaces = [
   { binding = "GUESTBOOK_MESSAGES", id = "47109db46be841efa20413c4fe292eeb" }
+]
+
+routes = [
+  { pattern = "api.xxs.beauty", custom_domain = true }
 ]

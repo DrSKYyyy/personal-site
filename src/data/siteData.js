@@ -293,7 +293,7 @@ export const siteConfig = {
   //    指向 Cloudflare Worker，用于处理留言表单提交
   //    对应 Worker 文件: workers/message-worker.js
   // ====================================================================
-  formEndpoint: 'https://website-message.121622090.workers.dev',
+  formEndpoint: 'https://api.xxs.beauty',
 
   // ====================================================================
   //  14. 地球仪（src/components/Globe.tsx）
