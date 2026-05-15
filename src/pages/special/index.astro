@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { siteConfig } from '../../data/siteData';
+import FitnessSection from '../../components/FitnessSection';
 const special = siteConfig.special;
 const bookList = special.books.list.filter(b => b.title);
 const previewCount = special.books.maxPreview || 6;
@@ -61,23 +62,7 @@ const hasMore = bookList.length > previewCount;
     <section class="special-section">
       <h2 class="special-section-title">{special.fitness.title}</h2>
       <p class="special-section-desc">{special.fitness.desc}</p>
-      <div class="fitness-grid">
-        {special.fitness.items.map(item => {
-          const pct = Math.min(Math.round((item.current / item.target) * 100), 100);
-          return (
-            <div class="fitness-card card">
-              <div class="fitness-header">
-                <h3>{item.label}</h3>
-                <span class="fitness-count">{item.current}/{item.target} {item.unit}</span>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style={`width: ${pct}%`}></div>
-              </div>
-              <div class="progress-label">{pct}%</div>
-            </div>
-          );
-        })}
-      </div>
+      <FitnessSection items={special.fitness.items} client:load />
     </section>
 
 
@@ -234,55 +219,6 @@ const hasMore = bookList.length > previewCount;
   .books-scroll-container::-webkit-scrollbar-thumb {
     background: var(--color-primary);
     border-radius: 3px;
-  }
-
-  .fitness-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .fitness-card h3 {
-    font-size: 1rem;
-  }
-
-  .fitness-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-
-  .fitness-count {
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-  }
-
-  .progress-bar {
-    height: 12px;
-    background: var(--color-bg);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 0.4rem;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: var(--color-gradient);
-    border-radius: 6px;
-    transition: width 1s ease;
-    animation: fillBar 1.5s ease forwards;
-  }
-
-  @keyframes fillBar {
-    from { width: 0; }
-  }
-
-  .progress-label {
-    text-align: right;
-    font-size: 0.8rem;
-    color: var(--color-primary);
-    font-weight: 600;
   }
 
   .easter-egg-section .egg-hint {
