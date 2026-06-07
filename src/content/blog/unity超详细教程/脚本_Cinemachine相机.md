@@ -8,7 +8,9 @@ tags:
   - Confiner
 title: Cinemachine 虚拟相机系统
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 脚本
+seriesOrder: 110.0
 ---
 
 # Cinemachine 虚拟相机系统

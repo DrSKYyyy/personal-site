@@ -8,7 +8,9 @@ tags:
   - 击退
 title: PlayerMovement 玩家移动脚本
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 脚本
+seriesOrder: 100.0
 ---
 
 # PlayerMovement 玩家移动脚本

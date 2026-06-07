@@ -8,7 +8,9 @@ tags:
   - 暂停
 title: StatsUI 属性面板脚本
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 脚本
+seriesOrder: 109.0
 ---
 
 # StatsUI 属性面板脚本

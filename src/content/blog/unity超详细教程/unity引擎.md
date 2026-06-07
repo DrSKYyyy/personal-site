@@ -2,7 +2,9 @@
 date: '2026-05-17'
 title: unity引擎
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 主线教程
+seriesOrder: 2.0
 ---
 - 英文概览[[unity英文术语]]
 - [[unity版本差异]]

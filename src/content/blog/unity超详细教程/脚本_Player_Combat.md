@@ -8,7 +8,9 @@ tags:
   - 攻击
 title: Player_Combat 玩家战斗脚本
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 脚本
+seriesOrder: 101.0
 ---
 
 # Player_Combat 玩家战斗脚本

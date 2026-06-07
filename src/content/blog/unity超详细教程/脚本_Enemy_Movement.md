@@ -9,7 +9,9 @@ tags:
   - 移动
 title: Enemy_Movement 敌人移动/AI 脚本
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 脚本
+seriesOrder: 103.0
 ---
 
 # Enemy_Movement 敌人移动/AI 脚本

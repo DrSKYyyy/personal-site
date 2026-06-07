@@ -2,7 +2,9 @@
 date: '2026-05-31'
 title: Unity 2D RPG 游戏开发教程 · 总索引
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 主线教程
+seriesOrder: 1.0
 ---
 
 # Unity 2D RPG 游戏开发教程 · 总索引

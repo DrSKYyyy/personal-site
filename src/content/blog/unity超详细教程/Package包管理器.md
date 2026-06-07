@@ -4,7 +4,9 @@ title: Package 包管理器
 tags:
   - include
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 主线教程
+seriesOrder: 12.0
 ---
 
 # Package 包管理器

@@ -8,7 +8,9 @@ tags:
   - UI
 title: ExpManager 经验管理器脚本
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 脚本
+seriesOrder: 107.0
 ---
 
 # ExpManager 经验管理器脚本

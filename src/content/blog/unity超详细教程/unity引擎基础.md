@@ -2,7 +2,9 @@
 date: '2026-05-31'
 title: Unity 引擎基础
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 主线教程
+seriesOrder: 3.0
 ---
 
 # Unity 引擎基础

@@ -9,7 +9,9 @@ tags:
   - 协程
 title: Enemy_Knockback 敌人击退脚本
 series: unity超详细教程
-seriesTitle: unity超详细教程
+seriesTitle: Unity超详细教程
+seriesSection: 脚本
+seriesOrder: 106.0
 ---
 
 # Enemy_Knockback 敌人击退脚本
