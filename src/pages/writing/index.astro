@@ -31,129 +31,217 @@ const months = [
   { value: 'all', label: '全部月份' },
   ...Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: `${i + 1}月` })),
 ];
+
+// 收集合集/系列数据
+const seriesMap = new Map();
+for (const post of allPosts) {
+  const s = post.data.series;
+  if (!s) continue;
+  if (!seriesMap.has(s)) {
+    seriesMap.set(s, {
+      series: s,
+      title: post.data.seriesTitle || post.data.series,
+      posts: [],
+    });
+  }
+  seriesMap.get(s).posts.push({
+    slug: post.slug,
+    title: post.data.title,
+    order: post.data.seriesOrder ?? 999,
+  });
+}
+const seriesList = [...seriesMap.values()].map(group => {
+  group.posts.sort((a, b) => a.order - b.order);
+  return group;
+});
 ---
 
 <Layout title="文章">
   <section class="writing-page container page-enter">
     <h1 class="section-title">文章</h1>
 
-    <div class="writing-toolbar">
-      <div class="search-bar">
-        <span class="search-bar-icon">🔍</span>
-        <input type="text" id="blog-search" placeholder="搜索文章标题或标签..." class="search-input" />
+    <!-- 标签页导航 -->
+    <div class="writing-tabs">
+      <button class="writing-tab active" data-tab="all">全部内容</button>
+      <button class="writing-tab" data-tab="series">合集和列表</button>
+    </div>
+
+    <!-- ====== 全部内容 标签页 ====== -->
+    <div id="tab-all" class="tab-content active">
+      <div class="writing-toolbar">
+        <div class="search-bar">
+          <span class="search-bar-icon">🔍</span>
+          <input type="text" id="blog-search" placeholder="搜索文章标题或标签..." class="search-input" />
+        </div>
+
+        <div class="tag-cloud">
+          <button class="tag-filter active" data-tag="all">全部</button>
+          {allTags.map(tag => (
+            <button class="tag-filter" data-tag={tag}>{tag}</button>
+          ))}
+        </div>
+
+        <div class="advanced-filters">
+          <div class="filter-group">
+            <label class="filter-label">年份</label>
+            <select id="year-filter" class="filter-select">
+              <option value="all">全部年份</option>
+              {allYears.map(year => (
+                <option value={year}>{year}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">月份</label>
+            <select id="month-filter" class="filter-select">
+              {months.map(m => (
+                <option value={m.value}>{m.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label class="filter-label">时段</label>
+            <select id="period-filter" class="filter-select">
+              <option value="all">全部时段</option>
+              {timePeriods.map(p => (
+                <option value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
 
-      <div class="tag-cloud">
-        <button class="tag-filter active" data-tag="all">全部</button>
-        {allTags.map(tag => (
-          <button class="tag-filter" data-tag={tag}>{tag}</button>
-        ))}
-      </div>
-
-      <div class="advanced-filters">
-        <div class="filter-group">
-          <label class="filter-label">年份</label>
-          <select id="year-filter" class="filter-select">
-            <option value="all">全部年份</option>
-            {allYears.map(year => (
-              <option value={year}>{year}</option>
-            ))}
-          </select>
+      {pinnedPosts.length > 0 && (
+        <div class="pinned-section">
+          <button class="pinned-toggle" id="pinned-toggle">
+            <span>📌 置顶文章</span>
+            <span class="pinned-toggle-icon" id="pinned-toggle-icon">▼</span>
+          </button>
+          <div class="pinned-list" id="pinned-list">
+            {pinnedPosts.map(post => {
+              const timePeriod = getTimePeriodFromTime(post.data.time);
+              return (
+                <a href={base + '/writing/' + post.slug} class="post-item card"
+                  data-tags={(post.data.tags || []).join(',')}
+                  data-date={post.data.date}
+                  data-title={post.data.title}
+                  data-year={new Date(post.data.date).getFullYear()}
+                  data-month={String(new Date(post.data.date).getMonth() + 1).padStart(2, '0')}
+                  data-period={timePeriod}
+                >
+                  <div class="post-item-content">
+                    <div class="post-item-meta">
+                      <span class="post-pinned-badge">📌</span>
+                      <span class="post-item-date">{post.data.date}</span>
+                      {timePeriod && <span class="post-item-period">{timePeriod}</span>}
+                    </div>
+                    <h3 class="post-item-title">{post.data.title}</h3>
+                    <p class="post-item-desc">{post.data.description}</p>
+                    {post.data.tags && (
+                      <div class="post-item-tags">
+                        {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
+                      </div>
+                    )}
+                  </div>
+                </a>
+              );
+            })}
+          </div>
         </div>
+      )}
 
-        <div class="filter-group">
-          <label class="filter-label">月份</label>
-          <select id="month-filter" class="filter-select">
-            {months.map(m => (
-              <option value={m.value}>{m.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label class="filter-label">时段</label>
-          <select id="period-filter" class="filter-select">
-            <option value="all">全部时段</option>
-            {timePeriods.map(p => (
-              <option value={p}>{p}</option>
-            ))}
-          </select>
-        </div>
+      <div class="posts-list" id="posts-list">
+        {normalPosts.map(post => {
+          const timePeriod = getTimePeriodFromTime(post.data.time);
+          return (
+            <a href={base + '/writing/' + post.slug} class="post-item card"
+              data-tags={(post.data.tags || []).join(',')}
+              data-date={post.data.date}
+              data-title={post.data.title}
+              data-year={new Date(post.data.date).getFullYear()}
+              data-month={String(new Date(post.data.date).getMonth() + 1).padStart(2, '0')}
+              data-period={timePeriod}
+            >
+              <div class="post-item-content">
+                <div class="post-item-meta">
+                  <span class="post-item-date">{post.data.date}</span>
+                  {timePeriod && <span class="post-item-period">{timePeriod}</span>}
+                </div>
+                <h3 class="post-item-title">{post.data.title}</h3>
+                <p class="post-item-desc">{post.data.description}</p>
+                {post.data.tags && (
+                  <div class="post-item-tags">
+                    {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
+                  </div>
+                )}
+              </div>
+            </a>
+          );
+        })}
       </div>
     </div>
 
-    {pinnedPosts.length > 0 && (
-      <div class="pinned-section">
-        <button class="pinned-toggle" id="pinned-toggle">
-          <span>📌 置顶文章</span>
-          <span class="pinned-toggle-icon" id="pinned-toggle-icon">▼</span>
-        </button>
-        <div class="pinned-list" id="pinned-list">
-          {pinnedPosts.map(post => {
-            const timePeriod = getTimePeriodFromTime(post.data.time);
-            return (
-              <a href={base + '/writing/' + post.slug} class="post-item card"
-                data-tags={(post.data.tags || []).join(',')}
-                data-date={post.data.date}
-                data-title={post.data.title}
-                data-year={new Date(post.data.date).getFullYear()}
-                data-month={String(new Date(post.data.date).getMonth() + 1).padStart(2, '0')}
-                data-period={timePeriod}
-              >
-                <div class="post-item-content">
-                  <div class="post-item-meta">
-                    <span class="post-pinned-badge">📌</span>
-                    <span class="post-item-date">{post.data.date}</span>
-                    {timePeriod && <span class="post-item-period">{timePeriod}</span>}
-                  </div>
-                  <h3 class="post-item-title">{post.data.title}</h3>
-                  <p class="post-item-desc">{post.data.description}</p>
-                  {post.data.tags && (
-                    <div class="post-item-tags">
-                      {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
-                    </div>
-                  )}
-                </div>
-              </a>
-            );
-          })}
+    <!-- ====== 合集和列表 标签页 ====== -->
+    <div id="tab-series" class="tab-content">
+      {seriesList.length === 0 ? (
+        <div class="series-empty">
+          <p>暂无合集内容</p>
         </div>
-      </div>
-    )}
-
-    <div class="posts-list" id="posts-list">
-      {normalPosts.map(post => {
-        const timePeriod = getTimePeriodFromTime(post.data.time);
-        return (
-          <a href={base + '/writing/' + post.slug} class="post-item card"
-            data-tags={(post.data.tags || []).join(',')}
-            data-date={post.data.date}
-            data-title={post.data.title}
-            data-year={new Date(post.data.date).getFullYear()}
-            data-month={String(new Date(post.data.date).getMonth() + 1).padStart(2, '0')}
-            data-period={timePeriod}
-          >
-            <div class="post-item-content">
-              <div class="post-item-meta">
-                <span class="post-item-date">{post.data.date}</span>
-                {timePeriod && <span class="post-item-period">{timePeriod}</span>}
-              </div>
-              <h3 class="post-item-title">{post.data.title}</h3>
-              <p class="post-item-desc">{post.data.description}</p>
-              {post.data.tags && (
-                <div class="post-item-tags">
-                  {post.data.tags.map(tag => <span class="tag">{tag}</span>)}
+      ) : (
+        <div class="series-grid">
+          {seriesList.map(group => (
+            <a href={base + '/tutorial/' + group.series} class="series-card card">
+              <div class="series-card-header">
+                <div class="series-card-icon">📚</div>
+                <div class="series-card-info">
+                  <h3 class="series-card-title">{group.title}</h3>
+                  <span class="series-card-count">{group.posts.length} 篇文章</span>
                 </div>
-              )}
-            </div>
-          </a>
-        );
-      })}
+              </div>
+              <div class="series-card-body">
+                <ol class="series-card-list">
+                  {group.posts.slice(0, 5).map(p => (
+                    <li>{p.title}</li>
+                  ))}
+                  {group.posts.length > 5 && (
+                    <li class="series-card-more">...还有 {group.posts.length - 5} 篇</li>
+                  )}
+                </ol>
+              </div>
+            </a>
+          ))}
+        </div>
+      )}
     </div>
   </section>
 </Layout>
 
 <script is:inline>
+  (function() {
+    // ====== 标签页切换 ======
+    var tabs = document.querySelectorAll('.writing-tab');
+    var tabContents = {
+      all: document.getElementById('tab-all'),
+      series: document.getElementById('tab-series'),
+    };
+
+    tabs.forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var target = this.dataset.tab;
+        tabs.forEach(function(t) { t.classList.remove('active'); });
+        this.classList.add('active');
+        Object.keys(tabContents).forEach(function(key) {
+          if (tabContents[key]) {
+            tabContents[key].classList.toggle('active', key === target);
+          }
+        });
+      });
+    });
+  })();
+
+  // ====== 以下是原有的搜索/过滤/管理功能 ======
   (function() {
     var toggleBtn = document.getElementById('pinned-toggle');
     var pinnedList = document.getElementById('pinned-list');
@@ -166,54 +254,58 @@ const months = [
     }
   })();
 
-  const searchInput = document.getElementById('blog-search');
-  const tagFilters = document.querySelectorAll('.tag-filter');
-  const yearFilter = document.getElementById('year-filter');
-  const monthFilter = document.getElementById('month-filter');
-  const periodFilter = document.getElementById('period-filter');
-  const posts = document.querySelectorAll('.post-item');
+  (function() {
+    const searchInput = document.getElementById('blog-search');
+    if (!searchInput) return;
+    const tagFilters = document.querySelectorAll('.tag-filter');
+    const yearFilter = document.getElementById('year-filter');
+    const monthFilter = document.getElementById('month-filter');
+    const periodFilter = document.getElementById('period-filter');
+    const posts = document.querySelectorAll('#tab-all .post-item');
 
-  function filterPosts() {
-    const query = searchInput.value.toLowerCase();
-    const activeTag = document.querySelector('.tag-filter.active')?.dataset.tag || 'all';
-    const year = yearFilter.value;
-    const month = monthFilter.value;
-    const period = periodFilter.value;
+    function filterPosts() {
+      const query = searchInput.value.toLowerCase();
+      const activeTag = document.querySelector('.tag-filter.active')?.dataset.tag || 'all';
+      const year = yearFilter?.value || 'all';
+      const month = monthFilter?.value || 'all';
+      const period = periodFilter?.value || 'all';
 
-    posts.forEach(post => {
-      const title = post.dataset.title.toLowerCase();
-      const tags = post.dataset.tags.toLowerCase();
-      const postYear = post.dataset.year;
-      const postMonth = post.dataset.month;
-      const postPeriod = post.dataset.period;
+      posts.forEach(post => {
+        const title = post.dataset.title.toLowerCase();
+        const tags = post.dataset.tags.toLowerCase();
+        const postYear = post.dataset.year;
+        const postMonth = post.dataset.month;
+        const postPeriod = post.dataset.period;
 
-      const matchSearch = !query || title.includes(query) || tags.includes(query);
-      const matchTag = activeTag === 'all' || tags.includes(activeTag.toLowerCase());
-      const matchYear = year === 'all' || postYear === year;
-      const matchMonth = month === 'all' || postMonth === month;
-      const matchPeriod = period === 'all' || postPeriod === period;
+        const matchSearch = !query || title.includes(query) || tags.includes(query);
+        const matchTag = activeTag === 'all' || tags.includes(activeTag.toLowerCase());
+        const matchYear = year === 'all' || postYear === year;
+        const matchMonth = month === 'all' || postMonth === month;
+        const matchPeriod = period === 'all' || postPeriod === period;
 
-      if (matchSearch && matchTag && matchYear && matchMonth && matchPeriod) {
-        post.style.display = 'flex';
-      } else {
-        post.style.display = 'none';
-      }
+        if (matchSearch && matchTag && matchYear && matchMonth && matchPeriod) {
+          post.style.display = 'flex';
+        } else {
+          post.style.display = 'none';
+        }
+      });
+    }
+
+    searchInput.addEventListener('input', filterPosts);
+    if (yearFilter) yearFilter.addEventListener('change', filterPosts);
+    if (monthFilter) monthFilter.addEventListener('change', filterPosts);
+    if (periodFilter) periodFilter.addEventListener('change', filterPosts);
+
+    tagFilters.forEach(btn => {
+      btn.addEventListener('click', () => {
+        tagFilters.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterPosts();
+      });
     });
-  }
+  })();
 
-  searchInput.addEventListener('input', filterPosts);
-  yearFilter.addEventListener('change', filterPosts);
-  monthFilter.addEventListener('change', filterPosts);
-  periodFilter.addEventListener('change', filterPosts);
-
-  tagFilters.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tagFilters.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      filterPosts();
-    });
-  });
-
+  // 管理员功能（编辑/删除）
   (function() {
     try {
       var sessionData = sessionStorage.getItem('admin_session');
@@ -225,7 +317,7 @@ const months = [
       var owner = session.owner;
       var repo = session.repo;
 
-      document.querySelectorAll('.post-item').forEach(function(item) {
+      document.querySelectorAll('#tab-all .post-item').forEach(function(item) {
         var slug = item.getAttribute('href') ? item.getAttribute('href').replace(/\/writing\//, '') : '';
         if (!slug) return;
         slug = slug.replace(/^\//, '');
@@ -311,6 +403,155 @@ const months = [
     max-width: 900px;
   }
 
+  /* ====== 标签页 ====== */
+  .writing-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--color-border);
+  }
+
+  .writing-tab {
+    padding: 0.6rem 1.5rem;
+    border: none;
+    background: none;
+    color: var(--color-text-secondary);
+    font-family: var(--font-heading);
+    font-size: 0.95rem;
+    cursor: pointer;
+    position: relative;
+    transition: color var(--transition-fast);
+  }
+
+  .writing-tab:hover {
+    color: var(--color-text);
+  }
+
+  .writing-tab.active {
+    color: var(--color-primary);
+    font-weight: 600;
+  }
+
+  .writing-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 2px;
+  }
+
+  .tab-content {
+    display: none;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  /* ====== 合集卡片 ====== */
+  .series-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .series-card {
+    text-decoration: none;
+    color: inherit;
+    padding: 1.25rem 1.5rem;
+    transition: all var(--transition-fast);
+  }
+
+  .series-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .series-card:hover .series-card-title {
+    color: var(--color-primary);
+  }
+
+  .series-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .series-card-icon {
+    font-size: 2rem;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+
+  .series-card-info {
+    flex: 1;
+  }
+
+  .series-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+    transition: color var(--transition-fast);
+  }
+
+  .series-card-count {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+  }
+
+  .series-card-body {
+    padding-left: 0;
+  }
+
+  .series-card-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .series-card-list li {
+    padding: 0.3rem 0;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+    position: relative;
+    padding-left: 1.2rem;
+  }
+
+  .series-card-list li::before {
+    content: '·';
+    position: absolute;
+    left: 0.3rem;
+    font-weight: bold;
+    color: var(--color-primary);
+  }
+
+  .series-card-list li.series-card-more {
+    color: var(--color-text-tertiary);
+    font-style: italic;
+  }
+
+  .series-card-list li.series-card-more::before {
+    content: '...';
+    color: var(--color-text-tertiary);
+  }
+
+  .series-empty {
+    text-align: center;
+    padding: 3rem 0;
+    color: var(--color-text-secondary);
+  }
+
+  /* ====== 原有样式 ====== */
   .writing-toolbar {
     margin-bottom: 2rem;
     display: flex;
@@ -429,12 +670,6 @@ const months = [
 
   .filter-select:focus {
     border-color: var(--color-primary);
-  }
-
-  .posts-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
   }
 
   .posts-list {

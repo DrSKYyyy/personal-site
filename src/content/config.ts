@@ -11,6 +11,9 @@ const blogCollection = defineCollection({
     time: z.string().optional(),
     pinned: z.number().optional(),
     visibility: z.enum(['公开', '私密', '草稿']).default('公开'),
+    series: z.string().optional(),
+    seriesOrder: z.number().optional(),
+    seriesTitle: z.string().optional(),
   }),
 });
 

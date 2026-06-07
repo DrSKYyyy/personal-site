@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
+import remarkWikiLink from './src/lib/remark-wiki-link.mjs';
 
 export default defineConfig({
   site: 'https://xxs.beauty',
@@ -19,6 +20,7 @@ export default defineConfig({
     },
   },
   markdown: {
+    remarkPlugins: [remarkWikiLink],
     shikiConfig: {
       theme: 'github-light',
       wrap: true,

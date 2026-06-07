@@ -9,9 +9,10 @@ export interface Props {
   tags?: string[];
   coverImage?: string;
   slug?: string;
+  wikiIndex?: { title: string; slug: string }[];
 }
 
-const { title, date, tags = [], coverImage, slug } = Astro.props;
+const { title, date, tags = [], coverImage, slug, wikiIndex = [] } = Astro.props;
 const base = siteConfig.base;
 ---
 
@@ -34,6 +35,9 @@ const base = siteConfig.base;
     <div class="article-content">
       <slot />
     </div>
+
+    <!-- Wiki 引用索引数据 -->
+    <script type="application/json" id="wiki-index">{JSON.stringify(wikiIndex)}</script>
 
     <GuestbookMarquee apiEndpoint={siteConfig.formEndpoint} scope={'article:' + slug} showSyncToggle={true} />
 
@@ -79,6 +83,256 @@ const base = siteConfig.base;
     } else {
       loadMermaid();
     }
+  })();
+</script>
+
+<script is:inline>
+  // ====== Wiki 链接解析与悬浮预览 ======
+  (function() {
+    var indexEl = document.getElementById('wiki-index');
+    if (!indexEl) return;
+    var wikiIndex;
+    try { wikiIndex = JSON.parse(indexEl.textContent || '[]'); } catch(e) { return; }
+    if (!wikiIndex.length) return;
+
+    // 构建标题→slug 映射（不区分大小写）
+    var titleToSlug = {};
+    wikiIndex.forEach(function(item) {
+      titleToSlug[item.title.toLowerCase()] = item.slug;
+    });
+
+    // 修正所有 wiki 链接的 href
+    var wikiLinks = document.querySelectorAll('[data-wiki="true"]');
+    wikiLinks.forEach(function(link) {
+      var title = link.getAttribute('data-wiki-title');
+      if (!title) return;
+      var slug = titleToSlug[title.toLowerCase()];
+      if (slug) {
+        link.setAttribute('href', '/writing/' + slug);
+        link.setAttribute('data-wiki-slug', slug);
+      }
+    });
+
+    // ====== 悬浮预览 ======
+    var activePopups = [];    // 当前打开的弹窗栈
+    var dismissTimers = {};   // 关闭定时器
+
+    function getPopupStackOffset() {
+      return activePopups.length * 30; // 每层偏移 30px
+    }
+
+    function createPopup(link, slug, title) {
+      var offset = getPopupStackOffset();
+
+      var popup = document.createElement('div');
+      popup.className = 'wiki-preview-popup';
+      popup.setAttribute('data-popup-slug', slug);
+      popup.innerHTML = '<div class="wiki-preview-loading">加载中...</div>';
+
+      // 定位弹窗（相对于 link）
+      var rect = link.getBoundingClientRect();
+      var top = rect.bottom + window.scrollY + 8 + offset;
+      var left = Math.min(rect.left + window.scrollX + offset, window.innerWidth - 360);
+
+      popup.style.cssText =
+        'position:absolute;top:' + top + 'px;left:' + Math.max(10, left) + 'px;' +
+        'width:350px;max-height:280px;overflow-y:auto;' +
+        'background:var(--color-bg, #fff);border:1px solid var(--color-border, #e0e0e0);' +
+        'border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,0.15);' +
+        'z-index:9999;font-size:0.85rem;line-height:1.6;' +
+        'animation:wikiFadeIn 0.2s ease;';
+
+      // 关闭按钮
+      var closeBtn = document.createElement('button');
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.cssText =
+        'position:sticky;top:4px;float:right;border:none;background:var(--color-surface, #f5f5f5);' +
+        'width:24px;height:24px;border-radius:50%;cursor:pointer;' +
+        'font-size:16px;display:flex;align-items:center;justify-content:center;' +
+        'color:var(--color-text-secondary, #888);margin:4px 4px 0 0;z-index:1;';
+      closeBtn.title = '关闭';
+      closeBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        closePopup(popup);
+      });
+
+      popup.appendChild(closeBtn);
+      document.body.appendChild(popup);
+
+      // 记录到栈中
+      activePopups.push(popup);
+
+      // 异步加载内容
+      fetch('/writing/' + slug)
+        .then(function(res) { return res.text(); })
+        .then(function(html) {
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, 'text/html');
+          var content = doc.querySelector('.article-content');
+          if (!content) { content = doc.querySelector('article'); }
+          if (!content) { content = doc.querySelector('main'); }
+          var previewHtml = content ? content.innerHTML : '<p>无法加载预览</p>';
+
+          // 移除现有 loading
+          var loadingEl = popup.querySelector('.wiki-preview-loading');
+          if (loadingEl) loadingEl.remove();
+
+          // 插入内容
+          var contentDiv = document.createElement('div');
+          contentDiv.className = 'wiki-preview-content';
+          contentDiv.innerHTML = previewHtml;
+
+          // 限制图片大小
+          var imgs = contentDiv.querySelectorAll('img');
+          imgs.forEach(function(img) { img.style.maxWidth = '100%'; img.style.height = 'auto'; });
+
+          // 移除 Pre 的长代码块（节省空间）
+          var pres = contentDiv.querySelectorAll('pre');
+          pres.forEach(function(pre) {
+            var shortCode = document.createElement('div');
+            shortCode.className = 'wiki-preview-code';
+            shortCode.textContent = pre.textContent.substring(0, 200) + (pre.textContent.length > 200 ? '...' : '');
+            shortCode.style.cssText = 'background:var(--color-surface,#f5f5f5);padding:0.5rem;border-radius:4px;font-size:0.78rem;overflow-x:auto;';
+            pre.parentNode.replaceChild(shortCode, pre);
+          });
+
+          // 移除表格（节省空间）
+          var tables = contentDiv.querySelectorAll('table');
+          tables.forEach(function(t) { t.style.fontSize = '0.78rem'; });
+
+          popup.insertBefore(contentDiv, popup.firstChild);
+
+          // 解析 wiki 链接
+          contentDiv.querySelectorAll('[data-wiki="true"]').forEach(function(wl) {
+            var wTitle = wl.getAttribute('data-wiki-title');
+            if (wTitle) {
+              var wSlug = titleToSlug[wTitle.toLowerCase()];
+              if (wSlug) wl.setAttribute('href', '/writing/' + wSlug);
+            }
+            // 嵌套弹窗
+            wl.addEventListener('click', function(e) {
+              if (e.ctrlKey || e.metaKey) return;
+              e.preventDefault();
+              e.stopPropagation();
+              var nestedSlug = wl.getAttribute('data-wiki-slug') || wl.getAttribute('href');
+              if (nestedSlug) {
+                nestedSlug = nestedSlug.replace('/writing/', '');
+              }
+              var nestedTitle = wl.getAttribute('data-wiki-title') || wl.textContent;
+              // 固定当前弹窗内容，打开新的嵌套弹窗
+              createPopup(wl, nestedSlug, nestedTitle);
+            });
+          });
+        })
+        .catch(function() {
+          var loadingEl = popup.querySelector('.wiki-preview-loading');
+          if (loadingEl) loadingEl.textContent = '加载失败';
+        });
+
+      return popup;
+    }
+
+    function closePopup(popup) {
+      var idx = activePopups.indexOf(popup);
+      if (idx !== -1) {
+        activePopups.splice(idx, 1);
+        // 关闭后续所有弹窗（关闭当前弹窗时，所有嵌套的也要关闭）
+        while (activePopups.length > idx) {
+          var p = activePopups.pop();
+          if (p && p.parentNode) p.parentNode.removeChild(p);
+        }
+      }
+      if (popup && popup.parentNode) popup.parentNode.removeChild(popup);
+    }
+
+    function closeAllPopups() {
+      activePopups.forEach(function(p) {
+        if (p && p.parentNode) p.parentNode.removeChild(p);
+      });
+      activePopups = [];
+    }
+
+    // 为 wiki 链接添加事件
+    wikiLinks.forEach(function(link) {
+      var slug = link.getAttribute('data-wiki-slug');
+      var title = link.getAttribute('data-wiki-title') || link.textContent;
+      if (!slug) {
+        slug = titleToSlug[title.toLowerCase()];
+        if (slug) link.setAttribute('data-wiki-slug', slug);
+      }
+
+      var dismissTimer = null;
+
+      link.addEventListener('mouseenter', function(e) {
+        // 取消任何待关闭的定时器
+        if (dismissTimer) { clearTimeout(dismissTimer); dismissTimer = null; }
+
+        var existing = document.querySelector('.wiki-preview-popup[data-popup-slug="' + slug + '"]');
+        if (existing) return;
+
+        createPopup(link, slug, title);
+      });
+
+      link.addEventListener('mouseleave', function() {
+        // 启动关闭定时器 - 弹窗可能已打开
+        dismissTimer = setTimeout(function() {
+          var popup = document.querySelector('.wiki-preview-popup[data-popup-slug="' + slug + '"]');
+          if (popup) {
+            closePopup(popup);
+          }
+        }, 2000);
+      });
+
+      // Ctrl / Meta + 点击时在新标签页打开
+      link.addEventListener('click', function(e) {
+        if (e.ctrlKey || e.metaKey) {
+          // 浏览器默认行为已处理新标签页，不做额外操作
+          return;
+        }
+        // 普通点击不做特殊处理（正常导航）
+      });
+    });
+
+    // 弹窗 hover 时取消关闭定时器
+    document.addEventListener('mouseover', function(e) {
+      var popup = e.target.closest('.wiki-preview-popup');
+      if (popup) {
+        var slug = popup.getAttribute('data-popup-slug');
+        if (slug) {
+          // 查找对应的 link 并取消其关闭定时器
+          var link = document.querySelector('[data-wiki-slug="' + slug + '"]');
+          if (link) {
+            // 清除原有定时器
+            var timerId = 'timer-' + slug;
+            if (window[timerId]) { clearTimeout(window[timerId]); window[timerId] = null; }
+          }
+        }
+      }
+    });
+
+    // 弹窗 mouseleave 后 2s 关闭（仅当鼠标没有进入弹窗时）
+    document.addEventListener('mouseout', function(e) {
+      var popup = e.target.closest('.wiki-preview-popup');
+      if (!popup) return;
+      var related = e.relatedTarget;
+      if (related && related.closest && related.closest('.wiki-preview-popup')) return;
+
+      var slug = popup.getAttribute('data-popup-slug');
+      if (!slug) return;
+
+      var timerId = 'timer-' + slug;
+      window[timerId] = setTimeout(function() {
+        var p = document.querySelector('.wiki-preview-popup[data-popup-slug="' + slug + '"]');
+        if (p) closePopup(p);
+      }, 2000);
+    });
+
+    // 点击页面其他位置关闭所有弹窗
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.wiki-preview-popup') && !e.target.closest('[data-wiki="true"]')) {
+        closeAllPopups();
+      }
+    });
   })();
 </script>
 
@@ -361,5 +615,54 @@ const base = siteConfig.base;
     opacity: 0.6;
     cursor: not-allowed;
     transform: none !important;
+  }
+
+  /* Wiki 预览弹窗动画 */
+  @keyframes wikiFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .wiki-preview-popup {
+    font-family: var(--font-body, sans-serif);
+  }
+
+  .wiki-preview-loading {
+    padding: 2rem;
+    text-align: center;
+    color: var(--color-text-secondary, #888);
+  }
+
+  .wiki-preview-content {
+    padding: 0.75rem 1rem;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+
+  .wiki-preview-content h1,
+  .wiki-preview-content h2,
+  .wiki-preview-content h3 {
+    font-size: 1rem;
+    margin: 0.5rem 0 0.25rem;
+  }
+
+  .wiki-preview-content p {
+    margin-bottom: 0.5rem;
+  }
+
+  .wiki-preview-content p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Wiki 链接样式 */
+  .article-content :global(a[data-wiki="true"]) {
+    color: var(--color-primary);
+    border-bottom: 1px dashed var(--color-primary);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .article-content :global(a[data-wiki="true"]:hover) {
+    border-bottom-style: solid;
   }
 </style>
