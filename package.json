@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "prebuild": "node scripts/inject-frontmatter.mjs",
+    "build": "npm run prebuild && astro build",
     "preview": "astro preview"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "gray-matter": "^4.0.3",
     "wrangler": "^4.86.0"
   }
 }
