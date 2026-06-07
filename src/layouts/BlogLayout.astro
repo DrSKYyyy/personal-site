@@ -95,10 +95,16 @@ const base = siteConfig.base;
     try { wikiIndex = JSON.parse(indexEl.textContent || '[]'); } catch(e) { return; }
     if (!wikiIndex.length) return;
 
-    // 构建标题→slug 映射（不区分大小写）
+    // 构建标题→slug + 文件名→slug 映射（不区分大小写）
+    // 这样 [[文章标题]] 和 [[文件名]] 两种引用方式都能正确解析
     var titleToSlug = {};
     wikiIndex.forEach(function(item) {
       titleToSlug[item.title.toLowerCase()] = item.slug;
+      if (item.file) {
+        titleToSlug[item.file.toLowerCase().replace(/-+/g, '')] = item.slug;
+        // 也支持带横杠的格式
+        titleToSlug[item.file.toLowerCase()] = item.slug;
+      }
     });
 
     // 修正所有 wiki 链接的 href
@@ -106,7 +112,11 @@ const base = siteConfig.base;
     wikiLinks.forEach(function(link) {
       var title = link.getAttribute('data-wiki-title');
       if (!title) return;
-      var slug = titleToSlug[title.toLowerCase()];
+
+      // 计算查找 key：去除非单词字符（文件名格式如 脚本_Elevation_Entry_Exit → 脚本elevationentryexit）
+      var lookupKey = title.toLowerCase().replace(/[^\w\u4e00-\u9fff]/g, '');
+      var slug = titleToSlug[lookupKey] || titleToSlug[title.toLowerCase()];
+
       if (slug) {
         link.setAttribute('href', '/writing/' + slug);
         link.setAttribute('data-wiki-slug', slug);
@@ -206,7 +216,8 @@ const base = siteConfig.base;
           contentDiv.querySelectorAll('[data-wiki="true"]').forEach(function(wl) {
             var wTitle = wl.getAttribute('data-wiki-title');
             if (wTitle) {
-              var wSlug = titleToSlug[wTitle.toLowerCase()];
+              var wLookup = wTitle.toLowerCase().replace(/[^\w\u4e00-\u9fff]/g, '');
+              var wSlug = titleToSlug[wLookup] || titleToSlug[wTitle.toLowerCase()];
               if (wSlug) wl.setAttribute('href', '/writing/' + wSlug);
             }
             // 嵌套弹窗
@@ -257,7 +268,8 @@ const base = siteConfig.base;
       var slug = link.getAttribute('data-wiki-slug');
       var title = link.getAttribute('data-wiki-title') || link.textContent;
       if (!slug) {
-        slug = titleToSlug[title.toLowerCase()];
+        var lookupKey = title.toLowerCase().replace(/[^\w\u4e00-\u9fff]/g, '');
+        slug = titleToSlug[lookupKey] || titleToSlug[title.toLowerCase()];
         if (slug) link.setAttribute('data-wiki-slug', slug);
       }
 

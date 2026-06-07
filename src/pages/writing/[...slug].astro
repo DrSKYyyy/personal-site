@@ -14,11 +14,13 @@ export async function getStaticPaths() {
 const { post } = Astro.props;
 const { Content } = await post.render();
 
-// 构建 Wiki 引用索引（标题→slug 映射）
+// 构建 Wiki 引用索引（标题/文件名→slug 映射）
 const allPosts = await getCollection('blog');
 const wikiIndex = allPosts.map(p => ({
   title: p.data.title,
   slug: p.slug,
+  // 从 slug 中提取文件名（不含路径），用于匹配 [[文件名]] 引用
+  file: p.slug.includes('/') ? p.slug.split('/').pop() : p.slug,
 }));
 ---
 
