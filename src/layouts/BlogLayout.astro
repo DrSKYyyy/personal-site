@@ -36,8 +36,8 @@ const base = siteConfig.base;
       <slot />
     </div>
 
-    <!-- Wiki 引用索引数据 -->
-    <script type="application/json" id="wiki-index">{JSON.stringify(wikiIndex)}</script>
+    <!-- Wiki 引用索引数据（使用 hidden div + set:html 确保表达式被执行） -->
+    <div id="wiki-index" style="display:none" set:html={JSON.stringify(wikiIndex)}></div>
 
     <GuestbookMarquee apiEndpoint={siteConfig.formEndpoint} scope={'article:' + slug} showSyncToggle={true} />
 
