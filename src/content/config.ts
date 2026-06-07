@@ -14,6 +14,7 @@ const blogCollection = defineCollection({
     series: z.string().optional(),
     seriesOrder: z.number().optional(),
     seriesTitle: z.string().optional(),
+    seriesSection: z.string().optional(),
   }),
 });
 

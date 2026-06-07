@@ -8,6 +8,8 @@ tags:
   - 碰撞体
   - 渲染层级
 title: Elevation_Entry / Exit 高地进出脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Elevation_Entry / Exit 高地进出脚本

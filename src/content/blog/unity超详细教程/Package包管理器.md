@@ -3,6 +3,8 @@ date: '2026-05-31'
 title: Package 包管理器
 tags:
   - include
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Package 包管理器

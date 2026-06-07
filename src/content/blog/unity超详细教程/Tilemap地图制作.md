@@ -1,6 +1,8 @@
 ---
 date: '2026-05-31'
 title: Tilemap 地图制作
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Tilemap 地图制作

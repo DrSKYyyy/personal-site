@@ -7,6 +7,8 @@ tags:
   - 战斗
   - 攻击
 title: Enemy_Combat 敌人战斗脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Enemy_Combat 敌人战斗脚本

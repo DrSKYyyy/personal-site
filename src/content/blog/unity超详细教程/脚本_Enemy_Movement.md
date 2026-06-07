@@ -8,6 +8,8 @@ tags:
   - 状态机
   - 移动
 title: Enemy_Movement 敌人移动/AI 脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Enemy_Movement 敌人移动/AI 脚本

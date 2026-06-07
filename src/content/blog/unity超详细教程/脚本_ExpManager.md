@@ -7,6 +7,8 @@ tags:
   - 升级
   - UI
 title: ExpManager 经验管理器脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # ExpManager 经验管理器脚本

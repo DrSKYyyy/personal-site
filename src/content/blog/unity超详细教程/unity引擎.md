@@ -1,6 +1,8 @@
 ---
 date: '2026-05-17'
 title: unity引擎
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 - 英文概览[[unity英文术语]]
 - [[unity版本差异]]

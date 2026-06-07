@@ -7,6 +7,8 @@ tags:
   - 属性面板
   - 暂停
 title: StatsUI 属性面板脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # StatsUI 属性面板脚本

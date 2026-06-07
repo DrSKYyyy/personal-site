@@ -1,6 +1,8 @@
 ---
 date: '2026-05-31'
 title: Sprite 与九宫格
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Sprite 与九宫格

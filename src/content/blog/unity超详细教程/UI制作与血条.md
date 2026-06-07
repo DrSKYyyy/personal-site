@@ -1,6 +1,8 @@
 ---
 date: '2026-05-31'
 title: UI 制作与血条
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # UI 制作与血条

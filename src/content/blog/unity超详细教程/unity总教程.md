@@ -1,6 +1,8 @@
 ---
 date: '2026-05-31'
 title: Unity 2D RPG 游戏开发教程 · 总索引
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Unity 2D RPG 游戏开发教程 · 总索引

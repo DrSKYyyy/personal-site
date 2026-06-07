@@ -1,6 +1,8 @@
 ---
 date: '2026-05-31'
 title: C# 基础与 MonoBehaviour
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # C# 基础与 MonoBehaviour

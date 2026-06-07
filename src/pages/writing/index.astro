@@ -18,21 +18,34 @@ function getTimePeriodFromTime(timeStr) {
 
 const allPosts = await getCollection('blog');
 const publicPosts = allPosts.filter(p => p.data.visibility === '公开');
-const pinnedPosts = publicPosts
+
+// ====== 区分根目录文章 vs 系列文件夹文章 ======
+// 根目录文章：slug 中不含 "/"
+const rootPosts = publicPosts.filter(p => !p.slug.includes('/'));
+// 系列文件夹文章：slug 包含 "/"，从中提取文件夹名
+const folderSeriesSet = new Set();
+for (const post of publicPosts) {
+  const idx = post.slug.indexOf('/');
+  if (idx !== -1) {
+    folderSeriesSet.add(post.slug.slice(0, idx));
+  }
+}
+
+const pinnedPosts = rootPosts
   .filter(p => p.data.pinned)
   .sort((a, b) => a.data.pinned - b.data.pinned);
-const normalPosts = publicPosts
+const normalPosts = rootPosts
   .sort((a, b) => new Date(b.data.date) - new Date(a.data.date));
 
-const allTags = [...new Set(publicPosts.flatMap(p => p.data.tags || []))];
-const allYears = [...new Set(publicPosts.map(p => new Date(p.data.date).getFullYear()))].sort().reverse();
+const allTags = [...new Set(rootPosts.flatMap(p => p.data.tags || []))];
+const allYears = [...new Set(rootPosts.map(p => new Date(p.data.date).getFullYear()))].sort().reverse();
 const timePeriods = ['凌晨', '早晨', '上午', '中午', '下午', '晚上', '深夜'];
 const months = [
   { value: 'all', label: '全部月份' },
   ...Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: `${i + 1}月` })),
 ];
 
-// 收集合集/系列数据
+// ====== 收集合集/系列数据（仅根目录下的系列文件夹） ======
 const seriesMap = new Map();
 for (const post of allPosts) {
   const s = post.data.series;
@@ -40,7 +53,7 @@ for (const post of allPosts) {
   if (!seriesMap.has(s)) {
     seriesMap.set(s, {
       series: s,
-      title: post.data.seriesTitle || post.data.series,
+      title: post.data.seriesTitle || s,
       posts: [],
     });
   }
@@ -149,6 +162,27 @@ const seriesList = [...seriesMap.values()].map(group => {
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* ====== 系列文件夹卡片 ====== */}
+      {folderSeriesSet.size > 0 && (
+        <div class="folder-series-section">
+          {[...folderSeriesSet].map(folder => {
+            const count = publicPosts.filter(p => p.slug.startsWith(folder + '/')).length;
+            return (
+              <a href={base + '/tutorial/' + folder} class="series-folder-card card">
+                <div class="series-folder-card-inner">
+                  <div class="series-card-icon">📚</div>
+                  <div class="series-card-info">
+                    <h3 class="series-card-title">{folder}</h3>
+                    <span class="series-card-count">{count} 篇文章</span>
+                  </div>
+                  <span class="series-card-arrow">→</span>
+                </div>
+              </a>
+            );
+          })}
         </div>
       )}
 
@@ -838,5 +872,74 @@ const seriesList = [...seriesMap.values()].map(group => {
 
   .post-item {
     position: relative;
+  }
+
+  /* ====== 系列文件夹卡片 ====== */
+  .folder-series-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .series-folder-card {
+    text-decoration: none;
+    color: inherit;
+    padding: 1rem 1.25rem;
+    transition: all var(--transition-fast);
+  }
+
+  .series-folder-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .series-folder-card-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .series-folder-card .series-card-icon {
+    font-size: 1.8rem;
+    width: 3rem;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    flex-shrink: 0;
+  }
+
+  .series-folder-card .series-card-info {
+    flex: 1;
+  }
+
+  .series-folder-card .series-card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 0.15rem;
+    transition: color var(--transition-fast);
+  }
+
+  .series-folder-card:hover .series-card-title {
+    color: var(--color-primary);
+  }
+
+  .series-folder-card .series-card-count {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+  }
+
+  .series-card-arrow {
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+    transition: transform var(--transition-fast);
+  }
+
+  .series-folder-card:hover .series-card-arrow {
+    transform: translateX(4px);
+    color: var(--color-primary);
   }
 </style>

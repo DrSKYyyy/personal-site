@@ -7,6 +7,8 @@ tags:
   - 管理器
   - 数值
 title: StatsManager 数值管理器脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # StatsManager 数值管理器脚本

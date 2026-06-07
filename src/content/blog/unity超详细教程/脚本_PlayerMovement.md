@@ -7,6 +7,8 @@ tags:
   - 移动
   - 击退
 title: PlayerMovement 玩家移动脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # PlayerMovement 玩家移动脚本

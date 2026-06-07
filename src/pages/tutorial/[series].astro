@@ -41,13 +41,41 @@ const renderedPosts = await Promise.all(
     return {
       slug: post.slug,
       title: post.data.title,
-      order: post.data.seriesOrder ?? i,
+      order: post.data.seriesOrder ?? 999,
+      section: post.data.seriesSection || '',
       Content,
     };
   })
 );
 
-const firstSlug = renderedPosts[0]?.slug || '';
+// ====== 按 seriesSection 分组 ======
+const sectionGroups = new Map();
+const unsectioned = [];
+for (const p of renderedPosts) {
+  if (p.section) {
+    if (!sectionGroups.has(p.section)) sectionGroups.set(p.section, []);
+    sectionGroups.get(p.section).push(p);
+  } else {
+    unsectioned.push(p);
+  }
+}
+// 每个 section 内按 order 排序
+for (const [, items] of sectionGroups) items.sort((a, b) => a.order - b.order);
+unsectioned.sort((a, b) => a.order - b.order);
+// 构建侧边栏顺序
+const sidebarSections = [];
+if (unsectioned.length > 0) sidebarSections.push({ label: '', items: unsectioned });
+for (const [label, items] of sectionGroups) sidebarSections.push({ label, items });
+// 打平用于渲染
+const flatItems = [];
+let globalIndex = 0;
+for (const section of sidebarSections) {
+  for (const item of section.items) {
+    flatItems.push({ ...item, globalIndex: globalIndex++ });
+  }
+}
+
+const firstSlug = flatItems[0]?.slug || '';
 ---
 
 <Layout title={seriesTitle}>
@@ -56,18 +84,27 @@ const firstSlug = renderedPosts[0]?.slug || '';
     <aside class="tutorial-sidebar" id="tutorial-sidebar">
       <div class="sidebar-header">
         <h2 class="sidebar-title">{seriesTitle}</h2>
-        <span class="sidebar-count">{renderedPosts.length} 篇</span>
+        <span class="sidebar-count">{flatItems.length} 篇</span>
       </div>
       <nav class="sidebar-nav">
-        {renderedPosts.map((p, i) => (
-          <button
-            class="sidebar-item"
-            data-slug={p.slug}
-            data-index={i}
-          >
-            <span class="sidebar-item-num">{i + 1}</span>
-            <span class="sidebar-item-title">{p.title}</span>
-          </button>
+        {sidebarSections.map(section => (
+          <>
+            {section.label && <div class="sidebar-section-label">{section.label}</div>}
+            {section.items.map(p => {
+              // 获取该条目在 flatItems 中的全局索引
+              const fi = flatItems.findIndex(f => f.slug === p.slug);
+              return (
+                <button
+                  class="sidebar-item"
+                  data-slug={p.slug}
+                  data-index={fi}
+                >
+                  <span class="sidebar-item-num">{fi + 1}</span>
+                  <span class="sidebar-item-title">{p.title}</span>
+                </button>
+              );
+            })}
+          </>
         ))}
       </nav>
     </aside>
@@ -75,7 +112,7 @@ const firstSlug = renderedPosts[0]?.slug || '';
     <!-- 主内容区 -->
     <main class="tutorial-main" id="tutorial-main">
       <div class="tutorial-content">
-        {renderedPosts.map((p, i) => (
+        {flatItems.map((p, i) => (
           <article
             class="tutorial-post"
             data-slug={p.slug}
@@ -91,7 +128,7 @@ const firstSlug = renderedPosts[0]?.slug || '';
         <button class="nav-btn prev-btn" id="prev-btn" disabled>
           ← 上一篇
         </button>
-        <span class="nav-progress" id="nav-progress">1 / {renderedPosts.length}</span>
+        <span class="nav-progress" id="nav-progress">1 / {flatItems.length}</span>
         <button class="nav-btn next-btn" id="next-btn">
           下一篇 →
         </button>
@@ -243,6 +280,22 @@ const firstSlug = renderedPosts[0]?.slug || '';
   .sidebar-count {
     font-size: 0.8rem;
     color: var(--color-text-secondary);
+  }
+
+  .sidebar-section-label {
+    padding: 0.6rem 1.25rem 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-tertiary, #999);
+    border-top: 1px solid var(--color-border);
+    margin-top: 0.25rem;
+  }
+
+  .sidebar-section-label:first-of-type {
+    border-top: none;
+    margin-top: 0;
   }
 
   .sidebar-nav {

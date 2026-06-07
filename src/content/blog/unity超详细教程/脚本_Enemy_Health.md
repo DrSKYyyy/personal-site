@@ -7,6 +7,8 @@ tags:
   - 生命值
   - 事件
 title: Enemy_Health 敌人生命值脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # Enemy_Health 敌人生命值脚本

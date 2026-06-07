@@ -7,6 +7,8 @@ tags:
   - 生命值
   - UI
 title: PlayerHealth 玩家生命值脚本
+series: unity超详细教程
+seriesTitle: unity超详细教程
 ---
 
 # PlayerHealth 玩家生命值脚本

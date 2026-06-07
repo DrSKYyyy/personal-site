@@ -160,6 +160,15 @@ function processFile(filePath) {
     }
   }
 
+  // ---- series：从文件夹路径自动识别（仅子目录中的文件） ----
+  const relativeDir = path.dirname(relativePath).replace(/\\/g, '/');
+  if (relativeDir !== '.' && !data.series) {
+    data.series = relativeDir;
+    data.seriesTitle = relativeDir;
+    console.log(`  📚 series → "${relativeDir}" (${relativePath})`);
+    needsRewrite = true;
+  }
+
   // ---- 确保 date 字段始终是字符串（YAML 会把 2026-05-31 解析成 Date 对象） ----
   if (data.date && typeof data.date !== 'string') {
     const d = new Date(data.date);
